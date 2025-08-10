@@ -1,0 +1,2286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adriel's Game - UFO Adventures</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #1a1a2e;
+            font-family: 'Courier New', monospace;
+            color: #eee;
+            overflow: hidden;
+        }
+
+        .game-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(45deg, #0f0f23, #16213e);
+        }
+
+        #gameCanvas {
+            border: 3px solid #0066cc;
+            box-shadow: 0 0 20px rgba(0, 102, 204, 0.5);
+            background: #000;
+        }
+
+        .ui-overlay {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        .ui-panel {
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #0066cc;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+            min-width: 200px;
+        }
+
+        .health-bar, .combo-bar {
+            width: 150px;
+            height: 20px;
+            background: #333;
+            border: 1px solid #666;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 5px 0;
+        }
+
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4444, #ff6666);
+            transition: width 0.3s ease;
+        }
+
+        .combo-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffaa00, #ffcc44);
+            transition: width 0.3s ease;
+        }
+
+        .lives-display {
+            display: flex;
+            gap: 5px;
+            margin: 10px 0;
+        }
+
+        .life-icon {
+            width: 20px;
+            height: 20px;
+            background: #ff4444;
+            border-radius: 50%;
+            border: 2px solid #fff;
+        }
+
+        .controls-panel {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #0066cc;
+            border-radius: 10px;
+            padding: 15px;
+            font-size: 12px;
+        }
+
+        .boss-health-bar {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 400px;
+            height: 30px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 2px solid #cc0000;
+            border-radius: 15px;
+            overflow: hidden;
+            z-index: 100;
+        }
+
+        .boss-health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #cc0000, #ff3333);
+            transition: width 0.3s ease;
+            width: 100%;
+        }
+
+        .boss-name {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            line-height: 30px;
+        }
+
+        .game-messages {
+            position: absolute;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 200;
+            pointer-events: none;
+        }
+
+        .message {
+            background: rgba(0, 0, 0, 0.9);
+            color: #ffcc00;
+            padding: 10px 20px;
+            border-radius: 10px;
+            margin: 5px 0;
+            font-size: 18px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+            animation: fadeInOut 3s ease-in-out;
+        }
+
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(-20px); }
+            20% { opacity: 1; transform: translateY(0); }
+            80% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(20px); }
+        }
+
+        .loading-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, #0f0f23, #16213e);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .loading-text {
+            font-size: 24px;
+            color: #0066cc;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+
+        .start-button {
+            padding: 15px 30px;
+            font-size: 18px;
+            background: #0066cc;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 10px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .start-button:hover {
+            background: #0088ff;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        
+        <!-- UI Overlay -->
+        <div class="ui-overlay">
+            <div class="ui-panel">
+                <div>Health:</div>
+                <div class="health-bar">
+                    <div class="health-fill" id="healthFill"></div>
+                </div>
+                
+                <div>Combo: <span id="comboCount">0</span></div>
+                <div class="combo-bar">
+                    <div class="combo-fill" id="comboFill"></div>
+                </div>
+                
+                <div>Lives:</div>
+                <div class="lives-display" id="livesDisplay">
+                    <div class="life-icon"></div>
+                    <div class="life-icon"></div>
+                    <div class="life-icon"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Boss Health Bar -->
+        <div class="boss-health-bar" id="bossHealthBar" style="display: none;">
+            <div class="boss-health-fill" id="bossHealthFill"></div>
+            <div class="boss-name" id="bossName">TARAK - Gothic Dragon King</div>
+        </div>
+
+        <!-- Game Messages -->
+        <div class="game-messages" id="gameMessages"></div>
+
+        <!-- Controls -->
+        <div class="controls-panel">
+            <div><strong>Controls:</strong></div>
+            <div>Move: WASD / Arrow Keys</div>
+            <div>Jump: W / Space</div>
+            <div>Attack: J / Left Click</div>
+            <div>Combo Breaker: K / Right Click</div>
+            <div>Transportation: L / Shift</div>
+        </div>
+
+        <!-- Loading Screen -->
+        <div class="loading-screen" id="loadingScreen">
+            <div class="loading-text">Loading Abel's Game...</div>
+            <button class="start-button" onclick="startGame()">Start Adventure</button>
+            <button class="start-button" onclick="startBossFight()">Fight Tarak Boss</button>
+            <button class="start-button" onclick="startEnemyDemo()">Enemy Demo</button>
+        </div>
+    </div>
+
+    <script>
+        // ===== INLINE GAME ENGINE =====
+        
+        // Vector2 class
+        class Vector2 {
+            constructor(x = 0, y = 0) {
+                this.x = x;
+                this.y = y;
+            }
+
+            static add(a, b) {
+                return new Vector2(a.x + b.x, a.y + b.y);
+            }
+
+            static subtract(a, b) {
+                return new Vector2(a.x - b.x, a.y - b.y);
+            }
+
+            static multiply(v, scalar) {
+                return new Vector2(v.x * scalar, v.y * scalar);
+            }
+
+            static distance(a, b) {
+                const dx = a.x - b.x;
+                const dy = a.y - b.y;
+                return Math.sqrt(dx * dx + dy * dy);
+            }
+
+            static normalize(v) {
+                const mag = Math.sqrt(v.x * v.x + v.y * v.y);
+                return mag > 0 ? new Vector2(v.x / mag, v.y / mag) : new Vector2(0, 0);
+            }
+
+            magnitude() {
+                return Math.sqrt(this.x * this.x + this.y * this.y);
+            }
+
+            normalize() {
+                const mag = this.magnitude();
+                if (mag > 0) {
+                    this.x /= mag;
+                    this.y /= mag;
+                }
+                return this;
+            }
+
+            copy() {
+                return new Vector2(this.x, this.y);
+            }
+        }
+
+        // Component system
+        class Component {
+            constructor(type) {
+                this.type = type;
+                this.enabled = true;
+                this.entity = null;
+            }
+        }
+
+        class Transform extends Component {
+            constructor(position = new Vector2(), rotation = 0, scale = new Vector2(1, 1)) {
+                super('Transform');
+                this.position = position;
+                this.rotation = rotation;
+                this.scale = scale;
+                this.parent = null;
+            }
+
+            get worldPosition() {
+                if (this.parent) {
+                    return Vector2.add(this.parent.worldPosition, this.position);
+                }
+                return this.position.copy();
+            }
+        }
+
+        class Motion extends Component {
+            constructor() {
+                super('Motion');
+                this.velocity = new Vector2();
+                this.acceleration = new Vector2();
+                this.angularVelocity = 0;
+                this.maxSpeed = 300;
+                this.drag = 0.95;
+            }
+        }
+
+        class Health extends Component {
+            constructor(maxHealth = 100) {
+                super('Health');
+                this.maxHealth = maxHealth;
+                this.currentHealth = maxHealth;
+                this.isInvulnerable = false;
+                this.invulnerabilityTime = 0;
+            }
+
+            takeDamage(amount) {
+                if (this.isInvulnerable) return false;
+                
+                this.currentHealth -= amount;
+                this.currentHealth = Math.max(0, this.currentHealth);
+                
+                this.isInvulnerable = true;
+                this.invulnerabilityTime = 0.5;
+                
+                return this.currentHealth <= 0;
+            }
+
+            heal(amount) {
+                this.currentHealth = Math.min(this.maxHealth, this.currentHealth + amount);
+            }
+
+            update(deltaTime) {
+                if (this.isInvulnerable) {
+                    this.invulnerabilityTime -= deltaTime;
+                    if (this.invulnerabilityTime <= 0) {
+                        this.isInvulnerable = false;
+                    }
+                }
+            }
+        }
+
+        class Sprite extends Component {
+            constructor(imageSrc, width = 64, height = 64) {
+                super('Sprite');
+                this.image = new Image();
+                this.image.src = imageSrc;
+                this.width = width;
+                this.height = height;
+                this.currentFrame = 0;
+                this.frameCount = 1;
+                this.animationSpeed = 0.1;
+                this.animationTimer = 0;
+                this.flipX = false;
+                this.flipY = false;
+                this.alpha = 1.0;
+                this.visible = true;
+                this.animations = {};
+                this.currentAnimation = null;
+            }
+
+            addAnimation(name, frames, speed = 0.1, loop = true) {
+                this.animations[name] = {
+                    frames: frames,
+                    speed: speed,
+                    loop: loop,
+                    currentFrame: 0,
+                    timer: 0
+                };
+            }
+
+            playAnimation(name) {
+                if (this.animations[name] && this.currentAnimation !== name) {
+                    this.currentAnimation = name;
+                    this.animations[name].currentFrame = 0;
+                    this.animations[name].timer = 0;
+                }
+            }
+
+            update(deltaTime) {
+                if (this.currentAnimation && this.animations[this.currentAnimation]) {
+                    const anim = this.animations[this.currentAnimation];
+                    anim.timer += deltaTime;
+                    
+                    if (anim.timer >= anim.speed) {
+                        anim.timer = 0;
+                        anim.currentFrame++;
+                        
+                        if (anim.currentFrame >= anim.frames.length) {
+                            if (anim.loop) {
+                                anim.currentFrame = 0;
+                            } else {
+                                anim.currentFrame = anim.frames.length - 1;
+                                this.currentAnimation = null;
+                            }
+                        }
+                        
+                        this.currentFrame = anim.frames[anim.currentFrame];
+                    }
+                }
+            }
+        }
+
+        class Collider extends Component {
+            constructor(type = 'circle', size = 32) {
+                super('Collider');
+                this.type = type;
+                this.size = size;
+                this.width = size;
+                this.height = size;
+                this.offset = new Vector2();
+                this.isTrigger = false;
+                this.layer = 'default';
+            }
+
+            getBounds(transform) {
+                const pos = Vector2.add(transform.worldPosition, this.offset);
+                
+                if (this.type === 'circle') {
+                    return {
+                        type: 'circle',
+                        x: pos.x,
+                        y: pos.y,
+                        radius: this.size * Math.max(transform.scale.x, transform.scale.y)
+                    };
+                } else {
+                    return {
+                        type: 'rectangle',
+                        x: pos.x - (this.width * transform.scale.x) / 2,
+                        y: pos.y - (this.height * transform.scale.y) / 2,
+                        width: this.width * transform.scale.x,
+                        height: this.height * transform.scale.y
+                    };
+                }
+            }
+        }
+
+        // Entity system
+        class Entity {
+            constructor(id = Entity.generateId()) {
+                this.id = id;
+                this.components = new Map();
+                this.active = true;
+                this.tags = new Set();
+            }
+
+            static generateId() {
+                return Math.random().toString(36).substr(2, 9);
+            }
+
+            addComponent(component) {
+                component.entity = this;
+                this.components.set(component.type, component);
+                return this;
+            }
+
+            getComponent(type) {
+                return this.components.get(type);
+            }
+
+            hasComponent(type) {
+                return this.components.has(type);
+            }
+
+            removeComponent(type) {
+                const component = this.components.get(type);
+                if (component) {
+                    component.entity = null;
+                    this.components.delete(type);
+                }
+                return this;
+            }
+
+            addTag(tag) {
+                this.tags.add(tag);
+                return this;
+            }
+
+            hasTag(tag) {
+                return this.tags.has(tag);
+            }
+
+            destroy() {
+                this.active = false;
+                this.components.clear();
+                this.tags.clear();
+            }
+        }
+
+        // System base class
+        class System {
+            constructor() {
+                this.entities = [];
+                this.enabled = true;
+            }
+
+            addEntity(entity) {
+                if (!this.entities.includes(entity)) {
+                    this.entities.push(entity);
+                }
+            }
+
+            removeEntity(entity) {
+                const index = this.entities.indexOf(entity);
+                if (index > -1) {
+                    this.entities.splice(index, 1);
+                }
+            }
+
+            getEntitiesWithComponents(...componentTypes) {
+                return this.entities.filter(entity => 
+                    entity.active && 
+                    componentTypes.every(type => entity.hasComponent(type))
+                );
+            }
+
+            update(deltaTime) {
+                // Override in derived classes
+            }
+
+            render(ctx) {
+                // Override in derived classes
+            }
+        }
+
+        // Event system
+        class EventBus {
+            constructor() {
+                this.events = new Map();
+            }
+
+            on(eventType, callback) {
+                if (!this.events.has(eventType)) {
+                    this.events.set(eventType, []);
+                }
+                this.events.get(eventType).push(callback);
+            }
+
+            off(eventType, callback) {
+                if (this.events.has(eventType)) {
+                    const callbacks = this.events.get(eventType);
+                    const index = callbacks.indexOf(callback);
+                    if (index > -1) {
+                        callbacks.splice(index, 1);
+                    }
+                }
+            }
+
+            emit(eventType, data) {
+                if (this.events.has(eventType)) {
+                    this.events.get(eventType).forEach(callback => {
+                        try {
+                            callback(data);
+                        } catch (error) {
+                            console.error(`Error in event callback for ${eventType}:`, error);
+                        }
+                    });
+                }
+            }
+        }
+
+        // Input manager
+        class InputManager {
+            constructor(canvas) {
+                this.canvas = canvas;
+                this.keys = new Map();
+                this.mouse = {
+                    position: new Vector2(),
+                    buttons: new Map(),
+                    wheel: 0
+                };
+                
+                this.setupEventListeners();
+            }
+
+            setupEventListeners() {
+                window.addEventListener('keydown', (e) => {
+                    this.keys.set(e.code, true);
+                });
+                
+                window.addEventListener('keyup', (e) => {
+                    this.keys.set(e.code, false);
+                });
+                
+                this.canvas.addEventListener('mousemove', (e) => {
+                    const rect = this.canvas.getBoundingClientRect();
+                    this.mouse.position.x = e.clientX - rect.left;
+                    this.mouse.position.y = e.clientY - rect.top;
+                });
+                
+                this.canvas.addEventListener('mousedown', (e) => {
+                    this.mouse.buttons.set(e.button, true);
+                    e.preventDefault();
+                });
+                
+                this.canvas.addEventListener('mouseup', (e) => {
+                    this.mouse.buttons.set(e.button, false);
+                    e.preventDefault();
+                });
+            }
+
+            isKeyPressed(keyCode) {
+                return this.keys.get(keyCode) || false;
+            }
+
+            isMouseButtonPressed(button) {
+                return this.mouse.buttons.get(button) || false;
+            }
+
+            getMousePosition() {
+                return this.mouse.position.copy();
+            }
+        }
+
+        // Core systems
+        class PhysicsSystem extends System {
+            update(deltaTime) {
+                const entities = this.getEntitiesWithComponents('Transform', 'Motion');
+                
+                entities.forEach(entity => {
+                    const transform = entity.getComponent('Transform');
+                    const motion = entity.getComponent('Motion');
+                    
+                    motion.velocity.x += motion.acceleration.x * deltaTime;
+                    motion.velocity.y += motion.acceleration.y * deltaTime;
+                    
+                    motion.velocity.x *= motion.drag;
+                    motion.velocity.y *= motion.drag;
+                    
+                    const speed = motion.velocity.magnitude();
+                    if (speed > motion.maxSpeed) {
+                        motion.velocity.normalize();
+                        motion.velocity.x *= motion.maxSpeed;
+                        motion.velocity.y *= motion.maxSpeed;
+                    }
+                    
+                    transform.position.x += motion.velocity.x * deltaTime;
+                    transform.position.y += motion.velocity.y * deltaTime;
+                    
+                    transform.rotation += motion.angularVelocity * deltaTime;
+                });
+            }
+        }
+
+        class RenderSystem extends System {
+            constructor(canvas) {
+                super();
+                this.canvas = canvas;
+                this.ctx = canvas.getContext('2d');
+                this.camera = {
+                    position: new Vector2(),
+                    zoom: 1.0
+                };
+            }
+
+            render() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                this.ctx.save();
+                this.ctx.translate(-this.camera.position.x, -this.camera.position.y);
+                this.ctx.scale(this.camera.zoom, this.camera.zoom);
+                
+                const entities = this.getEntitiesWithComponents('Transform', 'Sprite');
+                
+                entities.sort((a, b) => {
+                    const spriteA = a.getComponent('Sprite');
+                    const spriteB = b.getComponent('Sprite');
+                    return (spriteA.depth || 0) - (spriteB.depth || 0);
+                });
+                
+                entities.forEach(entity => {
+                    this.renderEntity(entity);
+                });
+                
+                this.ctx.restore();
+            }
+
+            renderEntity(entity) {
+                const transform = entity.getComponent('Transform');
+                const sprite = entity.getComponent('Sprite');
+                
+                if (!sprite.visible || sprite.alpha <= 0) return;
+                
+                this.ctx.save();
+                
+                this.ctx.translate(transform.position.x, transform.position.y);
+                this.ctx.rotate(transform.rotation);
+                this.ctx.scale(
+                    transform.scale.x * (sprite.flipX ? -1 : 1),
+                    transform.scale.y * (sprite.flipY ? -1 : 1)
+                );
+                
+                this.ctx.globalAlpha = sprite.alpha;
+                
+                if (sprite.image.complete) {
+                    this.ctx.drawImage(
+                        sprite.image,
+                        -sprite.width / 2, -sprite.height / 2,
+                        sprite.width, sprite.height
+                    );
+                }
+                
+                this.ctx.restore();
+            }
+        }
+
+        // Main Game class
+        class Game {
+            constructor(canvasId) {
+                this.canvas = document.getElementById(canvasId);
+                this.ctx = this.canvas.getContext('2d');
+                
+                this.entities = [];
+                this.systems = [];
+                this.eventBus = new EventBus();
+                this.inputManager = new InputManager(this.canvas);
+                
+                this.physicsSystem = new PhysicsSystem();
+                this.renderSystem = new RenderSystem(this.canvas);
+                
+                this.systems.push(this.physicsSystem);
+                this.systems.push(this.renderSystem);
+                
+                this.isRunning = false;
+                this.lastTime = 0;
+                this.gameState = 'menu';
+                
+                Game.instance = this;
+                Game.eventBus = this.eventBus;
+            }
+
+            addEntity(entity) {
+                this.entities.push(entity);
+                this.systems.forEach(system => system.addEntity(entity));
+                return entity;
+            }
+
+            removeEntity(entity) {
+                const index = this.entities.indexOf(entity);
+                if (index > -1) {
+                    this.entities.splice(index, 1);
+                    this.systems.forEach(system => system.removeEntity(entity));
+                }
+            }
+
+            findEntityByTag(tag) {
+                return this.entities.find(entity => entity.hasTag(tag));
+            }
+
+            findEntitiesByTag(tag) {
+                return this.entities.filter(entity => entity.hasTag(tag));
+            }
+
+            start() {
+                this.isRunning = true;
+                this.lastTime = performance.now();
+                this.gameLoop();
+            }
+
+            stop() {
+                this.isRunning = false;
+            }
+
+            gameLoop(currentTime = performance.now()) {
+                if (!this.isRunning) return;
+                
+                const deltaTime = (currentTime - this.lastTime) / 1000;
+                this.lastTime = currentTime;
+                
+                this.systems.forEach(system => {
+                    if (system.enabled) {
+                        system.update(deltaTime);
+                    }
+                });
+                
+                this.entities.forEach(entity => {
+                    if (entity.active) {
+                        entity.components.forEach(component => {
+                            if (component.enabled && component.update) {
+                                component.update(deltaTime);
+                            }
+                        });
+                    }
+                });
+                
+                this.entities = this.entities.filter(entity => {
+                    if (!entity.active) {
+                        this.systems.forEach(system => system.removeEntity(entity));
+                        return false;
+                    }
+                    return true;
+                });
+                
+                this.renderSystem.render();
+                
+                requestAnimationFrame((time) => this.gameLoop(time));
+            }
+
+            createEntity() {
+                return new Entity();
+            }
+
+            getCanvas() {
+                return this.canvas;
+            }
+
+            getInput() {
+                return this.inputManager;
+            }
+        }
+
+        // Player Controller Component
+        class PlayerController extends Component {
+            constructor() {
+                super('PlayerController');
+                this.moveSpeed = 200;
+                this.isGrounded = false;
+                this.facingRight = true;
+                this.health = 100;
+                this.maxHealth = 100;
+            }
+
+            update(deltaTime) {
+                if (!Game.instance) return;
+                
+                const input = Game.instance.getInput();
+                const transform = this.entity.getComponent('Transform');
+                const motion = this.entity.getComponent('Motion');
+                
+                if (!transform || !motion) return;
+
+                // Movement input
+                let horizontal = 0;
+                if (input.isKeyPressed('KeyA') || input.isKeyPressed('ArrowLeft')) {
+                    horizontal = -1;
+                }
+                if (input.isKeyPressed('KeyD') || input.isKeyPressed('ArrowRight')) {
+                    horizontal = 1;
+                }
+
+                // Apply horizontal movement
+                if (horizontal !== 0) {
+                    motion.acceleration.x = horizontal * 800;
+                    
+                    if (horizontal > 0 && !this.facingRight) {
+                        this.facingRight = true;
+                        const sprite = this.entity.getComponent('Sprite');
+                        if (sprite) sprite.flipX = false;
+                    } else if (horizontal < 0 && this.facingRight) {
+                        this.facingRight = false;
+                        const sprite = this.entity.getComponent('Sprite');
+                        if (sprite) sprite.flipX = true;
+                    }
+                } else {
+                    motion.acceleration.x = 0;
+                    motion.velocity.x *= 0.85; // friction
+                }
+
+                // Limit horizontal speed
+                motion.velocity.x = Math.max(-this.moveSpeed, Math.min(this.moveSpeed, motion.velocity.x));
+
+                // Jump input
+                if ((input.isKeyPressed('KeyW') || input.isKeyPressed('ArrowUp') || input.isKeyPressed('Space')) && this.isGrounded) {
+                    motion.velocity.y = -400;
+                    this.isGrounded = false;
+                }
+
+                // Simple ground collision
+                const groundLevel = 500;
+                if (transform.position.y >= groundLevel) {
+                    transform.position.y = groundLevel;
+                    if (motion.velocity.y > 0) {
+                        motion.velocity.y = 0;
+                        this.isGrounded = true;
+                    }
+                } else {
+                    // Apply gravity
+                    motion.velocity.y += 800 * deltaTime;
+                }
+
+                // Attack input
+                if (input.isKeyPressed('KeyJ') || input.isMouseButtonPressed(0)) {
+                    this.performAttack();
+                }
+            }
+
+            performAttack() {
+                // Simple attack - damage nearby enemies
+                const transform = this.entity.getComponent('Transform');
+                const enemies = Game.instance.findEntitiesByTag('enemy');
+                
+                enemies.forEach(enemy => {
+                    if (!enemy.active) return;
+                    
+                    const enemyPos = enemy.getComponent('Transform').position;
+                    const distance = Vector2.distance(transform.position, enemyPos);
+                    
+                    if (distance <= 80) {
+                        const health = enemy.getComponent('Health');
+                        if (health) {
+                            const isDead = health.takeDamage(50);
+                            if (isDead) {
+                                enemy.destroy();
+                                if (Game.eventBus) {
+                                    Game.eventBus.emit('enemyKilled', { enemy: enemy });
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Simple Enemy AI Component
+        class EnemyAI extends Component {
+            constructor() {
+                super('EnemyAI');
+                this.speed = 50;
+                this.detectionRange = 150;
+                this.direction = Math.random() < 0.5 ? -1 : 1;
+                this.changeDirectionTimer = 0;
+            }
+
+            update(deltaTime) {
+                const transform = this.entity.getComponent('Transform');
+                const motion = this.entity.getComponent('Motion');
+                
+                if (!transform || !motion) return;
+
+                const player = Game.instance.findEntityByTag('player');
+                if (player) {
+                    const playerPos = player.getComponent('Transform').position;
+                    const distance = Vector2.distance(transform.position, playerPos);
+                    
+                    if (distance <= this.detectionRange) {
+                        // Chase player
+                        const direction = Vector2.normalize(Vector2.subtract(playerPos, transform.position));
+                        motion.velocity.x = direction.x * this.speed;
+                        motion.velocity.y = direction.y * this.speed;
+                    } else {
+                        // Patrol behavior
+                        this.changeDirectionTimer -= deltaTime;
+                        if (this.changeDirectionTimer <= 0) {
+                            this.direction *= -1;
+                            this.changeDirectionTimer = 2 + Math.random() * 3;
+                        }
+                        motion.velocity.x = this.direction * this.speed;
+                    }
+                }
+
+                // Keep enemies on screen
+                if (transform.position.x < 0 || transform.position.x > 800) {
+                    this.direction *= -1;
+                }
+                if (transform.position.y > 600) {
+                    transform.position.y = 600;
+                }
+            }
+        }
+
+        // Boss AI Component
+        class BossAI extends Component {
+            constructor() {
+                super('BossAI');
+                this.speed = 30;
+                this.attackCooldown = 3;
+                this.lastAttackTime = 0;
+                this.phase = 1;
+            }
+
+            update(deltaTime) {
+                this.lastAttackTime -= deltaTime;
+                
+                const transform = this.entity.getComponent('Transform');
+                const motion = this.entity.getComponent('Motion');
+                const health = this.entity.getComponent('Health');
+                
+                if (!transform || !motion || !health) return;
+
+                // Phase transitions
+                const healthPercent = health.currentHealth / health.maxHealth;
+                if (healthPercent <= 0.66 && this.phase === 1) {
+                    this.phase = 2;
+                    if (Game.eventBus) {
+                        Game.eventBus.emit('bossPhaseChanged', { phase: 2 });
+                    }
+                } else if (healthPercent <= 0.33 && this.phase === 2) {
+                    this.phase = 3;
+                    if (Game.eventBus) {
+                        Game.eventBus.emit('bossPhaseChanged', { phase: 3 });
+                    }
+                }
+
+                const player = Game.instance.findEntityByTag('player');
+                if (player) {
+                    const playerPos = player.getComponent('Transform').position;
+                    const distance = Vector2.distance(transform.position, playerPos);
+                    
+                    // Move towards player
+                    if (distance > 100) {
+                        const direction = Vector2.normalize(Vector2.subtract(playerPos, transform.position));
+                        motion.velocity.x = direction.x * this.speed;
+                        motion.velocity.y = direction.y * this.speed;
+                    } else {
+                        motion.velocity.x *= 0.9;
+                        motion.velocity.y *= 0.9;
+                    }
+
+                    // Attack
+                    if (this.lastAttackTime <= 0 && distance <= 200) {
+                        this.performAttack();
+                        this.lastAttackTime = this.attackCooldown;
+                    }
+                }
+
+                // Keep boss on screen
+                transform.position.x = Math.max(128, Math.min(672, transform.position.x));
+                transform.position.y = Math.max(128, Math.min(472, transform.position.y));
+            }
+
+            performAttack() {
+                if (Game.eventBus) {
+                    Game.eventBus.emit('bossAttackStarted', { attack: 'fire_breath' });
+                }
+                
+                // Damage player if close
+                const transform = this.entity.getComponent('Transform');
+                const player = Game.instance.findEntityByTag('player');
+                
+                if (player) {
+                    const playerPos = player.getComponent('Transform').position;
+                    const distance = Vector2.distance(transform.position, playerPos);
+                    
+                    if (distance <= 150) {
+                        const playerHealth = player.getComponent('Health');
+                        if (playerHealth) {
+                            playerHealth.takeDamage(25);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Simple enemy spawner
+        class EnemySpawner extends System {
+            constructor() {
+                super();
+                this.spawnPoints = [];
+                this.spawnCooldown = 5.0;
+                this.lastSpawnTime = 0;
+                this.maxEnemies = 10;
+                this.waveNumber = 1;
+                this.enemiesPerWave = 5;
+                this.currentWaveEnemies = 0;
+            }
+
+            addSpawnPoint(x, y, enemyTypes = ['dogus']) {
+                this.spawnPoints.push({
+                    position: new Vector2(x, y),
+                    enemyTypes: enemyTypes,
+                    lastUsed: 0
+                });
+            }
+
+            update(deltaTime) {
+                this.lastSpawnTime -= deltaTime;
+                
+                const currentEnemies = Game.instance.findEntitiesByTag('enemy').length;
+                
+                if (currentEnemies < this.maxEnemies && 
+                    this.lastSpawnTime <= 0 && 
+                    this.currentWaveEnemies < this.enemiesPerWave) {
+                    
+                    this.spawnRandomEnemy();
+                    this.lastSpawnTime = this.spawnCooldown;
+                    this.currentWaveEnemies++;
+                }
+                
+                if (this.currentWaveEnemies >= this.enemiesPerWave && currentEnemies === 0) {
+                    this.startNextWave();
+                }
+            }
+
+            spawnRandomEnemy() {
+                if (this.spawnPoints.length === 0) return;
+                
+                const spawnPoint = this.spawnPoints[Math.floor(Math.random() * this.spawnPoints.length)];
+                const enemyType = spawnPoint.enemyTypes[Math.floor(Math.random() * spawnPoint.enemyTypes.length)];
+                
+                let enemy;
+                switch (enemyType) {
+                    case 'dogus':
+                        enemy = createDogus(spawnPoint.position.x, spawnPoint.position.y);
+                        break;
+                    case 'octopus_creature':
+                        enemy = createOctopusCreature(spawnPoint.position.x, spawnPoint.position.y);
+                        break;
+                    case 'wimidir':
+                        enemy = createWimidir(spawnPoint.position.x, spawnPoint.position.y);
+                        break;
+                    default:
+                        enemy = createDogus(spawnPoint.position.x, spawnPoint.position.y);
+                }
+                
+                Game.instance.addEntity(enemy);
+            }
+
+            startNextWave() {
+                this.waveNumber++;
+                this.currentWaveEnemies = 0;
+                this.enemiesPerWave = Math.min(15, Math.floor(this.enemiesPerWave * 1.2));
+                this.spawnCooldown = Math.max(1.0, this.spawnCooldown * 0.9);
+                
+                if (Game.eventBus) {
+                    Game.eventBus.emit('waveStart', { 
+                        wave: this.waveNumber, 
+                        enemies: this.enemiesPerWave 
+                    });
+                }
+            }
+        }
+
+        // Create placeholder images
+        function createPlaceholderImage(width, height, color) {
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = color;
+            ctx.fillRect(0, 0, width, height);
+            
+            // Add border
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(1, 1, width-2, height-2);
+            
+            return canvas.toDataURL();
+        }
+
+        // Factory functions
+        function createPlayer(x, y) {
+            const player = Game.instance.createEntity()
+                .addComponent(new Transform(new Vector2(x, y)))
+                .addComponent(new Motion())
+                .addComponent(new Health(100))
+                .addComponent(new Sprite(createPlaceholderImage(64, 64, '#00ff00'), 64, 64))
+                .addComponent(new Collider('rectangle', 32))
+                .addComponent(new PlayerController())
+                .addTag('player');
+
+            return player;
+        }
+
+        function createTarakBoss(x, y) {
+            const boss = Game.instance.createEntity()
+                .addComponent(new Transform(new Vector2(x, y), 0, new Vector2(2, 2)))
+                .addComponent(new Motion())
+                .addComponent(new Health(3000))
+                .addComponent(new Sprite(createPlaceholderImage(256, 256, '#ff0000'), 256, 256))
+                .addComponent(new Collider('circle', 128))
+                .addComponent(new BossAI())
+                .addTag('boss')
+                .addTag('enemy');
+
+            return boss;
+        }
+
+        function createDogus(x, y) {
+            const enemy = Game.instance.createEntity()
+                .addComponent(new Transform(new Vector2(x, y), 0, new Vector2(0.8, 0.8)))
+                .addComponent(new Motion())
+                .addComponent(new Health(50))
+                .addComponent(new Sprite(createPlaceholderImage(32, 32, '#ffff00'), 32, 32))
+                .addComponent(new Collider('circle', 16))
+                .addComponent(new EnemyAI())
+                .addTag('enemy')
+                .addTag('dogus');
+
+            return enemy;
+        }
+
+        function createOctopusCreature(x, y) {
+            const enemy = Game.instance.createEntity()
+                .addComponent(new Transform(new Vector2(x, y)))
+                .addComponent(new Motion())
+                .addComponent(new Health(75))
+                .addComponent(new Sprite(createPlaceholderImage(64, 64, '#ff00ff'), 64, 64))
+                .addComponent(new Collider('circle', 32))
+                .addComponent(new EnemyAI())
+                .addTag('enemy')
+                .addTag('octopus_creature');
+
+            return enemy;
+        }
+
+        function createWimidir(x, y) {
+            const enemy = Game.instance.createEntity()
+                .addComponent(new Transform(new Vector2(x, y)))
+                .addComponent(new Motion())
+                .addComponent(new Health(40))
+                .addComponent(new Sprite(createPlaceholderImage(40, 40, '#ffa500'), 40, 40))
+                .addComponent(new Collider('circle', 20))
+                .addComponent(new EnemyAI())
+                .addTag('enemy')
+                .addTag('wimidir');
+
+            return enemy;
+        }
+
+        function createAmidogus(x, y) {
+            const enemy = Game.instance.createEntity()
+                .addComponent(new Transform(new Vector2(x, y), 0, new Vector2(1.5, 1.5)))
+                .addComponent(new Motion())
+                .addComponent(new Health(200))
+                .addComponent(new Sprite(createPlaceholderImage(96, 96, '#ff5500'), 96, 96))
+                .addComponent(new Collider('circle', 48))
+                .addComponent(new EnemyAI())
+                .addTag('enemy')
+                .addTag('amidogus');
+
+            return enemy;
+        }
+
+        // ===== GAME INITIALIZATION =====
+        let gameState = {
+            game: null,
+            gameStarted: false,
+            level: 'menu',
+            score: 0,
+            gameTime: 0,
+            enemySpawner: null
+        };
+
+        // UI Elements
+        let ui = {};
+
+        // Initialize UI elements
+        function initializeUI() {
+            ui.healthFill = document.getElementById('healthFill');
+            ui.comboFill = document.getElementById('comboFill');
+            ui.comboCount = document.getElementById('comboCount');
+            ui.livesDisplay = document.getElementById('livesDisplay');
+            ui.bossHealthBar = document.getElementById('bossHealthBar');
+            ui.bossHealthFill = document.getElementById('bossHealthFill');
+            ui.bossName = document.getElementById('bossName');
+            ui.gameMessages = document.getElementById('gameMessages');
+            ui.loadingScreen = document.getElementById('loadingScreen');
+        }
+
+        // Wait for DOM to load
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeUI();
+        });
+
+        function startGame() {
+            if (gameState.gameStarted) return;
+            
+            if (!ui.loadingScreen) initializeUI();
+            gameState.gameStarted = true;
+            ui.loadingScreen.style.display = 'none';
+            
+            gameState.game = new Game('gameCanvas');
+            setupGameEvents();
+            
+            gameState.level = 'demo';
+            setupDemoLevel();
+            
+            gameState.game.start();
+        }
+
+        function startBossFight() {
+            if (gameState.gameStarted) return;
+            
+            if (!ui.loadingScreen) initializeUI();
+            gameState.gameStarted = true;
+            ui.loadingScreen.style.display = 'none';
+            
+            gameState.game = new Game('gameCanvas');
+            setupGameEvents();
+            
+            gameState.level = 'boss';
+            setupBossLevel();
+            
+            gameState.game.start();
+        }
+
+        function startEnemyDemo() {
+            if (gameState.gameStarted) return;
+            
+            if (!ui.loadingScreen) initializeUI();
+            gameState.gameStarted = true;
+            ui.loadingScreen.style.display = 'none';
+            
+            gameState.game = new Game('gameCanvas');
+            setupGameEvents();
+            
+            gameState.level = 'enemies';
+            setupEnemyShowcase();
+            
+            gameState.game.start();
+        }
+
+        function setupGameEvents() {
+            Game.eventBus.on('playerStateChanged', (data) => {
+                console.log(`Player state changed: ${data.previous} -> ${data.current}`);
+            });
+
+            Game.eventBus.on('bossPhaseChanged', (data) => {
+                showMessage(`Tarak enters Phase ${data.phase}!`, 'purple');
+                if (ui.bossName) {
+                    ui.bossName.textContent = `TARAK - Phase ${data.phase}`;
+                }
+            });
+
+            Game.eventBus.on('bossAttackStarted', (data) => {
+                showMessage(`Tarak uses ${data.attack}!`, 'red');
+            });
+
+            Game.eventBus.on('enemyKilled', (data) => {
+                gameState.score += 100;
+            });
+
+            Game.eventBus.on('waveStart', (data) => {
+                showMessage(`Wave ${data.wave} - ${data.enemies} enemies!`, 'cyan');
+            });
+
+            // Update health display
+            setInterval(() => {
+                const player = gameState.game?.findEntityByTag('player');
+                if (player && ui.healthFill) {
+                    const health = player.getComponent('Health');
+                    if (health) {
+                        updateHealthDisplay(health.currentHealth, health.maxHealth);
+                    }
+                }
+
+                const boss = gameState.game?.findEntityByTag('boss');
+                if (boss && ui.bossHealthFill) {
+                    const health = boss.getComponent('Health');
+                    if (health) {
+                        updateBossHealthDisplay(health.currentHealth, health.maxHealth);
+                    }
+                }
+            }, 100);
+        }
+
+        function setupDemoLevel() {
+            createBackground();
+            
+            const player = createPlayer(100, 400);
+            gameState.game.addEntity(player);
+            
+            setTimeout(() => {
+                gameState.game.addEntity(createDogus(300, 200));
+                gameState.game.addEntity(createOctopusCreature(500, 400));
+                gameState.game.addEntity(createWimidir(600, 300));
+            }, 1000);
+            
+            setTimeout(() => {
+                gameState.game.addEntity(createAmidogus(700, 400));
+            }, 3000);
+            
+            gameState.enemySpawner = new EnemySpawner();
+            gameState.enemySpawner.addSpawnPoint(750, 400, ['dogus', 'octopus_creature']);
+            gameState.enemySpawner.addSpawnPoint(750, 200, ['wimidir']);
+            gameState.enemySpawner.addSpawnPoint(750, 100, ['dogus']);
+            
+            gameState.game.systems.push(gameState.enemySpawner);
+            
+            showMessage('Demo Level - Survive the waves!', 'cyan');
+        }
+
+        function setupBossLevel() {
+            createBackground();
+            
+            const player = createPlayer(100, 400);
+            gameState.game.addEntity(player);
+            
+            setTimeout(() => {
+                const boss = createTarakBoss(600, 200);
+                gameState.game.addEntity(boss);
+                if (ui.bossHealthBar) {
+                    ui.bossHealthBar.style.display = 'block';
+                }
+                showMessage('Tarak, the Gothic Dragon King appears!', 'red');
+            }, 2000);
+        }
+
+        function setupEnemyShowcase() {
+            createBackground();
+            
+            const player = createPlayer(100, 400);
+            gameState.game.addEntity(player);
+            
+            const enemies = [
+                { type: 'dogus', delay: 1000, message: 'Dogus - Small floating enemies' },
+                { type: 'octopus_creature', delay: 3000, message: 'Octopus Creature - Malleable with eye laser' },
+                { type: 'wimidir', delay: 5000, message: 'Wimidir - Stationary pyramid shooter' },
+                { type: 'amidogus', delay: 7000, message: 'Amidogus - Large boss with key' }
+            ];
+            
+            enemies.forEach(enemy => {
+                setTimeout(() => {
+                    let x = 300 + Math.random() * 400;
+                    let y = 100 + Math.random() * 300;
+                    
+                    switch (enemy.type) {
+                        case 'dogus':
+                            gameState.game.addEntity(createDogus(x, y));
+                            break;
+                        case 'octopus_creature':
+                            gameState.game.addEntity(createOctopusCreature(x, y));
+                            break;
+                        case 'wimidir':
+                            gameState.game.addEntity(createWimidir(x, y));
+                            break;
+                        case 'amidogus':
+                            gameState.game.addEntity(createAmidogus(x, y));
+                            break;
+                    }
+                    
+                    showMessage(enemy.message, 'yellow');
+                }, enemy.delay);
+            });
+        }
+
+        function createBackground() {
+            const bg = gameState.game.createEntity()
+                .addComponent(new Transform(new Vector2(400, 300)))
+                .addComponent(new Sprite('data:image/svg+xml;base64,' + btoa(`
+                    <svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#16213e;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <rect width="800" height="600" fill="url(#bgGrad)"/>
+                        <rect x="0" y="550" width="800" height="50" fill="#2a2a4e"/>
+                    </svg>
+                `), 800, 600))
+                .addTag('background');
+            
+            gameState.game.addEntity(bg);
+        }
+
+        // UI Functions
+        function updateHealthDisplay(current, max) {
+            if (ui.healthFill) {
+                const percentage = (current / max) * 100;
+                ui.healthFill.style.width = percentage + '%';
+            }
+        }
+
+        function updateBossHealthDisplay(current, max) {
+            if (ui.bossHealthFill) {
+                const percentage = (current / max) * 100;
+                ui.bossHealthFill.style.width = percentage + '%';
+            }
+        }
+
+        function showMessage(text, color = 'white') {
+            if (!ui.gameMessages) return;
+            
+            const message = document.createElement('div');
+            message.className = 'message';
+            message.textContent = text;
+            message.style.color = color;
+            
+            ui.gameMessages.appendChild(message);
+            
+            setTimeout(() => {
+                if (message.parentNode) {
+                    message.parentNode.removeChild(message);
+                }
+            }, 3000);
+        }
+
+        // Disable context menu on canvas
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('gameCanvas');
+            if (canvas) {
+                canvas.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                });
+            }
+        });
+
+        console.log('Game ready! Click a button to start.');
+    </script>
+                        const sprite = this.entity.getComponent('Sprite');
+                        if (sprite) sprite.flipX = false;
+                    } else if (horizontal < 0 && this.facingRight) {
+                        this.facingRight = false;
+                        const sprite = this.entity.getComponent('Sprite');
+                        if (sprite) sprite.flipX = true;
+                    }
+                } else {
+                    motion.acceleration.x = 0;
+                    motion.velocity.x *= 0.85; // friction
+                }
+
+                // Limit horizontal speed
+                motion.velocity.x = Math.max(-this.moveSpeed, Math.min(this.moveSpeed, motion.velocity.x));
+
+                // Jump input
+                if ((input.isKeyPressed('KeyW') || input.isKeyPressed('ArrowUp') || input.isKeyPressed('Space')) && this.isGrounded) {
+                    motion.velocity.y = -400;
+                    this.isGrounded = false;
+                }
+
+                // Simple ground collision
+                const groundLevel = 500;
+                if (transform.position.y >= groundLevel) {
+                    transform.position.y = groundLevel;
+                    if (motion.velocity.y > 0) {
+                        motion.velocity.y = 0;
+                        this.isGrounded = true;
+                    }
+                } else {
+                    // Apply gravity
+                    motion.velocity.y += 800 * deltaTime;
+                }
+
+                // Attack input
+                if (input.isKeyPressed('KeyJ') || input.isMouseButtonPressed(0)) {
+                    this.performAttack();
+                }
+            }
+
+            performAttack() {
+                // Simple attack - damage nearby enemies
+                const transform = this.entity.getComponent('Transform');
+                const enemies = Game.instance.findEntitiesByTag('enemy');
+                
+                enemies.forEach(enemy => {
+                    if (!enemy.active) return;
+                    
+                    const enemyPos = enemy.getComponent('Transform').position;
+                    const distance = Vector2.distance(transform.position, enemyPos);
+                    
+                    if (distance <= 80) {
+                        const health = enemy.getComponent('Health');
+                        if (health) {
+                            const isDead = health.takeDamage(50);
+                            if (isDead) {
+                                enemy.destroy();
+                                Game.eventBus.emit('enemyKilled', { enemy: enemy });
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Simple Enemy AI Component
+        class EnemyAI extends Component {
+            constructor() {
+                super('EnemyAI');
+                this.speed = 50;
+                this.detectionRange = 150;
+                this.direction = Math.random() < 0.5 ? -1 : 1;
+                this.changeDirectionTimer = 0;
+            }
+
+            update(deltaTime) {
+                const transform = this.entity.getComponent('Transform');
+                const motion = this.entity.getComponent('Motion');
+                
+                if (!transform || !motion) return;
+
+                const player = Game.instance.findEntityByTag('player');
+                if (player) {
+                    const playerPos = player.getComponent('Transform').position;
+                    const distance = Vector2.distance(transform.position, playerPos);
+                    
+                    if (distance <= this.detectionRange) {
+                        // Chase player
+                        const direction = Vector2.normalize(Vector2.subtract(playerPos, transform.position));
+                        motion.velocity.x = direction.x * this.speed;
+                        motion.velocity.y = direction.y * this.speed;
+                    } else {
+                        // Patrol behavior
+                        this.changeDirectionTimer -= deltaTime;
+                        if (this.changeDirectionTimer <= 0) {
+                            this.direction *= -1;
+                            this.changeDirectionTimer = 2 + Math.random() * 3;
+                        }
+                        motion.velocity.x = this.direction * this.speed;
+                    }
+                }
+
+                // Keep enemies on screen
+                if (transform.position.x < 0 || transform.position.x > 800) {
+                    this.direction *= -1;
+                }
+                if (transform.position.y > 600) {
+                    transform.position.y = 600;
+                }
+            }
+        }
+
+        // Boss AI Component
+        class BossAI extends Component {
+            constructor() {
+                super('BossAI');
+                this.speed = 30;
+                this.attackCooldown = 3;
+                this.lastAttackTime = 0;
+                this.phase = 1;
+            }
+
+            update(deltaTime) {
+                this.lastAttackTime -= deltaTime;
+                
+                const transform = this.entity.getComponent('Transform');
+                const motion = this.entity.getComponent('Motion');
+                const health = this.entity.getComponent('Health');
+                
+                if (!transform || !motion || !health) return;
+
+                // Phase transitions
+                const healthPercent = health.currentHealth / health.maxHealth;
+                if (healthPercent <= 0.66 && this.phase === 1) {
+                    this.phase = 2;
+                    Game.eventBus.emit('bossPhaseChanged', { phase: 2 });
+                } else if (healthPercent <= 0.33 && this.phase === 2) {
+                    this.phase = 3;
+                    Game.eventBus.emit('bossPhaseChanged', { phase: 3 });
+                }
+
+                const player = Game.instance.findEntityByTag('player');
+                if (player) {
+                    const playerPos = player.getComponent('Transform').position;
+                    const distance = Vector2.distance(transform.position, playerPos);
+                    
+                    // Move towards player
+                    if (distance > 100) {
+                        const direction = Vector2.normalize(Vector2.subtract(playerPos, transform.position));
+                        motion.velocity.x = direction.x * this.speed;
+                        motion.velocity.y = direction.y * this.speed;
+                    } else {
+                        motion.velocity.x *= 0.9;
+                        motion.velocity.y *= 0.9;
+                    }
+
+                    // Attack
+                    if (this.lastAttackTime <= 0 && distance <= 200) {
+                        this.performAttack();
+                        this.lastAttackTime = this.attackCooldown;
+                    }
+                }
+
+                // Keep boss on screen
+                transform.position.x = Math.max(128, Math.min(672, transform.position.x));
+                transform.position.y = Math.max(128, Math.min(472, transform.position.y));
+            }
+
+            performAttack() {
+                Game.eventBus.emit('bossAttackStarted', { attack: 'fire_breath' });
+                
+                // Damage player if close
+                const transform = this.entity.getComponent('Transform');
+                const player = Game.instance.findEntityByTag('player');
+                
+                if (player) {
+                    const playerPos = player.getComponent('Transform').position;
+                    const distance = Vector2.distance(transform.position, playerPos);
+                    
+                    if (distance <= 150) {
+                        const playerHealth = player.getComponent('Health');
+                        if (playerHealth) {
+                            playerHealth.takeDamage(25);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Factory functions
+        function createPlayer(x, y) {
+            const player = Game.instance.createEntity()
+                .addComponent(new Transform(new Vector2(x, y)))
+                .addComponent(new Motion())
+                .addComponent(new Health(100))
+                .addComponent(new Sprite(createPlaceholderImage(64, 64, '#00ff00'), 64, 64))
+                .addComponent(new Collider('rectangle', 32))
+                .addComponent(new PlayerController())
+                .addTag('player');
+
+            return player;
+        }
+
+        function createTarakBoss(x, y) {
+            const boss = Game.instance.createEntity()
+                .addComponent(new Transform(new Vector2(x, y), 0, new Vector2(2, 2)))
+                .addComponent(new Motion())
+                .addComponent(new Health(3000))
+                .addComponent(new Sprite(createPlaceholderImage(256, 256, '#ff0000'), 256, 256))
+                .addComponent(new Collider('circle', 128))
+                .addComponent(new BossAI())
+                .addTag('boss')
+                .addTag('enemy');
+
+            return boss;
+        }
+
+        function createDogus(x, y) {
+            const enemy = Game.instance.createEntity()
+                .addComponent(new Transform(new Vector2(x, y), 0, new Vector2(0.8, 0.8)))
+                .addComponent(new Motion())
+                .addComponent(new Health(50))
+                .addComponent(new Sprite(createPlaceholderImage(32, 32, '#ffff00'), 32, 32))
+                .addComponent(new Collider('circle', 16))
+                .addComponent(new EnemyAI())
+                .addTag('enemy')
+                .addTag('dogus');
+
+            return enemy;
+        }
+
+        function createOctopusCreature(x, y) {
+            const enemy = Game.instance.createEntity()
+                .addComponent(new Transform(new Vector2(x, y)))
+                .addComponent(new Motion())
+                .addComponent(new Health(75))
+                .addComponent(new Sprite(createPlaceholderImage(64, 64, '#ff00ff'), 64, 64))
+                .addComponent(new Collider('circle', 32))
+                .addComponent(new EnemyAI())
+                .addTag('enemy')
+                .addTag('octopus_creature');
+
+            return enemy;
+        }
+
+        function createWimidir(x, y) {
+            const enemy = Game.instance.createEntity()
+                .addComponent(new Transform(new Vector2(x, y)))
+                .addComponent(new Motion())
+                .addComponent(new Health(40))
+                .addComponent(new Sprite(createPlaceholderImage(40, 40, '#ffa500'), 40, 40))
+                .addComponent(new Collider('circle', 20))
+                .addComponent(new EnemyAI())
+                .addTag('enemy')
+                .addTag('wimidir');
+
+            return enemy;
+        }
+
+        function createAmidogus(x, y) {
+            const enemy = Game.instance.createEntity()
+                .addComponent(new Transform(new Vector2(x, y), 0, new Vector2(1.5, 1.5)))
+                .addComponent(new Motion())
+                .addComponent(new Health(200))
+                .addComponent(new Sprite(createPlaceholderImage(96, 96, '#ff5500'), 96, 96))
+                .addComponent(new Collider('circle', 48))
+                .addComponent(new EnemyAI())
+                .addTag('enemy')
+                .addTag('amidogus');
+
+            return enemy;
+        }
+
+        // Simple enemy spawner
+        class EnemySpawner extends System {
+            constructor() {
+                super();
+                this.spawnPoints = [];
+                this.spawnCooldown = 5.0;
+                this.lastSpawnTime = 0;
+                this.maxEnemies = 10;
+                this.waveNumber = 1;
+                this.enemiesPerWave = 5;
+                this.currentWaveEnemies = 0;
+            }
+
+            addSpawnPoint(x, y, enemyTypes = ['dogus']) {
+                this.spawnPoints.push({
+                    position: new Vector2(x, y),
+                    enemyTypes: enemyTypes,
+                    lastUsed: 0
+                });
+            }
+
+            update(deltaTime) {
+                this.lastSpawnTime -= deltaTime;
+                
+                const currentEnemies = Game.instance.findEntitiesByTag('enemy').length;
+                
+                if (currentEnemies < this.maxEnemies && 
+                    this.lastSpawnTime <= 0 && 
+                    this.currentWaveEnemies < this.enemiesPerWave) {
+                    
+                    this.spawnRandomEnemy();
+                    this.lastSpawnTime = this.spawnCooldown;
+                    this.currentWaveEnemies++;
+                }
+                
+                if (this.currentWaveEnemies >= this.enemiesPerWave && currentEnemies === 0) {
+                    this.startNextWave();
+                }
+            }
+
+            spawnRandomEnemy() {
+                if (this.spawnPoints.length === 0) return;
+                
+                const spawnPoint = this.spawnPoints[Math.floor(Math.random() * this.spawnPoints.length)];
+                const enemyType = spawnPoint.enemyTypes[Math.floor(Math.random() * spawnPoint.enemyTypes.length)];
+                
+                let enemy;
+                switch (enemyType) {
+                    case 'dogus':
+                        enemy = createDogus(spawnPoint.position.x, spawnPoint.position.y);
+                        break;
+                    case 'octopus_creature':
+                        enemy = createOctopusCreature(spawnPoint.position.x, spawnPoint.position.y);
+                        break;
+                    case 'wimidir':
+                        enemy = createWimidir(spawnPoint.position.x, spawnPoint.position.y);
+                        break;
+                    default:
+                        enemy = createDogus(spawnPoint.position.x, spawnPoint.position.y);
+                }
+                
+                Game.instance.addEntity(enemy);
+            }
+
+            startNextWave() {
+                this.waveNumber++;
+                this.currentWaveEnemies = 0;
+                this.enemiesPerWave = Math.min(15, Math.floor(this.enemiesPerWave * 1.2));
+                this.spawnCooldown = Math.max(1.0, this.spawnCooldown * 0.9);
+                
+                Game.eventBus.emit('waveStart', { 
+                    wave: this.waveNumber, 
+                    enemies: this.enemiesPerWave 
+                });
+            }
+        }
+
+        // ===== GAME INITIALIZATION =====
+
+        let game;
+        let gameStarted = false;
+
+        // Game state
+        let currentLevel = 'menu';
+        let score = 0;
+        let gameTime = 0;
+        let enemySpawner;
+
+        // UI Elements
+        const healthFill = document.getElementById('healthFill');
+        const comboFill = document.getElementById('comboFill');
+        const comboCount = document.getElementById('comboCount');
+        const livesDisplay = document.getElementById('livesDisplay');
+        const bossHealthBar = document.getElementById('bossHealthBar');
+        const bossHealthFill = document.getElementById('bossHealthFill');
+        const bossName = document.getElementById('bossName');
+        const gameMessages = document.getElementById('gameMessages');
+        const loadingScreen = document.getElementById('loadingScreen');
+
+        // Create placeholder images
+        function createPlaceholderImage(width, height, color) {
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = color;
+            ctx.fillRect(0, 0, width, height);
+            
+            // Add border
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(1, 1, width-2, height-2);
+            
+            return canvas.toDataURL();
+        }
+
+        // Game state
+        let currentLevel = 'menu';
+        let score = 0;
+        let gameTime = 0;
+        let enemySpawner;
+
+        // UI Elements
+        const healthFill = document.getElementById('healthFill');
+        const comboFill = document.getElementById('comboFill');
+        const comboCount = document.getElementById('comboCount');
+        const livesDisplay = document.getElementById('livesDisplay');
+        const bossHealthBar = document.getElementById('bossHealthBar');
+        const bossHealthFill = document.getElementById('bossHealthFill');
+        const bossName = document.getElementById('bossName');
+        const gameMessages = document.getElementById('gameMessages');
+        const loadingScreen = document.getElementById('loadingScreen');
+
+        function startGame() {
+            if (gameStarted) return;
+            
+            gameStarted = true;
+            loadingScreen.style.display = 'none';
+            
+            // Initialize game
+            game = new Game('gameCanvas');
+            setupGameEvents();
+            
+            // Start with enemy demo level
+            currentLevel = 'demo';
+            setupDemoLevel();
+            
+            game.start();
+        }
+
+        function startBossFight() {
+            if (gameStarted) return;
+            
+            gameStarted = true;
+            loadingScreen.style.display = 'none';
+            
+            // Initialize game
+            game = new Game('gameCanvas');
+            setupGameEvents();
+            
+            // Start boss fight
+            currentLevel = 'boss';
+            setupBossLevel();
+            
+            game.start();
+        }
+
+        function startEnemyDemo() {
+            if (gameStarted) return;
+            
+            gameStarted = true;
+            loadingScreen.style.display = 'none';
+            
+            // Initialize game
+            game = new Game('gameCanvas');
+            setupGameEvents();
+            
+            // Start enemy showcase
+            currentLevel = 'enemies';
+            setupEnemyShowcase();
+            
+            game.start();
+        }
+
+        function setupGameEvents() {
+            // Player events
+            Game.eventBus.on('playerStateChanged', (data) => {
+                console.log(`Player state changed: ${data.previous} -> ${data.current}`);
+            });
+
+            Game.eventBus.on('playerEliminated', (data) => {
+                showMessage('Player Eliminated!', 'red');
+                updateLivesDisplay(data.livesRemaining);
+            });
+
+            Game.eventBus.on('playerRespawned', (data) => {
+                showMessage('Respawned!', 'cyan');
+            });
+
+            Game.eventBus.on('comboUpdated', (data) => {
+                updateComboDisplay(data.combo);
+                if (data.combo >= 5) {
+                    showMessage(`${data.combo}x COMBO!`, 'gold');
+                }
+            });
+
+            Game.eventBus.on('comboReset', () => {
+                updateComboDisplay(0);
+            });
+
+            Game.eventBus.on('comboBreakerUsed', () => {
+                showMessage('COMBO BREAKER!', 'orange');
+            });
+
+            Game.eventBus.on('playerTransported', () => {
+                showMessage('Transportation!', 'blue');
+            });
+
+            // Boss events
+            Game.eventBus.on('bossAttackStarted', (data) => {
+                showMessage(`Tarak uses ${data.attack}!`, 'red');
+            });
+
+            Game.eventBus.on('bossPhaseChanged', (data) => {
+                showMessage(`Tarak enters Phase ${data.phase}!`, 'purple');
+                bossName.textContent = `TARAK - Phase ${data.phase}`;
+            });
+
+            Game.eventBus.on('bossDefeated', () => {
+                showMessage('TARAK DEFEATED!', 'gold');
+                setTimeout(() => {
+                    showMessage('Victory!', 'green');
+                }, 2000);
+            });
+
+            // Enemy events
+            Game.eventBus.on('enemyKilled', (data) => {
+                score += 100;
+                // Could add score display here
+            });
+
+            Game.eventBus.on('keyCollected', () => {
+                showMessage('Key Collected!', 'yellow');
+            });
+
+            Game.eventBus.on('waveStart', (data) => {
+                showMessage(`Wave ${data.wave} - ${data.enemies} enemies!`, 'cyan');
+            });
+
+            // Update health display
+            setInterval(() => {
+                const player = game.findEntityByTag('player');
+                if (player) {
+                    const health = player.getComponent('Health');
+                    if (health) {
+                        updateHealthDisplay(health.currentHealth, health.maxHealth);
+                    }
+                }
+
+                const boss = game.findEntityByTag('boss');
+                if (boss) {
+                    const health = boss.getComponent('Health');
+                    if (health) {
+                        updateBossHealthDisplay(health.currentHealth, health.maxHealth);
+                    }
+                }
+            }, 100);
+        }
+
+        function setupDemoLevel() {
+            // Create background
+            createBackground();
+            
+            // Create player
+            const player = createPlayer(100, 400);
+            game.addEntity(player);
+            
+            // Create some demo enemies
+            setTimeout(() => {
+                game.addEntity(createDogus(300, 200));
+                game.addEntity(createOctopusCreature(500, 400));
+                game.addEntity(createWimidir(600, 300));
+            }, 1000);
+            
+            setTimeout(() => {
+                game.addEntity(createAmidogus(700, 400));
+            }, 3000);
+            
+            // Setup enemy spawner
+            enemySpawner = new EnemySpawner();
+            enemySpawner.addSpawnPoint(750, 400, ['dogus', 'octopus_creature']);
+            enemySpawner.addSpawnPoint(750, 200, ['wimidir']);
+            enemySpawner.addSpawnPoint(750, 100, ['dogus']);
+            
+            game.systems.push(enemySpawner);
+            
+            showMessage('Demo Level - Survive the waves!', 'cyan');
+        }
+
+        function setupBossLevel() {
+            // Create background
+            createBackground();
+            
+            // Create player
+            const player = createPlayer(100, 400);
+            game.addEntity(player);
+            
+            // Create Tarak boss
+            setTimeout(() => {
+                const boss = createTarakBoss(600, 200);
+                game.addEntity(boss);
+                bossHealthBar.style.display = 'block';
+                showMessage('Tarak, the Gothic Dragon King appears!', 'red');
+            }, 2000);
+        }
+
+        function setupEnemyShowcase() {
+            // Create background
+            createBackground();
+            
+            // Create player
+            const player = createPlayer(100, 400);
+            game.addEntity(player);
+            
+            // Showcase all enemy types with delays
+            const enemies = [
+                { type: 'dogus', delay: 1000, message: 'Dogus - Small floating enemies' },
+                { type: 'octopus_creature', delay: 3000, message: 'Octopus Creature - Malleable with eye laser' },
+                { type: 'pet_cyborg', delay: 5000, message: 'Pet Cyborg - Can duplicate itself' },
+                { type: 'wimidir', delay: 7000, message: 'Wimidir - Stationary pyramid shooter' },
+                { type: 'midogu', delay: 9000, message: 'Midogu - Whip attacker, can be preserved' },
+                { type: 'amidogus', delay: 11000, message: 'Amidogus - Large boss with key' }
+            ];
+            
+            enemies.forEach(enemy => {
+                setTimeout(() => {
+                    let x = 300 + Math.random() * 400;
+                    let y = 100 + Math.random() * 300;
+                    
+                    switch (enemy.type) {
+                        case 'dogus':
+                            game.addEntity(createDogus(x, y));
+                            break;
+                        case 'octopus_creature':
+                            game.addEntity(createOctopusCreature(x, y));
+                            break;
+                        case 'pet_cyborg':
+                            game.addEntity(createPetCyborg(x, y));
+                            break;
+                        case 'wimidir':
+                            game.addEntity(createWimidir(x, y));
+                            break;
+                        case 'midogu':
+                            game.addEntity(createMidogu(x, y));
+                            break;
+                        case 'amidogus':
+                            game.addEntity(createAmidogus(x, y));
+                            break;
+                    }
+                    
+                    showMessage(enemy.message, 'yellow');
+                }, enemy.delay);
+            });
+        }
+
+        function createBackground() {
+            // Create a simple background
+            const bg = game.createEntity()
+                .addComponent(new Transform(new Vector2(400, 300)))
+                .addComponent(new Sprite('data:image/svg+xml;base64,' + btoa(`
+                    <svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                            <linearGradient id="bgGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#1a1a2e;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#16213e;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <rect width="800" height="600" fill="url(#bgGrad)"/>
+                        <rect x="0" y="550" width="800" height="50" fill="#2a2a4e"/>
+                    </svg>
+                `), 800, 600))
+                .addTag('background');
+            
+            game.addEntity(bg);
+        }
+
+        // ===== UI FUNCTIONS =====
+
+        function updateHealthDisplay(current, max) {
+            const percentage = (current / max) * 100;
+            healthFill.style.width = percentage + '%';
+        }
+
+        function updateBossHealthDisplay(current, max) {
+            const percentage = (current / max) * 100;
+            bossHealthFill.style.width = percentage + '%';
+        }
+
+        function updateComboDisplay(combo) {
+            comboCount.textContent = combo;
+            const percentage = (combo / 5) * 100; // Max combo of 5
+            comboFill.style.width = Math.min(100, percentage) + '%';
+        }
+
+        function updateLivesDisplay(lives) {
+            const icons = livesDisplay.children;
+            for (let i = 0; i < icons.length; i++) {
+                icons[i].style.opacity = i < lives ? '1' : '0.3';
+            }
+        }
+
+        function showMessage(text, color = 'white') {
+            const message = document.createElement('div');
+            message.className = 'message';
+            message.textContent = text;
+            message.style.color = color;
+            
+            gameMessages.appendChild(message);
+            
+            setTimeout(() => {
+                if (message.parentNode) {
+                    message.parentNode.removeChild(message);
+                }
+            }, 3000);
+        }
+
+        // ===== PLACEHOLDER ASSETS =====
+        
+        // Create simple colored rectangles as placeholder sprites
+        function createPlaceholderImage(width, height, color) {
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = color;
+            ctx.fillRect(0, 0, width, height);
+            
+            // Add border
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(1, 1, width-2, height-2);
+            
+            return canvas.toDataURL();
+        }
+
+        // Override sprite loading for demo
+        const originalSprite = window.Sprite;
+        window.Sprite = class extends originalSprite {
+            constructor(imageSrc, width = 64, height = 64) {
+                super(imageSrc, width, height);
+                
+                // Create placeholder based on sprite name
+                if (imageSrc.includes('player')) {
+                    this.image.src = createPlaceholderImage(width, height, '#00ff00');
+                } else if (imageSrc.includes('tarak')) {
+                    this.image.src = createPlaceholderImage(width, height, '#ff0000');
+                } else if (imageSrc.includes('dogus')) {
+                    this.image.src = createPlaceholderImage(width, height, '#ffff00');
+                } else if (imageSrc.includes('octopus')) {
+                    this.image.src = createPlaceholderImage(width, height, '#ff00ff');
+                } else if (imageSrc.includes('cyborg')) {
+                    this.image.src = createPlaceholderImage(width, height, '#00ffff');
+                } else if (imageSrc.includes('wimidir')) {
+                    this.image.src = createPlaceholderImage(width, height, '#ffa500');
+                } else if (imageSrc.includes('midogu')) {
+                    this.image.src = createPlaceholderImage(width, height, '#a500ff');
+                } else if (imageSrc.includes('amidogus')) {
+                    this.image.src = createPlaceholderImage(width, height, '#ff5500');
+                } else {
+                    this.image.src = createPlaceholderImage(width, height, '#808080');
+                }
+            }
+        };
+
+        // Disable context menu on canvas
+        document.getElementById('gameCanvas').addEventListener('contextmenu', (e) => {
+            e.preventDefault();
+        });
+
+        console.log('Game ready! Click a button to start.');
+    </script>
+</body>
+</html>
