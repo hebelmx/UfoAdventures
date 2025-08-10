@@ -1,50 +1,18 @@
-// Entry point: DOMContentLoaded, startGame, startBossFight, startEnemyDemo
-function startGame() {
-    if (gameState.gameStarted) return;
-    gameState.gameStarted = true;
-    gameState.level = 'adventure';
-    gameState.game = new Game('gameCanvas');
-    gameState.game.physicsSystem = new PhysicsSystem();
-    gameState.game.renderSystem = new RenderSystem(gameState.game.canvas);
-    gameState.game.systems.push(gameState.game.physicsSystem);
-    gameState.game.systems.push(gameState.game.renderSystem);
-    setupGameEvents();
-    setupDemoLevel();
-    gameState.game.start();
-    document.getElementById('loadingScreen').style.display = 'none';
-}
+let game;
 
-function startBossFight() {
-    if (gameState.gameStarted) return;
-    gameState.gameStarted = true;
-    gameState.level = 'boss';
-    gameState.game = new Game('gameCanvas');
-    gameState.game.physicsSystem = new PhysicsSystem();
-    gameState.game.renderSystem = new RenderSystem(gameState.game.canvas);
-    gameState.game.systems.push(gameState.game.physicsSystem);
-    gameState.game.systems.push(gameState.game.renderSystem);
-    setupGameEvents();
-    setupBossLevel();
-    gameState.game.start();
-    document.getElementById('loadingScreen').style.display = 'none';
-    document.getElementById('bossHealthBar').style.display = '';
-}
-
-function startEnemyDemo() {
-    if (gameState.gameStarted) return;
-    gameState.gameStarted = true;
-    gameState.level = 'enemyDemo';
-    gameState.game = new Game('gameCanvas');
-    gameState.game.physicsSystem = new PhysicsSystem();
-    gameState.game.renderSystem = new RenderSystem(gameState.game.canvas);
-    gameState.game.systems.push(gameState.game.physicsSystem);
-    gameState.game.systems.push(gameState.game.renderSystem);
-    setupGameEvents();
-    setupEnemyShowcase();
-    gameState.game.start();
-    document.getElementById('loadingScreen').style.display = 'none';
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Optionally, attach button listeners here if not using inline onclick
+window.addEventListener('load', async () => {
+    game = new Game();
+    await game.loadAssets(); // Wait for assets to load
+    document.getElementById('startGameButton').addEventListener('click', () => {
+        console.log('Start Adventure button clicked!');
+        game.start('adventure');
+    });
+    document.getElementById('startBossFightButton').addEventListener('click', () => {
+        console.log('Start Boss Fight button clicked!');
+        game.start('boss');
+    });
+    document.getElementById('startEnemyDemoButton').addEventListener('click', () => {
+        console.log('Start Enemy Demo button clicked!');
+        game.start('enemyDemo');
+    });
 });
