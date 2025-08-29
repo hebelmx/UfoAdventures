@@ -237,6 +237,18 @@ class UISystem extends System {
             updateComboDisplay(player.combo);
             updateLivesDisplay(player.lives);
         }
+
+        // Boss health bar handling
+        const bossEntity = entities.find(e => e.hasComponent(Boss));
+        const bossBarEl = document.getElementById('bossHealthBar');
+        if (bossEntity) {
+            const bossHealth = bossEntity.getComponent(Health);
+            const max = bossHealth.max || bossHealth.health;
+            updateBossHealthDisplay(bossHealth.health, max);
+            if (bossBarEl) bossBarEl.style.display = 'block';
+        } else {
+            if (bossBarEl) bossBarEl.style.display = 'none';
+        }
     }
 }
 

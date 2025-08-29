@@ -18,19 +18,19 @@ class Game {
         try {
             PIXI.Assets.reset();
             console.log('Loading player asset...');
-            await PIXI.Assets.load({ src: 'images/Sprites/1_Tarak.png', alias: 'player' });
+            await PIXI.Assets.load({ src: 'images/Sprites/Hero/idle_01.png', alias: 'player' });
             console.log('Player asset loaded.');
 
             console.log('Loading amidogus asset...');
-            await PIXI.Assets.load({ src: 'images/Statics/02_Amidogus.png', alias: 'amidogus' });
+            await PIXI.Assets.load({ src: 'images/Sprites/Enemies/Amidogus/idle_01.png', alias: 'amidogus' });
             console.log('Amidogus asset loaded.');
 
             console.log('Loading blade asset...');
-            await PIXI.Assets.load({ src: 'images/Statics/01_Blade.png', alias: 'blade' });
+            await PIXI.Assets.load({ src: 'images/Sprites/Enemies/Blade/idle_01.png', alias: 'blade' });
             console.log('Blade asset loaded.');
 
             console.log('Loading background asset...');
-            await PIXI.Assets.load({ src: 'images/aliendescending.jpg', alias: 'background' });
+            await PIXI.Assets.load({ src: 'images/Backgrounds/space_01.jpg', alias: 'background' });
             console.log('Background asset loaded.');
 
             this.loaded = true;
@@ -116,6 +116,7 @@ class Game {
         boss.addComponent(new Motion({ x: 2, y: 0 }));
         boss.addComponent(new Collider(50));
         boss.addComponent(new Health(500));
+        boss.getComponent(Health).max = 500;
         boss.addComponent(new Boss());
         this.entities.push(boss);
 
