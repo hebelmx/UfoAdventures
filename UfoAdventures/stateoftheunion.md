@@ -1,5 +1,10 @@
 # State of the Union — UFO Adventures
 
+## Repository
+- Name: UfoAdventures
+- Active Branch: dev
+- Remote: github.com:hebelmx/UfoAdventures.git
+
 ## Overview
 UFO Adventures is a browser-based 2D shooter using PixiJS 7 and a lightweight ECS (Entity–Component–System). It runs as a static site (no bundler) served from `src/`. Core gameplay, asset loading, and UI overlays are present and playable via a simple HTTP server.
 
