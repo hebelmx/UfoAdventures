@@ -1,170 +1,223 @@
-class Game {
-    constructor() {
-        this.app = new PIXI.Application({
-            width: 800,
-            height: 600,
-            backgroundColor: 0x1099bb,
-            view: document.getElementById('gameCanvas'),
-        });
+class GameplayRuntime {
+    constructor(app, services) {
+        this.app = app;
+        this.services = services;
+        this.stage = new PIXI.Container();
+        this.stage.sortableChildren = true;
 
-        // this.loader = PIXI.Loader.shared; // Removed
-        // this.resources = this.loader.resources; // Removed
         this.entities = [];
         this.systems = [];
-        this.loaded = false;
+        this.mode = 'adventure';
+        this.sceneOptions = {};
+        this.backgroundSprite = null;
+        this._isRunning = false;
+        this._paused = false;
     }
 
-    async loadAssets() {
-        try {
-            PIXI.Assets.reset();
-            console.log('Loading player asset...');
-            await PIXI.Assets.load({ src: 'images/Sprites/Hero/idle_01.png', alias: 'player' });
-            console.log('Player asset loaded.');
+    start(mode, options = {}) {
+        this.mode = mode || 'adventure';
+        this.sceneOptions = options;
+        this._ensureStageAttached();
+        this._resetWorld();
+        this._applyBackground(options.backgroundAlias || 'background');
+        this._buildCoreSystems();
 
-            console.log('Loading amidogus asset...');
-            await PIXI.Assets.load({ src: 'images/Sprites/Enemies/Amidogus/idle_01.png', alias: 'amidogus' });
-            console.log('Amidogus asset loaded.');
-
-            console.log('Loading blade asset...');
-            await PIXI.Assets.load({ src: 'images/Sprites/Enemies/Blade/idle_01.png', alias: 'blade' });
-            console.log('Blade asset loaded.');
-
-            console.log('Loading background asset...');
-            await PIXI.Assets.load({ src: 'images/Backgrounds/space_01.jpg', alias: 'background' });
-            console.log('Background asset loaded.');
-
-            this.loaded = true;
-            console.log('All assets loaded successfully.');
-        } catch (error) {
-            console.error('Error loading assets:', error);
-            this.loaded = false;
+        if (this.mode === 'adventure') {
+            this._setupAdventureMode();
+        } else if (this.mode === 'boss') {
+            this._setupBossMode();
+        } else if (this.mode === 'enemyDemo') {
+            this._setupEnemyDemoMode();
+        } else {
+            console.warn('GameplayRuntime: unknown mode', this.mode);
+            this._setupAdventureMode();
         }
+
+        this._isRunning = true;
+        this._paused = false;
     }
 
-    start(mode) {
-        if (!this.loaded) {
+    update(delta) {
+        if (!this._isRunning || this._paused) {
             return;
         }
 
-        this.mode = mode;
+        for (const system of this.systems) {
+            system.update(this.entities, delta);
+        }
+    }
 
-        // Hide loading screen
-        document.getElementById('loadingScreen').style.display = 'none';
-
-        // Create background
-        const background = new PIXI.Sprite(PIXI.Assets.get('background'));
-        this.app.stage.addChild(background);
-
-        // Clear existing entities and systems
-        this.entities.forEach(entity => {
-            if (entity.hasComponent(Sprite)) {
-                this.app.stage.removeChild(entity.getComponent(Sprite).sprite);
-            }
-        });
-        this.entities = [];
-        this.systems = [];
-
-        // Create systems
-        this.systems.push(new PlayerInputSystem());
-        this.systems.push(new MovementSystem());
-        this.systems.push(new ShootingSystem(this));
-        this.systems.push(new CollisionSystem(this));
-        this.systems.push(new UISystem(this));
-        this.systems.push(new RenderSystem(this.app));
-        this.systems.push(new CleanupSystem(this));
-
-        // Create entities based on game mode
-        if (mode === 'adventure') {
-            this.setupAdventureMode();
-        } else if (mode === 'boss') {
-            this.setupBossMode();
-        } else if (mode === 'enemyDemo') {
-            this.setupEnemyDemoMode();
+    stop() {
+        if (!this._isRunning) {
+            return;
         }
 
-        // Start the game loop
-        this.app.ticker.add(delta => this.gameLoop(delta));
-    }
-
-    setupAdventureMode() {
-        // Create the player
-        const player = this._createPlayerEntity();
-        this.entities.push(player);
-
-        // Add entities to the stage
-        this.entities.forEach(entity => {
-            if (entity.hasComponent(Sprite)) {
-                this.app.stage.addChild(entity.getComponent(Sprite).sprite);
+        for (const system of this.systems) {
+            if (typeof system.destroy === 'function') {
+                system.destroy();
             }
-        });
+        }
 
-        // Add enemy spawning system
-        this.systems.push(new EnemySpawningSystem(this));
+        this._isRunning = false;
+        this._paused = false;
+        this._resetWorld();
     }
 
-    setupBossMode() {
-        // Create the player
-        const player = this._createPlayerEntity();
-        this.entities.push(player);
+    setPaused(isPaused) {
+        this._paused = !!isPaused;
+    }
 
-        // Create the boss
+    isPaused() {
+        return this._paused;
+    }
+
+    removeEntity(entity) {
+        const index = this.entities.indexOf(entity);
+        if (index > -1) {
+            this.entities.splice(index, 1);
+        }
+
+        if (entity.hasComponent(Sprite)) {
+            const sprite = entity.getComponent(Sprite).sprite;
+            if (sprite.parent === this.stage) {
+                this.stage.removeChild(sprite);
+            }
+        }
+
+        entity.isRemoved = true;
+    }
+
+    addEntity(entity) {
+        this._registerEntity(entity);
+    }
+
+    _ensureStageAttached() {
+        if (!this.stage.parent) {
+            this.app.stage.addChild(this.stage);
+        }
+    }
+
+    _resetWorld() {
+        if (this.backgroundSprite && this.backgroundSprite.parent === this.stage) {
+            this.stage.removeChild(this.backgroundSprite);
+        }
+
+        this.backgroundSprite = null;
+        this.stage.removeChildren();
+        this.entities = [];
+        this.systems = [];
+    }
+
+    _applyBackground(alias) {
+        if (!alias) {
+            return;
+        }
+
+        const texture = PIXI.Assets.get(alias);
+        if (!texture) {
+            console.warn('GameplayRuntime: background alias not found', alias);
+            return;
+        }
+
+        const background = new PIXI.Sprite(texture);
+        background.x = 0;
+        background.y = 0;
+        background.width = this.app.renderer.width || this.app.screen.width;
+        background.height = this.app.renderer.height || this.app.screen.height;
+        background.zIndex = -100;
+        this.stage.addChildAt(background, 0);
+        this.backgroundSprite = background;
+    }
+
+    _buildCoreSystems() {
+        const inputService = this.services.resolve('inputService');
+        let eventBus = null;
+        try {
+            eventBus = this.services.resolve('eventBus');
+        } catch (error) {
+            eventBus = null;
+        }
+
+        this.systems.push(new PlayerInputSystem(inputService));
+        this.systems.push(new AbilitySystem(this, eventBus, inputService));
+        this.systems.push(new EnemyBehaviorSystem(this));
+        this.systems.push(new MovementSystem());
+        this.systems.push(new ShootingSystem(this, eventBus));
+        this.systems.push(new CollisionSystem(this, eventBus));
+        this.systems.push(new UISystem(this));
+        this.systems.push(new BoundaryCleanupSystem(this));
+        this.systems.push(new RenderSystem(this.app));
+        this.systems.push(new CleanupSystem(this));
+    }
+
+    _setupAdventureMode() {
+        const player = this._createPlayerEntity();
+        this._registerEntity(player);
+
+        const enemyOptions = this.sceneOptions?.enemies || {};
+        this.systems.push(new EnemySpawningSystem(this, enemyOptions));
+    }
+
+    _setupBossMode() {
+        const player = this._createPlayerEntity();
+        this._registerEntity(player);
+
         const boss = new Entity();
         boss.addComponent(new Transform({ x: 400, y: 100 }));
         boss.addComponent(new Sprite(PIXI.Assets.get('amidogus')));
-        boss.getComponent(Sprite).sprite.width = 100;
-        boss.getComponent(Sprite).sprite.height = 100;
+        const bossSprite = boss.getComponent(Sprite).sprite;
+        bossSprite.width = 100;
+        bossSprite.height = 100;
         boss.addComponent(new Motion({ x: 2, y: 0 }));
         boss.addComponent(new Collider(50));
         boss.addComponent(new Health(500));
         boss.getComponent(Health).max = 500;
+
+        const bossConfig = this.sceneOptions?.boss || {};
+        boss.addComponent(new BossPhase(bossConfig.phases || [], boss.getComponent(Health).max));
         boss.addComponent(new Boss());
-        this.entities.push(boss);
+        this._registerEntity(boss);
 
-        // Add entities to the stage
-        this.entities.forEach(entity => {
-            if (entity.hasComponent(Sprite)) {
-                this.app.stage.addChild(entity.getComponent(Sprite).sprite);
-            }
-        });
-
-        // Add boss AI systems
         this.systems.push(new BossAISystem(this));
         this.systems.push(new BossShootingSystem(this));
     }
 
-    setupEnemyDemoMode() {
-        // Create the player
+    _setupEnemyDemoMode() {
         const player = this._createPlayerEntity();
-        this.entities.push(player);
-
-        // Add entities to the stage
-        this.entities.forEach(entity => {
-            if (entity.hasComponent(Sprite)) {
-                this.app.stage.addChild(entity.getComponent(Sprite).sprite);
-            }
-        });
-
-        // Add enemy spawning system
-        this.systems.push(new EnemySpawningSystem(this));
+        this._registerEntity(player);
+        const enemyOptions = this.sceneOptions?.enemies || {};
+        this.systems.push(new EnemySpawningSystem(this, enemyOptions));
     }
 
     _createPlayerEntity() {
         const player = new Entity();
         player.addComponent(new Transform({ x: 400, y: 500 }));
         player.addComponent(new Sprite(PIXI.Assets.get('player')));
-        player.getComponent(Sprite).sprite.width = 50;
-        player.getComponent(Sprite).sprite.height = 50;
+        const sprite = player.getComponent(Sprite).sprite;
+        sprite.width = 50;
+        sprite.height = 50;
         player.addComponent(new Motion());
         player.addComponent(new Weapon());
         player.addComponent(new Collider(20));
-        player.addComponent(new Health(100));
+        player.addComponent(new Health(100));\r\n        player.addComponent(new PlayerAbilities());
         player.addComponent(new Player());
         return player;
     }
 
-    gameLoop(delta) {
-        this.systems.forEach(system => {
-            system.update(this.entities, delta);
-        });
+    _registerEntity(entity) {
+        this.entities.push(entity);
+        if (entity.hasComponent(Sprite)) {
+            const sprite = entity.getComponent(Sprite).sprite;
+            if (!sprite.parent) {
+                this.stage.addChild(sprite);
+            }
+        }
     }
 }
+
+window.GameplayRuntime = GameplayRuntime;
+window.Game = GameplayRuntime;
+
+
+
+

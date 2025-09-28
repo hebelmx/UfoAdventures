@@ -1,40 +1,33 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `src/`: Game client (static site).
-  - `index.html`: Main entry using PIXI via CDN.
-  - `js/`: Engine (`engine/`), entities (`entities/`), UI, and game loop.
-  - `css/`: Styles for HUD and screens.
-  - `images/`: Sprites and statics used by the game.
-- `docs/`: Design notes and gameplay docs.
-- `images/`: Original art assets and tooling (source sprites; not loaded by the app).
-- `resume.md`: Project overview note.
+- `src/` hosts the playable client; load `src/index.html` for the PIXI entry point.
+- Engine systems sit under `src/js/engine/`, gameplay actors under `src/js/entities/`, UI helpers, loops, and utilities share `src/js/`.
+- HUD styles live in `src/css/`; runtime sprites and effects in `src/images/`.
+- `docs/` stores design notes and balance ideas, while root-level `images/` keeps source artwork not shipped with the client.
+- Keep new modules focused and place files beside related systems to ease discovery.
 
 ## Build, Test, and Development Commands
-- Run locally (Python): `python -m http.server 5173` then open `http://localhost:5173/src/`.
-- Run locally (Node): `npx serve src -l 5173` or `npx http-server src -p 5173`.
-- Quick checks: open `src/test_pixi.html` (PIXI load) and `src/test_asset_loading.html` (asset paths).
-- No build step required; assets load directly from `src/` and CDN.
+- `python -m http.server 5173` (then visit `http://localhost:5173/src/`) spins up a quick local server.
+- `npx serve src -l 5173` or `npx http-server src -p 5173` provide Node-powered options with hot reload convenience.
+- Open `src/test_pixi.html` to confirm the CDN PIXI build, and `src/test_asset_loading.html` to verify sprite paths.
 
 ## Coding Style & Naming Conventions
-- JavaScript: 4‑space indent, single quotes, semicolons, `camelCase` for variables/functions, `PascalCase` for classes.
-- Files: `.js` lower‑case with dashes where needed; images use descriptive names (e.g., `images/Sprites/1_Tarak.png`).
-- Keep modules small: engine systems in `src/js/engine/`, game entities in `src/js/entities/`.
-- Linting: no enforced config; keep style consistent with existing files.
+- JavaScript uses 4-space indentation, single quotes, and semicolons; names follow `camelCase` for functions/values and `PascalCase` for classes.
+- File names stay lowercase with dashes when needed (e.g., `game-loop.js`); asset names must retain original casing.
+- Add comments sparingly, prioritizing complex logic or data flow notes.
 
 ## Testing Guidelines
-- Framework: none yet. Prefer focused, manual checks in the browser.
-- Naming: add ad‑hoc test pages in `src/` with `test_*.html` (example: `src/test_asset_loading.html`).
-- Sanity: verify console has no errors; confirm controls (WASD/Arrow, J/K/L) and asset rendering.
-- Optional: add lightweight unit tests only if introducing pure utility functions.
+- No automated suite yet; rely on targeted browser tests with the dev server running.
+- Create ad-hoc probes as `src/test_*.html` when validating new subsystems or assets.
+- During manual passes, watch the console, ensure WASD/Arrow movement and J/K/L combat inputs, and confirm sprites render cleanly.
 
 ## Commit & Pull Request Guidelines
-- Commits: small, descriptive messages (suggest Conventional Commits), e.g., `feat(engine): add collision system` or `fix(assets): correct background path`.
-- Branches: `feature/<short-name>`, `fix/<issue-id>`, `chore/<task>`.
-- PRs: include purpose, linked issue (if any), testing notes, and screenshots/GIFs of gameplay/UI. Mention any asset or docs changes.
+- Use Conventional Commit prefixes such as `feat(engine): add collision system` or `fix(assets): correct background path`.
+- Keep PRs scoped; include purpose, testing steps, linked issues, and screenshots or GIFs for visible changes.
+- Call out asset or documentation updates in descriptions so reviewers can focus checks.
 
 ## Security & Configuration Tips
-- Serve over HTTP when testing; direct `file://` loads can break asset requests.
-- Asset paths are case‑sensitive on many hosts; match `src/images/**` exactly.
-- PIXI is loaded from CDN. If upgrading the version, validate asset loading and rendering via `test_pixi.html` before merging.
-
+- Always serve over HTTP rather than `file://` to avoid blocked requests.
+- Match case-sensitive paths under `src/images/**`; confirm additions load through the test pages.
+- If bumping the PIXI CDN version, rerun both test HTML pages before merging.

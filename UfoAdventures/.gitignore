@@ -1,0 +1,9 @@
+# Node dependencies and Playwright artifacts
+node_modules/
+playwright-report/
+blob-report/
+test-results/
+
+# OS / tooling noise
+.DS_Store
+Thumbs.db

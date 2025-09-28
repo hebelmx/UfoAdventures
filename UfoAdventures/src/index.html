@@ -28,6 +28,21 @@
                     <div class="life-icon"></div>
                     <div class="life-icon"></div>
                 </div>
+                <div class="ability-panel">
+                    <div class="ability-row">
+                        <span>Combo Breaker</span>
+                        <div class="ability-bar">
+                            <div class="ability-fill" id="abilityCombo"></div>
+                        </div>
+                    </div>
+                    <div class="ability-row">
+                        <span>Teleport</span>
+                        <div class="ability-bar">
+                            <div class="ability-fill" id="abilityTeleport"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="damage-log" id="damageLog"></div>
             </div>
         </div>
         <!-- Boss Health Bar -->
@@ -53,8 +68,46 @@
             <button class="start-button" id="startBossFightButton">Fight Tarak Boss</button>
             <button class="start-button" id="startEnemyDemoButton">Enemy Demo</button>
         </div>
+        <div class="overlay-screen" id="pauseOverlay" style="display: none;">
+            <div class="overlay-card">
+                <h2>Game Paused</h2>
+                <p>Take a breather before the next wave.</p>
+                <div class="overlay-actions">
+                    <button class="overlay-button" id="pauseResumeButton">Resume</button>
+                    <button class="overlay-button" id="pauseInventoryButton">Inventory</button>
+                    <button class="overlay-button" id="pauseEndButton">End Mission</button>
+                    <button class="overlay-button overlay-button--danger" id="pauseQuitButton">Quit to Menu</button>
+                </div>
+            </div>
+        </div>
+        <div class="overlay-screen" id="inventoryOverlay" style="display: none;">
+            <div class="overlay-card">
+                <h2>Inventory</h2>
+                <ul class="inventory-list" id="inventoryList"></ul>
+                <div class="overlay-actions">
+                    <button class="overlay-button" id="inventoryCloseButton">Back</button>
+                </div>
+            </div>
+        </div>
+        <div class="overlay-screen" id="resultsOverlay" style="display: none;">
+            <div class="overlay-card">
+                <h2 id="resultsTitle">Mission Complete</h2>
+                <p id="resultsSummary"></p>
+                <pre class="results-detail" id="resultsDetail"></pre>
+                <div class="overlay-actions">
+                    <button class="overlay-button" id="resultsRetryButton">Play Again</button>
+                    <button class="overlay-button overlay-button--danger" id="resultsMenuButton">Main Menu</button>
+                </div>
+            </div>
+        </div>
     </div>
     <!-- JS scripts -->
+    <script src="js/engine/service-locator.js?v=1"></script>
+    <script src="js/engine/event-bus.js?v=1"></script>
+    <script src="js/engine/config-service.js?v=1"></script>
+    <script src="js/engine/resource-manager.js?v=1"></script>
+    <script src="js/engine/input-service.js?v=1"></script>
+    <script src="js/engine/scene-manager.js?v=1"></script>
     <script src="js/engine/core.js?v=1"></script>
     <script src="js/engine/components.js?v=1"></script>
     <script src="js/engine/systems.js?v=1"></script>
@@ -62,6 +115,15 @@
     <script src="js/entities/player.js?v=1"></script>
     <script src="js/ui.js?v=1"></script>
     <script src="js/game.js?v=1"></script>
+    <script src="js/scenes/bootstrap-scene.js?v=1"></script>
+    <script src="js/scenes/asset-loading-scene.js?v=1"></script>
+    <script src="js/scenes/main-menu-scene.js?v=1"></script>
+    <script src="js/scenes/pause-scene.js?v=1"></script>
+    <script src="js/scenes/inventory-scene.js?v=1"></script>
+    <script src="js/scenes/results-scene.js?v=1"></script>
+    <script src="js/scenes/gameplay-scene.js?v=1"></script>
+    <script src="js/game-application.js?v=1"></script>
     <script src="js/main.js?v=1"></script>
 </body>
 </html>
+

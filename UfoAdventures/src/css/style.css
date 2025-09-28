@@ -191,3 +191,188 @@ body {
     background: #0088ff;
     transform: scale(1.05);
 }
+.overlay-screen {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(15, 25, 42, 0.92);
+    z-index: 1500;
+    padding: 20px;
+}
+
+.overlay-card {
+    background: rgba(0, 0, 0, 0.85);
+    border: 2px solid #0066cc;
+    border-radius: 12px;
+    padding: 24px 32px;
+    min-width: 320px;
+    max-width: 520px;
+    text-align: center;
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.6);
+}
+
+.overlay-card h2 {
+    margin-top: 0;
+    margin-bottom: 12px;
+    font-size: 28px;
+    color: #00aaff;
+}
+
+.overlay-card p {
+    margin: 0 0 16px 0;
+}
+
+.overlay-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 12px;
+}
+
+.overlay-button {
+    padding: 12px 24px;
+    font-size: 16px;
+    background: #0b7bdc;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.overlay-button:hover:enabled {
+    background: #1492ff;
+    transform: scale(1.04);
+}
+
+.overlay-button:disabled {
+    opacity: 0.6;
+    cursor: default;
+}
+
+.overlay-button--danger {
+    background: #c33;
+}
+
+.overlay-button--danger:hover:enabled {
+    background: #ff4444;
+}
+
+.inventory-list {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0 0 0;
+    max-height: 200px;
+    overflow-y: auto;
+    text-align: left;
+}
+
+.inventory-list li {
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.inventory-empty {
+    opacity: 0.7;
+    font-style: italic;
+}
+
+.results-detail {
+    background: rgba(10, 20, 35, 0.8);
+    border: 1px solid rgba(0, 102, 204, 0.4);
+    border-radius: 8px;
+    padding: 12px;
+    text-align: left;
+    max-height: 220px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+}
+
+.damage-log {
+    margin-top: 16px;
+    max-width: 220px;
+    max-height: 140px;
+    overflow-y: auto;
+    font-size: 12px;
+    text-align: left;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1px solid rgba(0, 102, 204, 0.4);
+    border-radius: 8px;
+    padding: 8px;
+}
+
+.damage-entry {
+    margin: 4px 0;
+    color: #cbd5f5;
+    opacity: 0.9;
+}
+
+.damage-entry--player {
+    color: #ff7777;
+}
+
+.damage-entry--boss {
+    color: #66ffcc;
+}
+
+.damage-entry--enemy {
+    color: #ffaa33;
+}
+
+.health-fill.flash,
+.boss-health-fill.flash {
+    animation: barFlash 0.4s ease;
+}
+
+@keyframes barFlash {
+    0% {
+        filter: brightness(1.6);
+    }
+    50% {
+        filter: brightness(1.1);
+    }
+    100% {
+        filter: brightness(1);
+    }
+}
+.ability-panel {
+    margin-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 10px;
+}
+
+.ability-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    margin-top: 6px;
+}
+
+.ability-bar {
+    flex: 1;
+    height: 8px;
+    background: rgba(20, 30, 50, 0.9);
+    border: 1px solid rgba(0, 102, 204, 0.35);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.ability-fill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #2a8bff, #66ccff);
+    transition: width 0.2s ease, background 0.2s ease;
+}
+
+.ability-fill.ready {
+    background: linear-gradient(90deg, #32ff99, #8affc6);
+    box-shadow: 0 0 8px rgba(50, 255, 153, 0.7);
+}

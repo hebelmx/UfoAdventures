@@ -1,0 +1,203 @@
+{
+  "application": {
+    "screen": {
+      "width": 800,
+      "height": 600,
+      "backgroundColor": "#0f192a"
+    }
+  },
+  "assets": [
+    {
+      "alias": "player",
+      "src": "images/Sprites/Hero/idle_01.svg"
+    },
+    {
+      "alias": "amidogus",
+      "src": "images/Sprites/Enemies/Amidogus/idle_01.svg"
+    },
+    {
+      "alias": "blade",
+      "src": "images/Sprites/Enemies/Blade/idle_01.svg"
+    },
+    {
+      "alias": "background",
+      "src": "images/Backgrounds/space_01.svg"
+    }
+  ],
+  "modes": {
+    "default": "adventure",
+    "available": [
+      "adventure",
+      "boss",
+      "enemyDemo"
+    ]
+  },
+  "input": {
+    "actions": {
+      "moveUp": [
+        "KeyW",
+        "ArrowUp"
+      ],
+      "moveDown": [
+        "KeyS",
+        "ArrowDown"
+      ],
+      "moveLeft": [
+        "KeyA",
+        "ArrowLeft"
+      ],
+      "moveRight": [
+        "KeyD",
+        "ArrowRight"
+      ],
+      "attackPrimary": [
+        "Space",
+        "KeyJ"
+      ],
+      "comboBreaker": [
+        "KeyK"
+      ],
+      "teleport": [
+        "KeyL",
+        "ShiftLeft",
+        "ShiftRight"
+      ],
+      "pause": [
+        "Escape"
+      ],
+      "openInventory": [
+        "KeyI",
+        "Tab"
+      ]
+    },
+    "axes": [
+      {
+        "name": "moveX",
+        "positive": [
+          "moveRight"
+        ],
+        "negative": [
+          "moveLeft"
+        ]
+      },
+      {
+        "name": "moveY",
+        "positive": [
+          "moveDown"
+        ],
+        "negative": [
+          "moveUp"
+        ]
+      }
+    ]
+  },
+  "enemies": {
+    "templates": [
+      {
+        "pattern": "sine",
+        "frequency": 1.4,
+        "texture": "blade",
+        "id": "scout",
+        "verticalSpeed": 2.2,
+        "amplitude": 90
+      },
+      {
+        "pattern": "swoop",
+        "texture": "amidogus",
+        "id": "fighter",
+        "climbSpeed": -3.2,
+        "verticalSpeed": 1.8,
+        "horizontalDrift": 1.5,
+        "diveSpeed": 4.5
+      },
+      {
+        "horizontalSpeed": 3.2,
+        "texture": "blade",
+        "pattern": "strafe",
+        "id": "strafer",
+        "verticalSpeed": 2.6
+      }
+    ],
+    "waves": [
+      {
+        "delay": 0,
+        "spawns": [
+          {
+            "spread": 0.7,
+            "altitude": -60,
+            "template": "scout",
+            "count": 4
+          }
+        ]
+      },
+      {
+        "delay": 6,
+        "spawns": [
+          {
+            "spread": 0.4,
+            "altitude": -70,
+            "template": "fighter",
+            "count": 2
+          },
+          {
+            "spread": 0.6,
+            "altitude": -50,
+            "template": "scout",
+            "offset": 0.2,
+            "count": 3
+          }
+        ]
+      },
+      {
+        "delay": 12,
+        "spawns": [
+          {
+            "spread": 0.8,
+            "altitude": -40,
+            "template": "strafer",
+            "count": 3
+          }
+        ]
+      },
+      {
+        "delay": 18,
+        "spawns": [
+          {
+            "spread": 0.5,
+            "altitude": -60,
+            "template": "fighter",
+            "count": 3
+          }
+        ]
+      }
+    ]
+  },
+  "boss": {
+    "phases": [
+      {
+        "pattern": "spread",
+        "message": "Tarak enters the battle!",
+        "horizontalSpeed": 2.0,
+        "verticalDrift": 0.2,
+        "fireRate": 1.2,
+        "threshold": 1.0
+      },
+      {
+        "pattern": "burst",
+        "message": "Tarak grows furious!",
+        "horizontalSpeed": 2.8,
+        "verticalDrift": 0.0,
+        "fireRate": 0.85,
+        "threshold": 0.6
+      },
+      {
+        "pattern": "spiral",
+        "message": "Tarak unleashes chaos!",
+        "horizontalSpeed": 3.2,
+        "verticalDrift": -0.1,
+        "fireRate": 0.55,
+        "threshold": 0.3
+      }
+    ]
+  }
+}

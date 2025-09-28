@@ -1,0 +1,28 @@
+<svg width="256" height="256" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bladeBody" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f72585" />
+      <stop offset="100%" stop-color="#7209b7" />
+    </linearGradient>
+    <linearGradient id="bladeEdges" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#4cc9f0" />
+      <stop offset="100%" stop-color="#4361ee" />
+    </linearGradient>
+    <filter id="bladeGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="256" height="256" fill="none" />
+  <g transform="translate(128 128)" filter="url(#bladeGlow)">
+    <path d="M0 -110 L86 -14 L30 -4 L70 80 L0 40 L-70 80 L-30 -4 L-86 -14 Z" fill="url(#bladeBody)" stroke="#1e0035" stroke-width="6" stroke-linejoin="round" />
+    <path d="M0 -92 L62 -12 L28 -4 L52 56 L0 28 L-52 56 L-28 -4 L-62 -12 Z" fill="rgba(255,255,255,0.2)" />
+    <path d="M0 -110 L-92 -10" stroke="url(#bladeEdges)" stroke-width="10" stroke-linecap="round" />
+    <path d="M0 -110 L92 -10" stroke="url(#bladeEdges)" stroke-width="10" stroke-linecap="round" />
+    <circle r="16" fill="#f8f9fa" stroke="#212529" stroke-width="6" />
+    <circle r="6" fill="#212529" />
+  </g>
+</svg>

@@ -1,0 +1,26 @@
+{
+  "name": "ufoadventures",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "author": "",
+  "license": "ISC",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "npm run test:unit",
+    "test:unit": "vitest",
+    "test:unit:watch": "vitest watch",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:all": "npm run test:unit && npm run test:e2e"
+  },
+  "keywords": [],
+  "devDependencies": {
+    "@playwright/test": "^1.55.1",
+    "@vitest/coverage-v8": "^1.4.0",
+    "http-server": "^14.1.1",
+    "vitest": "^1.4.0"
+  }
+}
