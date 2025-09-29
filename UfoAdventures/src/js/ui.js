@@ -7,7 +7,10 @@ function initializeUI() {
     ui.comboCount = document.getElementById('comboCount');
     ui.livesDisplay = document.getElementById('livesDisplay');
     ui.bossHealthBar = document.getElementById('bossHealthBar');
-    ui.bossHealthFill = document.getElementById('bossHealthFill');\r\n    ui.damageLog = document.getElementById('damageLog');\r\n    ui.abilityCombo = document.getElementById('abilityCombo');\r\n    ui.abilityTeleport = document.getElementById('abilityTeleport');
+    ui.bossHealthFill = document.getElementById('bossHealthFill');
+    ui.damageLog = document.getElementById('damageLog');
+    ui.abilityCombo = document.getElementById('abilityCombo');
+    ui.abilityTeleport = document.getElementById('abilityTeleport');
     ui.damageLog = document.getElementById('damageLog');
 }
 

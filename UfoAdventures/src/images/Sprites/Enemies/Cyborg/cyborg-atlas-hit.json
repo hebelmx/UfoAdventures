@@ -1,0 +1,95 @@
+{
+  "frames": {
+    "hit-01": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 246,
+        "h": 235
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 246,
+        "h": 235
+      },
+      "sourceSize": {
+        "w": 246,
+        "h": 235
+      }
+    },
+    "hit-02": {
+      "frame": {
+        "x": 246,
+        "y": 0,
+        "w": 246,
+        "h": 235
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 246,
+        "h": 235
+      },
+      "sourceSize": {
+        "w": 246,
+        "h": 235
+      }
+    },
+    "hit-03": {
+      "frame": {
+        "x": 0,
+        "y": 235,
+        "w": 258,
+        "h": 246
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 258,
+        "h": 246
+      },
+      "sourceSize": {
+        "w": 258,
+        "h": 246
+      }
+    },
+    "hit-04": {
+      "frame": {
+        "x": 258,
+        "y": 235,
+        "w": 246,
+        "h": 235
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 246,
+        "h": 235
+      },
+      "sourceSize": {
+        "w": 246,
+        "h": 235
+      }
+    }
+  },
+  "meta": {
+    "app": "ufo-tools-pack",
+    "version": "1.0",
+    "image": "cyborg-atlas-hit.png",
+    "size": {
+      "w": 512,
+      "h": 512
+    },
+    "scale": "1",
+    "alias": "cyborg-atlas-hit"
+  }
+}

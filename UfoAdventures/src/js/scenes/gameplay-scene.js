@@ -4,7 +4,8 @@ class GameplayScene extends Scene {
         this.runtime = null;
         this.mode = 'adventure';
         this._isTransitioning = false;
-        this._inputBindings = [];\r\n        this._activeOptions = null;
+        this._inputBindings = [];
+        this._activeOptions = null;
     }
 
     async onEnter(params = {}) {
@@ -30,6 +31,13 @@ class GameplayScene extends Scene {
         this.subscribe('game:request-results', (payload) => this._handleResultsRequest(payload));
 
         this.runtime.start(this.mode, this._activeOptions || {});
+
+        // Ensure canvas is focusable and focused so Space/keys go to gameplay, not UI buttons
+        const canvas = document.getElementById('gameCanvas');
+        if (canvas) {
+            try { canvas.setAttribute('tabindex', '0'); } catch (e) {}
+            try { canvas.focus(); } catch (e) {}
+        }
     }
 
     async onSuspend() {

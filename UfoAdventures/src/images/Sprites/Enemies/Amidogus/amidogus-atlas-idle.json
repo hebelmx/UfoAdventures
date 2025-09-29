@@ -1,0 +1,95 @@
+{
+  "frames": {
+    "idle-01": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 267,
+        "h": 453
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 267,
+        "h": 453
+      },
+      "sourceSize": {
+        "w": 267,
+        "h": 453
+      }
+    },
+    "idle-02": {
+      "frame": {
+        "x": 0,
+        "y": 453,
+        "w": 266,
+        "h": 454
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 266,
+        "h": 454
+      },
+      "sourceSize": {
+        "w": 266,
+        "h": 454
+      }
+    },
+    "idle-03": {
+      "frame": {
+        "x": 0,
+        "y": 907,
+        "w": 266,
+        "h": 455
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 266,
+        "h": 455
+      },
+      "sourceSize": {
+        "w": 266,
+        "h": 455
+      }
+    },
+    "idle-04": {
+      "frame": {
+        "x": 266,
+        "y": 453,
+        "w": 266,
+        "h": 454
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 266,
+        "h": 454
+      },
+      "sourceSize": {
+        "w": 266,
+        "h": 454
+      }
+    }
+  },
+  "meta": {
+    "app": "ufo-tools-pack",
+    "version": "1.0",
+    "image": "amidogus-atlas-idle.png",
+    "size": {
+      "w": 2048,
+      "h": 2048
+    },
+    "scale": "1",
+    "alias": "amidogus-atlas-idle"
+  }
+}

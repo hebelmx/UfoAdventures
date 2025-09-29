@@ -1,0 +1,135 @@
+{
+  "frames": {
+    "death-01": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 410,
+        "h": 521
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 410,
+        "h": 521
+      },
+      "sourceSize": {
+        "w": 410,
+        "h": 521
+      }
+    },
+    "death-02": {
+      "frame": {
+        "x": 410,
+        "y": 0,
+        "w": 369,
+        "h": 512
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 369,
+        "h": 512
+      },
+      "sourceSize": {
+        "w": 369,
+        "h": 512
+      }
+    },
+    "death-03": {
+      "frame": {
+        "x": 779,
+        "y": 0,
+        "w": 322,
+        "h": 495
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 322,
+        "h": 495
+      },
+      "sourceSize": {
+        "w": 322,
+        "h": 495
+      }
+    },
+    "death-04": {
+      "frame": {
+        "x": 1101,
+        "y": 0,
+        "w": 270,
+        "h": 469
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 270,
+        "h": 469
+      },
+      "sourceSize": {
+        "w": 270,
+        "h": 469
+      }
+    },
+    "death-05": {
+      "frame": {
+        "x": 0,
+        "y": 521,
+        "w": 322,
+        "h": 495
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 322,
+        "h": 495
+      },
+      "sourceSize": {
+        "w": 322,
+        "h": 495
+      }
+    },
+    "death-06": {
+      "frame": {
+        "x": 0,
+        "y": 1016,
+        "w": 369,
+        "h": 512
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 369,
+        "h": 512
+      },
+      "sourceSize": {
+        "w": 369,
+        "h": 512
+      }
+    }
+  },
+  "meta": {
+    "app": "ufo-tools-pack",
+    "version": "1.0",
+    "image": "amidogus-atlas-death.png",
+    "size": {
+      "w": 2048,
+      "h": 2048
+    },
+    "scale": "1",
+    "alias": "amidogus-atlas-death"
+  }
+}

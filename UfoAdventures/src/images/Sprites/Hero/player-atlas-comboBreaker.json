@@ -1,0 +1,215 @@
+{
+  "frames": {
+    "comboBreaker-01": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 1028,
+        "h": 1028
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1028,
+        "h": 1028
+      },
+      "sourceSize": {
+        "w": 1028,
+        "h": 1028
+      }
+    },
+    "comboBreaker-02": {
+      "frame": {
+        "x": 1028,
+        "y": 0,
+        "w": 1028,
+        "h": 1028
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1028,
+        "h": 1028
+      },
+      "sourceSize": {
+        "w": 1028,
+        "h": 1028
+      }
+    },
+    "comboBreaker-03": {
+      "frame": {
+        "x": 2056,
+        "y": 0,
+        "w": 1028,
+        "h": 1028
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1028,
+        "h": 1028
+      },
+      "sourceSize": {
+        "w": 1028,
+        "h": 1028
+      }
+    },
+    "comboBreaker-04": {
+      "frame": {
+        "x": 0,
+        "y": 1028,
+        "w": 1063,
+        "h": 1063
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1063,
+        "h": 1063
+      },
+      "sourceSize": {
+        "w": 1063,
+        "h": 1063
+      }
+    },
+    "comboBreaker-05": {
+      "frame": {
+        "x": 0,
+        "y": 2091,
+        "w": 1097,
+        "h": 1097
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1097,
+        "h": 1097
+      },
+      "sourceSize": {
+        "w": 1097,
+        "h": 1097
+      }
+    },
+    "comboBreaker-06": {
+      "frame": {
+        "x": 0,
+        "y": 3188,
+        "w": 1109,
+        "h": 1109
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1109,
+        "h": 1109
+      },
+      "sourceSize": {
+        "w": 1109,
+        "h": 1109
+      }
+    },
+    "comboBreaker-07": {
+      "frame": {
+        "x": 1097,
+        "y": 2091,
+        "w": 1097,
+        "h": 1097
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1097,
+        "h": 1097
+      },
+      "sourceSize": {
+        "w": 1097,
+        "h": 1097
+      }
+    },
+    "comboBreaker-08": {
+      "frame": {
+        "x": 1063,
+        "y": 1028,
+        "w": 1063,
+        "h": 1063
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1063,
+        "h": 1063
+      },
+      "sourceSize": {
+        "w": 1063,
+        "h": 1063
+      }
+    },
+    "comboBreaker-09": {
+      "frame": {
+        "x": 3084,
+        "y": 0,
+        "w": 1028,
+        "h": 1028
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1028,
+        "h": 1028
+      },
+      "sourceSize": {
+        "w": 1028,
+        "h": 1028
+      }
+    },
+    "comboBreaker-10": {
+      "frame": {
+        "x": 4112,
+        "y": 0,
+        "w": 1028,
+        "h": 1028
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1028,
+        "h": 1028
+      },
+      "sourceSize": {
+        "w": 1028,
+        "h": 1028
+      }
+    }
+  },
+  "meta": {
+    "app": "ufo-tools-pack",
+    "version": "1.0",
+    "image": "player-atlas-comboBreaker.png",
+    "size": {
+      "w": 8192,
+      "h": 8192
+    },
+    "scale": "1",
+    "alias": "player-atlas-comboBreaker"
+  }
+}

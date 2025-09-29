@@ -1,0 +1,135 @@
+{
+  "frames": {
+    "strafe-01": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 633,
+        "h": 641
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 633,
+        "h": 641
+      },
+      "sourceSize": {
+        "w": 633,
+        "h": 641
+      }
+    },
+    "strafe-02": {
+      "frame": {
+        "x": 633,
+        "y": 0,
+        "w": 617,
+        "h": 629
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 617,
+        "h": 629
+      },
+      "sourceSize": {
+        "w": 617,
+        "h": 629
+      }
+    },
+    "strafe-03": {
+      "frame": {
+        "x": 1250,
+        "y": 0,
+        "w": 602,
+        "h": 615
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 602,
+        "h": 615
+      },
+      "sourceSize": {
+        "w": 602,
+        "h": 615
+      }
+    },
+    "strafe-04": {
+      "frame": {
+        "x": 1852,
+        "y": 0,
+        "w": 587,
+        "h": 601
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 587,
+        "h": 601
+      },
+      "sourceSize": {
+        "w": 587,
+        "h": 601
+      }
+    },
+    "strafe-05": {
+      "frame": {
+        "x": 0,
+        "y": 641,
+        "w": 602,
+        "h": 615
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 602,
+        "h": 615
+      },
+      "sourceSize": {
+        "w": 602,
+        "h": 615
+      }
+    },
+    "strafe-06": {
+      "frame": {
+        "x": 0,
+        "y": 1256,
+        "w": 617,
+        "h": 629
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 617,
+        "h": 629
+      },
+      "sourceSize": {
+        "w": 617,
+        "h": 629
+      }
+    }
+  },
+  "meta": {
+    "app": "ufo-tools-pack",
+    "version": "1.0",
+    "image": "blade-atlas-strafe.png",
+    "size": {
+      "w": 4096,
+      "h": 4096
+    },
+    "scale": "1",
+    "alias": "blade-atlas-strafe"
+  }
+}

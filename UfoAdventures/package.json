@@ -10,7 +10,7 @@
   },
   "scripts": {
     "test": "npm run test:unit",
-    "test:unit": "vitest",
+    "test:unit": "vitest run",
     "test:unit:watch": "vitest watch",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",

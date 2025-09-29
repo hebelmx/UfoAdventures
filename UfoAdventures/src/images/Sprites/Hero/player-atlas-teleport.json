@@ -1,0 +1,135 @@
+{
+  "frames": {
+    "teleport-01": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 1220,
+        "h": 1220
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1220,
+        "h": 1220
+      },
+      "sourceSize": {
+        "w": 1220,
+        "h": 1220
+      }
+    },
+    "teleport-02": {
+      "frame": {
+        "x": 1220,
+        "y": 0,
+        "w": 1162,
+        "h": 1162
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1162,
+        "h": 1162
+      },
+      "sourceSize": {
+        "w": 1162,
+        "h": 1162
+      }
+    },
+    "teleport-03": {
+      "frame": {
+        "x": 0,
+        "y": 1220,
+        "w": 1180,
+        "h": 1180
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1180,
+        "h": 1180
+      },
+      "sourceSize": {
+        "w": 1180,
+        "h": 1180
+      }
+    },
+    "teleport-04": {
+      "frame": {
+        "x": 0,
+        "y": 2400,
+        "w": 1181,
+        "h": 1181
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1181,
+        "h": 1181
+      },
+      "sourceSize": {
+        "w": 1181,
+        "h": 1181
+      }
+    },
+    "teleport-05": {
+      "frame": {
+        "x": 1180,
+        "y": 1220,
+        "w": 1180,
+        "h": 1180
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1180,
+        "h": 1180
+      },
+      "sourceSize": {
+        "w": 1180,
+        "h": 1180
+      }
+    },
+    "teleport-06": {
+      "frame": {
+        "x": 2382,
+        "y": 0,
+        "w": 1162,
+        "h": 1162
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1162,
+        "h": 1162
+      },
+      "sourceSize": {
+        "w": 1162,
+        "h": 1162
+      }
+    }
+  },
+  "meta": {
+    "app": "ufo-tools-pack",
+    "version": "1.0",
+    "image": "player-atlas-teleport.png",
+    "size": {
+      "w": 4096,
+      "h": 4096
+    },
+    "scale": "1",
+    "alias": "player-atlas-teleport"
+  }
+}

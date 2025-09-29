@@ -1,0 +1,95 @@
+{
+  "frames": {
+    "hit-01": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 1028,
+        "h": 1028
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1028,
+        "h": 1028
+      },
+      "sourceSize": {
+        "w": 1028,
+        "h": 1028
+      }
+    },
+    "hit-02": {
+      "frame": {
+        "x": 1028,
+        "y": 0,
+        "w": 1028,
+        "h": 1028
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1028,
+        "h": 1028
+      },
+      "sourceSize": {
+        "w": 1028,
+        "h": 1028
+      }
+    },
+    "hit-03": {
+      "frame": {
+        "x": 0,
+        "y": 1028,
+        "w": 1079,
+        "h": 1079
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1079,
+        "h": 1079
+      },
+      "sourceSize": {
+        "w": 1079,
+        "h": 1079
+      }
+    },
+    "hit-04": {
+      "frame": {
+        "x": 2056,
+        "y": 0,
+        "w": 1028,
+        "h": 1028
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1028,
+        "h": 1028
+      },
+      "sourceSize": {
+        "w": 1028,
+        "h": 1028
+      }
+    }
+  },
+  "meta": {
+    "app": "ufo-tools-pack",
+    "version": "1.0",
+    "image": "tarak-atlas-hit.png",
+    "size": {
+      "w": 4096,
+      "h": 4096
+    },
+    "scale": "1",
+    "alias": "tarak-atlas-hit"
+  }
+}

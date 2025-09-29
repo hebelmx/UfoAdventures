@@ -8,10 +8,21 @@ class Transform extends Component {
 }
 
 class Sprite extends Component {
-    constructor(texture) {
+    constructor(input) {
         super();
-        this.sprite = new PIXI.Sprite(texture);
-        this.sprite.anchor.set(0.5);
+        if (input && (input instanceof PIXI.Sprite || input instanceof PIXI.AnimatedSprite)) {
+            this.sprite = input;
+            if (this.sprite.anchor?.set) {
+                this.sprite.anchor.set(0.5);
+            } else if (this.sprite.anchor) {
+                this.sprite.anchor.x = this.sprite.anchor.x ?? 0.5;
+                this.sprite.anchor.y = this.sprite.anchor.y ?? 0.5;
+            }
+        } else {
+            const texture = input || PIXI.Texture.WHITE;
+            this.sprite = new PIXI.Sprite(texture);
+            this.sprite.anchor.set(0.5);
+        }
     }
 }
 

@@ -1,0 +1,135 @@
+{
+  "frames": {
+    "death-01": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 763,
+        "h": 769
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 763,
+        "h": 769
+      },
+      "sourceSize": {
+        "w": 763,
+        "h": 769
+      }
+    },
+    "death-02": {
+      "frame": {
+        "x": 763,
+        "y": 0,
+        "w": 714,
+        "h": 730
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 714,
+        "h": 730
+      },
+      "sourceSize": {
+        "w": 714,
+        "h": 730
+      }
+    },
+    "death-03": {
+      "frame": {
+        "x": 1477,
+        "y": 0,
+        "w": 657,
+        "h": 679
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 657,
+        "h": 679
+      },
+      "sourceSize": {
+        "w": 657,
+        "h": 679
+      }
+    },
+    "death-04": {
+      "frame": {
+        "x": 2134,
+        "y": 0,
+        "w": 591,
+        "h": 617
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 591,
+        "h": 617
+      },
+      "sourceSize": {
+        "w": 591,
+        "h": 617
+      }
+    },
+    "death-05": {
+      "frame": {
+        "x": 0,
+        "y": 769,
+        "w": 657,
+        "h": 679
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 657,
+        "h": 679
+      },
+      "sourceSize": {
+        "w": 657,
+        "h": 679
+      }
+    },
+    "death-06": {
+      "frame": {
+        "x": 0,
+        "y": 1448,
+        "w": 714,
+        "h": 730
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 714,
+        "h": 730
+      },
+      "sourceSize": {
+        "w": 714,
+        "h": 730
+      }
+    }
+  },
+  "meta": {
+    "app": "ufo-tools-pack",
+    "version": "1.0",
+    "image": "blade-atlas-death.png",
+    "size": {
+      "w": 4096,
+      "h": 4096
+    },
+    "scale": "1",
+    "alias": "blade-atlas-death"
+  }
+}

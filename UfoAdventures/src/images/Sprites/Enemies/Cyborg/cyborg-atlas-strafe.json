@@ -1,0 +1,135 @@
+{
+  "frames": {
+    "strafe-01": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 266,
+        "h": 253
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 266,
+        "h": 253
+      },
+      "sourceSize": {
+        "w": 266,
+        "h": 253
+      }
+    },
+    "strafe-02": {
+      "frame": {
+        "x": 266,
+        "y": 0,
+        "w": 260,
+        "h": 247
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 260,
+        "h": 247
+      },
+      "sourceSize": {
+        "w": 260,
+        "h": 247
+      }
+    },
+    "strafe-03": {
+      "frame": {
+        "x": 526,
+        "y": 0,
+        "w": 253,
+        "h": 241
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 253,
+        "h": 241
+      },
+      "sourceSize": {
+        "w": 253,
+        "h": 241
+      }
+    },
+    "strafe-04": {
+      "frame": {
+        "x": 0,
+        "y": 253,
+        "w": 246,
+        "h": 235
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 246,
+        "h": 235
+      },
+      "sourceSize": {
+        "w": 246,
+        "h": 235
+      }
+    },
+    "strafe-05": {
+      "frame": {
+        "x": 0,
+        "y": 488,
+        "w": 253,
+        "h": 241
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 253,
+        "h": 241
+      },
+      "sourceSize": {
+        "w": 253,
+        "h": 241
+      }
+    },
+    "strafe-06": {
+      "frame": {
+        "x": 0,
+        "y": 729,
+        "w": 260,
+        "h": 247
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 260,
+        "h": 247
+      },
+      "sourceSize": {
+        "w": 260,
+        "h": 247
+      }
+    }
+  },
+  "meta": {
+    "app": "ufo-tools-pack",
+    "version": "1.0",
+    "image": "cyborg-atlas-strafe.png",
+    "size": {
+      "w": 1024,
+      "h": 1024
+    },
+    "scale": "1",
+    "alias": "cyborg-atlas-strafe"
+  }
+}

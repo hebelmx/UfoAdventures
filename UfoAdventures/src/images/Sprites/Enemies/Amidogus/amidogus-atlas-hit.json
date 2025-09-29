@@ -1,0 +1,95 @@
+{
+  "frames": {
+    "hit-01": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 266,
+        "h": 453
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 266,
+        "h": 453
+      },
+      "sourceSize": {
+        "w": 266,
+        "h": 453
+      }
+    },
+    "hit-02": {
+      "frame": {
+        "x": 266,
+        "y": 0,
+        "w": 266,
+        "h": 453
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 266,
+        "h": 453
+      },
+      "sourceSize": {
+        "w": 266,
+        "h": 453
+      }
+    },
+    "hit-03": {
+      "frame": {
+        "x": 0,
+        "y": 453,
+        "w": 279,
+        "h": 475
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 279,
+        "h": 475
+      },
+      "sourceSize": {
+        "w": 279,
+        "h": 475
+      }
+    },
+    "hit-04": {
+      "frame": {
+        "x": 532,
+        "y": 0,
+        "w": 266,
+        "h": 453
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 266,
+        "h": 453
+      },
+      "sourceSize": {
+        "w": 266,
+        "h": 453
+      }
+    }
+  },
+  "meta": {
+    "app": "ufo-tools-pack",
+    "version": "1.0",
+    "image": "amidogus-atlas-hit.png",
+    "size": {
+      "w": 1024,
+      "h": 1024
+    },
+    "scale": "1",
+    "alias": "amidogus-atlas-hit"
+  }
+}

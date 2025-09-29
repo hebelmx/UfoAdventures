@@ -9,10 +9,17 @@ class InputService {
         this._handleKeyDown = this._handleKeyDown.bind(this);
         this._handleKeyUp = this._handleKeyUp.bind(this);
         this._handleBlur = this._handleBlur.bind(this);
+        this._handleKeyPress = this._handleKeyPress.bind(this);
+        this._handleMouseDown = this._handleMouseDown.bind(this);
+        this._handleMouseUp = this._handleMouseUp.bind(this);
 
         window.addEventListener('keydown', this._handleKeyDown);
         window.addEventListener('keyup', this._handleKeyUp);
         window.addEventListener('blur', this._handleBlur);
+        window.addEventListener('keypress', this._handleKeyPress, { capture: true });
+        window.addEventListener('mousedown', this._handleMouseDown);
+        window.addEventListener('mouseup', this._handleMouseUp);
+        window.addEventListener('contextmenu', (e) => { try { e.preventDefault(); } catch(_) {} });
     }
 
     configure(config = {}) {
@@ -117,6 +124,9 @@ class InputService {
         window.removeEventListener('keydown', this._handleKeyDown);
         window.removeEventListener('keyup', this._handleKeyUp);
         window.removeEventListener('blur', this._handleBlur);
+        window.removeEventListener('keypress', this._handleKeyPress, { capture: true });
+        window.removeEventListener('mousedown', this._handleMouseDown);
+        window.removeEventListener('mouseup', this._handleMouseUp);
         this._actionBindings.clear();
         this._keyBindings.clear();
         this._axisBindings.clear();
@@ -140,6 +150,8 @@ class InputService {
         }
 
         const timestamp = performance.now();
+        // Prevent default browser actions (e.g., Space scroll) when mapped to game actions
+        try { event.preventDefault(); } catch (e) {}
         actions.forEach(action => {
             const state = this._actionState.get(action);
             if (state && !state.active) {
@@ -158,6 +170,7 @@ class InputService {
         }
 
         const timestamp = performance.now();
+        try { event.preventDefault(); } catch (e) {}
         actions.forEach(action => {
             const state = this._actionState.get(action);
             if (state && state.active) {
@@ -165,6 +178,62 @@ class InputService {
                 state.lastKey = event.code;
                 state.timestamp = timestamp;
                 this._emitAction(action, 'up', event.code, event);
+            }
+        });
+    }
+
+    _handleKeyPress(event) {
+        // Some browsers trigger button clicks on keypress (e.g., Space) even if keydown was prevented.
+        // If this key maps to any game action, prevent default to avoid activating focused buttons.
+        const actions = this._keyBindings.get(event.code);
+        if (actions && actions.size) {
+            try { event.preventDefault(); } catch (e) {}
+        }
+    }
+
+    _mouseCode(button) {
+        switch (button) {
+            case 0: return 'MouseLeft';
+            case 1: return 'MouseMiddle';
+            case 2: return 'MouseRight';
+            default: return 'Mouse' + String(button);
+        }
+    }
+
+    _handleMouseDown(event) {
+        const code = this._mouseCode(event.button);
+        const actions = this._keyBindings.get(code);
+        if (!actions || !actions.size) {
+            return;
+        }
+        const timestamp = performance.now();
+        try { event.preventDefault(); } catch (e) {}
+        actions.forEach(action => {
+            const state = this._actionState.get(action);
+            if (state && !state.active) {
+                state.active = true;
+                state.lastKey = code;
+                state.timestamp = timestamp;
+                this._emitAction(action, 'down', code, event);
+            }
+        });
+    }
+
+    _handleMouseUp(event) {
+        const code = this._mouseCode(event.button);
+        const actions = this._keyBindings.get(code);
+        if (!actions || !actions.size) {
+            return;
+        }
+        const timestamp = performance.now();
+        try { event.preventDefault(); } catch (e) {}
+        actions.forEach(action => {
+            const state = this._actionState.get(action);
+            if (state && state.active) {
+                state.active = false;
+                state.lastKey = code;
+                state.timestamp = timestamp;
+                this._emitAction(action, 'up', code, event);
             }
         });
     }

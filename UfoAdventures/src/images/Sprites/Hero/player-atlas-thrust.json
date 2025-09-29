@@ -1,0 +1,175 @@
+{
+  "frames": {
+    "thrust-01": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 1133,
+        "h": 1132
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1133,
+        "h": 1132
+      },
+      "sourceSize": {
+        "w": 1133,
+        "h": 1132
+      }
+    },
+    "thrust-02": {
+      "frame": {
+        "x": 1133,
+        "y": 0,
+        "w": 1108,
+        "h": 1107
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1108,
+        "h": 1107
+      },
+      "sourceSize": {
+        "w": 1108,
+        "h": 1107
+      }
+    },
+    "thrust-03": {
+      "frame": {
+        "x": 2241,
+        "y": 0,
+        "w": 1083,
+        "h": 1084
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1083,
+        "h": 1084
+      },
+      "sourceSize": {
+        "w": 1083,
+        "h": 1084
+      }
+    },
+    "thrust-04": {
+      "frame": {
+        "x": 3324,
+        "y": 0,
+        "w": 1056,
+        "h": 1058
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1056,
+        "h": 1058
+      },
+      "sourceSize": {
+        "w": 1056,
+        "h": 1058
+      }
+    },
+    "thrust-05": {
+      "frame": {
+        "x": 4380,
+        "y": 0,
+        "w": 1028,
+        "h": 1031
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1028,
+        "h": 1031
+      },
+      "sourceSize": {
+        "w": 1028,
+        "h": 1031
+      }
+    },
+    "thrust-06": {
+      "frame": {
+        "x": 0,
+        "y": 1132,
+        "w": 1056,
+        "h": 1058
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1056,
+        "h": 1058
+      },
+      "sourceSize": {
+        "w": 1056,
+        "h": 1058
+      }
+    },
+    "thrust-07": {
+      "frame": {
+        "x": 0,
+        "y": 2190,
+        "w": 1083,
+        "h": 1084
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1083,
+        "h": 1084
+      },
+      "sourceSize": {
+        "w": 1083,
+        "h": 1084
+      }
+    },
+    "thrust-08": {
+      "frame": {
+        "x": 0,
+        "y": 3274,
+        "w": 1108,
+        "h": 1107
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1108,
+        "h": 1107
+      },
+      "sourceSize": {
+        "w": 1108,
+        "h": 1107
+      }
+    }
+  },
+  "meta": {
+    "app": "ufo-tools-pack",
+    "version": "1.0",
+    "image": "player-atlas-thrust.png",
+    "size": {
+      "w": 8192,
+      "h": 8192
+    },
+    "scale": "1",
+    "alias": "player-atlas-thrust"
+  }
+}

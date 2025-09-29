@@ -1,0 +1,135 @@
+{
+  "frames": {
+    "death-01": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 1324,
+        "h": 1322
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1324,
+        "h": 1322
+      },
+      "sourceSize": {
+        "w": 1324,
+        "h": 1322
+      }
+    },
+    "death-02": {
+      "frame": {
+        "x": 1324,
+        "y": 0,
+        "w": 1243,
+        "h": 1247
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1243,
+        "h": 1247
+      },
+      "sourceSize": {
+        "w": 1243,
+        "h": 1247
+      }
+    },
+    "death-03": {
+      "frame": {
+        "x": 2567,
+        "y": 0,
+        "w": 1144,
+        "h": 1154
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1144,
+        "h": 1154
+      },
+      "sourceSize": {
+        "w": 1144,
+        "h": 1154
+      }
+    },
+    "death-04": {
+      "frame": {
+        "x": 3711,
+        "y": 0,
+        "w": 1032,
+        "h": 1044
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1032,
+        "h": 1044
+      },
+      "sourceSize": {
+        "w": 1032,
+        "h": 1044
+      }
+    },
+    "death-05": {
+      "frame": {
+        "x": 0,
+        "y": 1322,
+        "w": 1144,
+        "h": 1154
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1144,
+        "h": 1154
+      },
+      "sourceSize": {
+        "w": 1144,
+        "h": 1154
+      }
+    },
+    "death-06": {
+      "frame": {
+        "x": 0,
+        "y": 2476,
+        "w": 1243,
+        "h": 1247
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 1243,
+        "h": 1247
+      },
+      "sourceSize": {
+        "w": 1243,
+        "h": 1247
+      }
+    }
+  },
+  "meta": {
+    "app": "ufo-tools-pack",
+    "version": "1.0",
+    "image": "tarak-atlas-death.png",
+    "size": {
+      "w": 8192,
+      "h": 8192
+    },
+    "scale": "1",
+    "alias": "tarak-atlas-death"
+  }
+}

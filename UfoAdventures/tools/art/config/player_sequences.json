@@ -1,0 +1,32 @@
+{
+  "sequences": {
+    "idle": {
+      "frames": 8,
+      "recipe": [
+        { "name": "translate", "params": { "max_dx": 1.0, "max_dy": 2.0 } },
+        { "name": "scale", "params": { "min_scale": 0.98, "max_scale": 1.02 } }
+      ]
+    },
+    "thrust": {
+      "frames": 8,
+      "recipe": [
+        { "name": "translate", "params": { "max_dx": 3.0, "max_dy": 1.5 } },
+        { "name": "rotate", "params": { "max_deg": 6.0 } }
+      ]
+    },
+    "comboBreaker": {
+      "frames": 10,
+      "recipe": [
+        { "name": "scale", "params": { "min_scale": 0.95, "max_scale": 1.08 } },
+        { "name": "brightness", "params": { "min": 0.9, "max": 1.2 } }
+      ]
+    },
+    "teleport": {
+      "frames": 6,
+      "recipe": [
+        { "name": "scale", "params": { "min_scale": 0.85, "max_scale": 1.15 } },
+        { "name": "rotate", "params": { "max_deg": 12.0 } }
+      ]
+    }
+  }
+}

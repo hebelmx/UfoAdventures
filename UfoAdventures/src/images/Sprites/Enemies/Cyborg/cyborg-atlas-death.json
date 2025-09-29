@@ -1,0 +1,135 @@
+{
+  "frames": {
+    "death-01": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 318,
+        "h": 309
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 318,
+        "h": 309
+      },
+      "sourceSize": {
+        "w": 318,
+        "h": 309
+      }
+    },
+    "death-02": {
+      "frame": {
+        "x": 318,
+        "y": 0,
+        "w": 299,
+        "h": 294
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 299,
+        "h": 294
+      },
+      "sourceSize": {
+        "w": 299,
+        "h": 294
+      }
+    },
+    "death-03": {
+      "frame": {
+        "x": 617,
+        "y": 0,
+        "w": 276,
+        "h": 277
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 276,
+        "h": 277
+      },
+      "sourceSize": {
+        "w": 276,
+        "h": 277
+      }
+    },
+    "death-04": {
+      "frame": {
+        "x": 893,
+        "y": 0,
+        "w": 250,
+        "h": 251
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 250,
+        "h": 251
+      },
+      "sourceSize": {
+        "w": 250,
+        "h": 251
+      }
+    },
+    "death-05": {
+      "frame": {
+        "x": 0,
+        "y": 309,
+        "w": 276,
+        "h": 277
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 276,
+        "h": 277
+      },
+      "sourceSize": {
+        "w": 276,
+        "h": 277
+      }
+    },
+    "death-06": {
+      "frame": {
+        "x": 0,
+        "y": 586,
+        "w": 299,
+        "h": 294
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 299,
+        "h": 294
+      },
+      "sourceSize": {
+        "w": 299,
+        "h": 294
+      }
+    }
+  },
+  "meta": {
+    "app": "ufo-tools-pack",
+    "version": "1.0",
+    "image": "cyborg-atlas-death.png",
+    "size": {
+      "w": 2048,
+      "h": 2048
+    },
+    "scale": "1",
+    "alias": "cyborg-atlas-death"
+  }
+}

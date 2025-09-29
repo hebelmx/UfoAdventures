@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Ability System Probe</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        body { background: #0f192a; color: #eef2ff; font-family: sans-serif; }
+        .container { max-width: 960px; margin: 2rem auto; padding: 1rem 2rem; background: #1b2640; border-radius: 12px; }
+        button { margin-right: 0.75rem; margin-bottom: 0.75rem; padding: 0.6rem 1rem; border-radius: 6px; border: none; font-size: 1rem; cursor: pointer; }
+        .log { margin-top: 1.5rem; padding: 1rem; background: #0d1424; border-radius: 8px; max-height: 220px; overflow-y: auto; font-family: Consolas, monospace; font-size: 0.9rem; }
+        .cooldown { display: flex; gap: 1rem; margin-top: 1rem; }
+        .cooldown div { flex: 1; background: rgba(255,255,255,0.08); padding: 0.5rem; border-radius: 8px; text-align: center; }
+        canvas { display: block; margin: 1.5rem auto; background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ability System Probe</h1>
+        <p>Simulates the gameplay runtime in isolation to validate combo breaker & teleport flows, cooldown updates, and EventBus hooks.</p>
+        <div>
+            <button id="start-probe">Start Probe Runtime</button>
+            <button id="trigger-combo">Trigger Combo Breaker</button>
+            <button id="trigger-teleport">Trigger Teleport</button>
+            <button id="simulate-move">Simulate Movement</button>
+            <button id="reset">Reset Runtime</button>
+        </div>
+        <div class="cooldown">
+            <div>
+                <strong>Combo Cooldown</strong>
+                <div id="combo-cooldown">-</div>
+            </div>
+            <div>
+                <strong>Teleport Cooldown</strong>
+                <div id="teleport-cooldown">-</div>
+            </div>
+            <div>
+                <strong>Last Direction</strong>
+                <div id="last-direction">-</div>
+            </div>
+        </div>
+        <canvas id="probeCanvas" width="800" height="600"></canvas>
+        <div class="log" id="probe-log"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.0/pixi.min.js"></script>
+    <script src="js/engine/service-locator.js"></script>
+    <script src="js/engine/event-bus.js"></script>
+    <script src="js/engine/config-service.js"></script>
+    <script src="js/engine/resource-manager.js"></script>
+    <script src="js/engine/input-service.js"></script>
+    <script src="js/engine/scene-manager.js"></script>
+    <script src="js/engine/core.js"></script>
+    <script src="js/engine/components.js"></script>
+    <script src="js/engine/systems.js"></script>
+    <script src="js/engine/utils.js"></script>
+    <script src="js/entities/player.js"></script>
+    <script src="js/game.js"></script>
+    <script>
+        const logEl = document.getElementById('probe-log');
+        const comboLabel = document.getElementById('combo-cooldown');
+        const teleportLabel = document.getElementById('teleport-cooldown');
+        const directionLabel = document.getElementById('last-direction');
+        const canvas = document.getElementById('probeCanvas');
+
+        const serviceLocator = new ServiceLocator();
+        const eventBus = new EventBus();
+        let app = null;
+        let runtime = null;
+        let probeTicker = null;
+
+        function log(message) {
+            const time = new Date().toLocaleTimeString();
+            logEl.textContent += `[${time}] ${message}\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        function updateLastDirection(entity) {
+            if (!entity || !entity.hasComponent(PlayerAbilities)) {
+                directionLabel.textContent = '-';
+                return;
+            }
+            const lastDir = entity.getComponent(PlayerAbilities).lastDirection;
+            if (lastDir) {
+                directionLabel.textContent = `x: ${lastDir.x.toFixed(2)}, y: ${lastDir.y.toFixed(2)}`;
+            }
+        }
+
+        window.updateAbilityCooldown = (name, state) => {
+            if (name === 'comboBreaker') {
+                comboLabel.textContent = state ? `${state.timer.toFixed(2)} / ${state.cooldown}` : '-';
+            }
+            if (name === 'teleport') {
+                teleportLabel.textContent = state ? `${state.timer.toFixed(2)} / ${state.cooldown}` : '-';
+            }
+        };
+
+        window.showMessage = (text, color = '#ffffff') => {
+            log(`UI Message: %c${text}`, `color: ${color}`);
+        };
+
+        function buildRuntime() {
+            if (runtime) {
+                runtime.stop();
+            }
+
+            if (!app) {
+                app = new PIXI.Application({
+                    view: canvas,
+                    width: 800,
+                    height: 600,
+                    backgroundColor: 0x0f192a,
+                    antialias: true,
+                });
+            }
+
+            serviceLocator.register('eventBus', eventBus);
+            serviceLocator.register('inputService', new InputService(eventBus));
+            serviceLocator.register('resourceManager', new ResourceManager());
+
+            runtime = new GameplayRuntime(app, serviceLocator);
+            runtime.start('adventure', {});
+
+            log('Runtime started with player ability suite.');
+
+            if (!probeTicker) {
+                probeTicker = app.ticker.add(() => {
+                    runtime.update(1);
+                    const player = runtime.entities.find(e => e.hasComponent && e.hasComponent(Player));
+                    updateLastDirection(player);
+                });
+            }
+        }
+
+        function triggerAbility(name) {
+            if (!runtime) {
+                log('Runtime not initialised. Start the probe first.');
+                return;
+            }
+
+            const player = runtime.entities.find(e => e.hasComponent && e.hasComponent(Player));
+            if (!player || !player.hasComponent(PlayerAbilities)) {
+                log('Player or abilities missing.');
+                return;
+            }
+
+            const abilities = player.getComponent(PlayerAbilities);
+            const state = abilities.states[name];
+            if (!state) {
+                log(`Ability ${name} not found.`);
+                return;
+            }
+
+            if (state.timer > 0) {
+                log(`${name} on cooldown (${state.timer.toFixed(2)}s remaining)`);
+                return;
+            }
+
+            state.queued = true;
+            runtime.systems.find(s => s instanceof AbilitySystem).update([player], 1);
+            log(`${name} executed.`);
+            updateLastDirection(player);
+        }
+
+        document.getElementById('start-probe').addEventListener('click', () => {
+            buildRuntime();
+        });
+
+        document.getElementById('trigger-combo').addEventListener('click', () => {
+            triggerAbility('comboBreaker');
+        });
+
+        document.getElementById('trigger-teleport').addEventListener('click', () => {
+            triggerAbility('teleport');
+        });
+
+        document.getElementById('simulate-move').addEventListener('click', () => {
+            if (!runtime) {
+                log('Runtime not initialised. Start the probe first.');
+                return;
+            }
+
+            const player = runtime.entities.find(e => e.hasComponent && e.hasComponent(Player));
+            const motion = player ? player.getComponent(Motion) : null;
+            if (!motion) {
+                log('Player motion component missing.');
+                return;
+            }
+
+            motion.velocity.x = 2.5;
+            motion.velocity.y = -1.8;
+            updateLastDirection(player);
+            log('Simulated movement vector (2.5, -1.8).');
+        });
+
+        document.getElementById('reset').addEventListener('click', () => {
+            if (runtime) {
+                runtime.stop();
+                runtime = null;
+                comboLabel.textContent = '-';
+                teleportLabel.textContent = '-';
+                directionLabel.textContent = '-';
+                log('Runtime reset.');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -12,12 +12,454 @@
       "src": "images/Sprites/Hero/idle_01.svg"
     },
     {
+      "alias": "vfx-atlas-beam_attack",
+      "src": "images/Sprites/VFX/vfx-atlas-beam_attack.png",
+      "json": "images/Sprites/VFX/vfx-atlas-beam_attack.json",
+      "type": "spritesheet",
+      "animations": {
+        "beam_attack": [
+          "beam_attack-01",
+          "beam_attack-02",
+          "beam_attack-03",
+          "beam_attack-04",
+          "beam_attack-05",
+          "beam_attack-06"
+        ]
+      }
+    },
+    {
+      "alias": "tarak-atlas-hit",
+      "src": "images/Sprites/Boss/tarak-atlas-hit.png",
+      "json": "images/Sprites/Boss/tarak-atlas-hit.json",
+      "type": "spritesheet",
+      "animations": {
+        "hit": [
+          "hit-01",
+          "hit-02",
+          "hit-03",
+          "hit-04"
+        ]
+      }
+    },
+    {
+      "alias": "tarak-atlas-death",
+      "src": "images/Sprites/Boss/tarak-atlas-death.png",
+      "json": "images/Sprites/Boss/tarak-atlas-death.json",
+      "type": "spritesheet",
+      "animations": {
+        "death": [
+          "death-01",
+          "death-02",
+          "death-03",
+          "death-04",
+          "death-05",
+          "death-06"
+        ]
+      }
+    },
+    {
+      "alias": "vfx-atlas-teleport-trail",
+      "src": "images/Sprites/VFX/vfx-atlas-teleport-trail.png",
+      "json": "images/Sprites/VFX/vfx-atlas-teleport-trail.json",
+      "type": "spritesheet",
+      "animations": {
+        "teleport-trail": [
+          "teleport-trail-01",
+          "teleport-trail-02",
+          "teleport-trail-03",
+          "teleport-trail-04",
+          "teleport-trail-05",
+          "teleport-trail-06",
+          "teleport-trail-07",
+          "teleport-trail-08",
+          "teleport-trail-09",
+          "teleport-trail-10",
+          "teleport-trail-11",
+          "teleport-trail-12"
+        ]
+      }
+    },
+    {
+      "alias": "vfx-atlas-teleport-arrive",
+      "src": "images/Sprites/VFX/vfx-atlas-teleport-arrive.png",
+      "json": "images/Sprites/VFX/vfx-atlas-teleport-arrive.json",
+      "type": "spritesheet",
+      "animations": {
+        "teleport-arrive": [
+          "teleport-arrive-01",
+          "teleport-arrive-02",
+          "teleport-arrive-03",
+          "teleport-arrive-04",
+          "teleport-arrive-05",
+          "teleport-arrive-06",
+          "teleport-arrive-07",
+          "teleport-arrive-08"
+        ]
+      }
+    },
+    {
+      "alias": "vfx-atlas-comboBreaker",
+      "src": "images/Sprites/VFX/vfx-atlas-comboBreaker.png",
+      "json": "images/Sprites/VFX/vfx-atlas-comboBreaker.json",
+      "type": "spritesheet",
+      "animations": {
+        "comboBreaker": [
+          "comboBreaker-01",
+          "comboBreaker-02",
+          "comboBreaker-03",
+          "comboBreaker-04",
+          "comboBreaker-05",
+          "comboBreaker-06",
+          "comboBreaker-07",
+          "comboBreaker-08",
+          "comboBreaker-09",
+          "comboBreaker-10"
+        ]
+      }
+    },
+    {
+      "alias": "vfx-atlas-bullet-impact",
+      "src": "images/Sprites/VFX/vfx-atlas-bullet-impact.png",
+      "json": "images/Sprites/VFX/vfx-atlas-bullet-impact.json",
+      "type": "spritesheet",
+      "animations": {
+        "bullet-impact": [
+          "bullet-impact-01",
+          "bullet-impact-02",
+          "bullet-impact-03",
+          "bullet-impact-04",
+          "bullet-impact-05",
+          "bullet-impact-06"
+        ]
+      }
+    },
+    {
+      "alias": "vfx-atlas-boss-summon",
+      "src": "images/Sprites/VFX/vfx-atlas-boss-summon.png",
+      "json": "images/Sprites/VFX/vfx-atlas-boss-summon.json",
+      "type": "spritesheet",
+      "animations": {
+        "boss-summon": [
+          "boss-summon-01",
+          "boss-summon-02",
+          "boss-summon-03",
+          "boss-summon-04",
+          "boss-summon-05",
+          "boss-summon-06",
+          "boss-summon-07",
+          "boss-summon-08"
+        ]
+      }
+    },
+    {
+      "alias": "tarak-atlas-idle",
+      "src": "images/Sprites/Boss/tarak-atlas-idle.png",
+      "json": "images/Sprites/Boss/tarak-atlas-idle.json",
+      "type": "spritesheet",
+      "animations": {
+        "idle_phase1": [
+          "idle-01",
+          "idle-02",
+          "idle-03",
+          "idle-04"
+        ]
+      }
+    },
+    {
+      "alias": "tarak-atlas-strafe",
+      "src": "images/Sprites/Boss/tarak-atlas-strafe.png",
+      "json": "images/Sprites/Boss/tarak-atlas-strafe.json",
+      "type": "spritesheet",
+      "animations": {
+        "wing_attack": [
+          "strafe-01",
+          "strafe-02",
+          "strafe-03",
+          "strafe-04",
+          "strafe-05",
+          "strafe-06"
+        ]
+      }
+    },
+    {
+      "alias": "player-atlas",
+      "src": "images/Sprites/Hero/player-atlas-idle.png",
+      "json": "images/Sprites/Hero/player-atlas-idle.json",
+      "type": "spritesheet",
+      "animations": {
+        "idle": [
+          "idle-01",
+          "idle-02",
+          "idle-03",
+          "idle-04",
+          "idle-05",
+          "idle-06",
+          "idle-07",
+          "idle-08"
+        ]
+      }
+    },
+    {
       "alias": "amidogus",
       "src": "images/Sprites/Enemies/Amidogus/idle_01.svg"
     },
     {
+      "alias": "amidogus-atlas",
+      "src": "images/Sprites/Enemies/Amidogus/amidogus-atlas-idle.png",
+      "json": "images/Sprites/Enemies/Amidogus/amidogus-atlas-idle.json",
+      "type": "spritesheet",
+      "animations": {
+        "idle": [
+          "idle-01",
+          "idle-02",
+          "idle-03",
+          "idle-04"
+        ]
+      }
+    },
+    {
       "alias": "blade",
       "src": "images/Sprites/Enemies/Blade/idle_01.svg"
+    },
+    {
+      "alias": "blade-atlas",
+      "src": "images/Sprites/Enemies/Blade/blade-atlas-idle.png",
+      "json": "images/Sprites/Enemies/Blade/blade-atlas-idle.json",
+      "type": "spritesheet",
+      "animations": {
+        "idle": [
+          "idle-01",
+          "idle-02",
+          "idle-03",
+          "idle-04"
+        ]
+      }
+    },
+    {
+      "alias": "player-atlas-thrust",
+      "src": "images/Sprites/Hero/player-atlas-thrust.png",
+      "json": "images/Sprites/Hero/player-atlas-thrust.json",
+      "type": "spritesheet",
+      "animations": {
+        "thrust": [
+          "thrust-01",
+          "thrust-02",
+          "thrust-03",
+          "thrust-04",
+          "thrust-05",
+          "thrust-06",
+          "thrust-07",
+          "thrust-08"
+        ]
+      }
+    },
+    {
+      "alias": "player-atlas-comboBreaker",
+      "src": "images/Sprites/Hero/player-atlas-comboBreaker.png",
+      "json": "images/Sprites/Hero/player-atlas-comboBreaker.json",
+      "type": "spritesheet",
+      "animations": {
+        "comboBreaker": [
+          "combo-01",
+          "combo-02",
+          "combo-03",
+          "combo-04",
+          "combo-05",
+          "combo-06",
+          "combo-07",
+          "combo-08",
+          "combo-09",
+          "combo-10"
+        ]
+      }
+    },
+    {
+      "alias": "player-atlas-teleport",
+      "src": "images/Sprites/Hero/player-atlas-teleport.png",
+      "json": "images/Sprites/Hero/player-atlas-teleport.json",
+      "type": "spritesheet",
+      "animations": {
+        "teleport": [
+          "teleport-01",
+          "teleport-02",
+          "teleport-03",
+          "teleport-04",
+          "teleport-05",
+          "teleport-06"
+        ]
+      }
+    },
+    {
+      "alias": "blade-atlas-strafe",
+      "src": "images/Sprites/Enemies/Blade/blade-atlas-strafe.png",
+      "json": "images/Sprites/Enemies/Blade/blade-atlas-strafe.json",
+      "type": "spritesheet",
+      "animations": {
+        "strafe": [
+          "strafe-01",
+          "strafe-02",
+          "strafe-03",
+          "strafe-04",
+          "strafe-05",
+          "strafe-06"
+        ]
+      }
+    },
+    {
+      "alias": "blade-atlas-hit",
+      "src": "images/Sprites/Enemies/Blade/blade-atlas-hit.png",
+      "json": "images/Sprites/Enemies/Blade/blade-atlas-hit.json",
+      "type": "spritesheet",
+      "animations": {
+        "hit": [
+          "hit-01",
+          "hit-02",
+          "hit-03",
+          "hit-04"
+        ]
+      }
+    },
+    {
+      "alias": "blade-atlas-death",
+      "src": "images/Sprites/Enemies/Blade/blade-atlas-death.png",
+      "json": "images/Sprites/Enemies/Blade/blade-atlas-death.json",
+      "type": "spritesheet",
+      "animations": {
+        "death": [
+          "death-01",
+          "death-02",
+          "death-03",
+          "death-04",
+          "death-05",
+          "death-06"
+        ]
+      }
+    },
+    {
+      "alias": "amidogus-atlas-strafe",
+      "src": "images/Sprites/Enemies/Amidogus/amidogus-atlas-strafe.png",
+      "json": "images/Sprites/Enemies/Amidogus/amidogus-atlas-strafe.json",
+      "type": "spritesheet",
+      "animations": {
+        "strafe": [
+          "strafe-01",
+          "strafe-02",
+          "strafe-03",
+          "strafe-04",
+          "strafe-05",
+          "strafe-06"
+        ]
+      }
+    },
+    {
+      "alias": "amidogus-atlas-hit",
+      "src": "images/Sprites/Enemies/Amidogus/amidogus-atlas-hit.png",
+      "json": "images/Sprites/Enemies/Amidogus/amidogus-atlas-hit.json",
+      "type": "spritesheet",
+      "animations": {
+        "hit": [
+          "hit-01",
+          "hit-02",
+          "hit-03",
+          "hit-04"
+        ]
+      }
+    },
+    {
+      "alias": "amidogus-atlas-death",
+      "src": "images/Sprites/Enemies/Amidogus/amidogus-atlas-death.png",
+      "json": "images/Sprites/Enemies/Amidogus/amidogus-atlas-death.json",
+      "type": "spritesheet",
+      "animations": {
+        "death": [
+          "death-01",
+          "death-02",
+          "death-03",
+          "death-04",
+          "death-05",
+          "death-06"
+        ]
+      }
+    },
+    {
+      "alias": "cyborg-atlas-idle",
+      "src": "images/Sprites/Enemies/Cyborg/cyborg-atlas-idle.png",
+      "json": "images/Sprites/Enemies/Cyborg/cyborg-atlas-idle.json",
+      "type": "spritesheet",
+      "animations": {
+        "idle": [
+          "idle-01",
+          "idle-02",
+          "idle-03",
+          "idle-04"
+        ]
+      }
+    },
+    {
+      "alias": "cyborg-atlas-strafe",
+      "src": "images/Sprites/Enemies/Cyborg/cyborg-atlas-strafe.png",
+      "json": "images/Sprites/Enemies/Cyborg/cyborg-atlas-strafe.json",
+      "type": "spritesheet",
+      "animations": {
+        "strafe": [
+          "strafe-01",
+          "strafe-02",
+          "strafe-03",
+          "strafe-04",
+          "strafe-05",
+          "strafe-06"
+        ]
+      }
+    },
+    {
+      "alias": "cyborg-atlas-hit",
+      "src": "images/Sprites/Enemies/Cyborg/cyborg-atlas-hit.png",
+      "json": "images/Sprites/Enemies/Cyborg/cyborg-atlas-hit.json",
+      "type": "spritesheet",
+      "animations": {
+        "hit": [
+          "hit-01",
+          "hit-02",
+          "hit-03",
+          "hit-04"
+        ]
+      }
+    },
+    {
+      "alias": "cyborg-atlas-death",
+      "src": "images/Sprites/Enemies/Cyborg/cyborg-atlas-death.png",
+      "json": "images/Sprites/Enemies/Cyborg/cyborg-atlas-death.json",
+      "type": "spritesheet",
+      "animations": {
+        "death": [
+          "death-01",
+          "death-02",
+          "death-03",
+          "death-04",
+          "death-05",
+          "death-06"
+        ]
+      }
+    },
+    {
+      "alias": "tarak-atlas",
+      "src": "images/Sprites/1_Tarak.png",
+      "type": "spritesheet",
+      "frames": [
+        {
+          "name": "phase_idle",
+          "rect": "full",
+          "anchor": [
+            0.5,
+            0.5
+          ]
+        }
+      ],
+      "animations": {
+        "idle": [
+          "phase_idle"
+        ]
+      }
     },
     {
       "alias": "background",
@@ -52,10 +494,12 @@
       ],
       "attackPrimary": [
         "Space",
-        "KeyJ"
+        "KeyJ",
+        "MouseLeft"
       ],
       "comboBreaker": [
-        "KeyK"
+        "KeyK",
+        "MouseRight"
       ],
       "teleport": [
         "KeyL",
@@ -68,6 +512,10 @@
       "openInventory": [
         "KeyI",
         "Tab"
+      ],
+      "togglePerformanceOverlay": [
+        "Backquote",
+        "F6"
       ]
     },
     "axes": [
@@ -97,6 +545,10 @@
         "pattern": "sine",
         "frequency": 1.4,
         "texture": "blade",
+        "spritesheet": {
+          "alias": "blade-atlas",
+          "animation": "idle"
+        },
         "id": "scout",
         "verticalSpeed": 2.2,
         "amplitude": 90
@@ -104,6 +556,10 @@
       {
         "pattern": "swoop",
         "texture": "amidogus",
+        "spritesheet": {
+          "alias": "amidogus-atlas",
+          "animation": "idle"
+        },
         "id": "fighter",
         "climbSpeed": -3.2,
         "verticalSpeed": 1.8,
@@ -113,6 +569,10 @@
       {
         "horizontalSpeed": 3.2,
         "texture": "blade",
+        "spritesheet": {
+          "alias": "blade-atlas",
+          "animation": "idle"
+        },
         "pattern": "strafe",
         "id": "strafer",
         "verticalSpeed": 2.6

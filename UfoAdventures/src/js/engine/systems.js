@@ -34,12 +34,35 @@ class PlayerInputSystem extends System {
                 const vertical = this.input ? this.input.getAxisValue('moveY') : 0;
 
                 motion.velocity.x = horizontal * motion.speed;
-                motion.velocity.y = vertical * motion.speed;\r\n\r\n                if (entity.hasComponent(PlayerAbilities)) {\r\n                    const abilities = entity.getComponent(PlayerAbilities);\r\n                    const vx = motion.velocity.x;\r\n                    const vy = motion.velocity.y;\r\n                    if (Math.abs(vx) > 0.05 || Math.abs(vy) > 0.05) {\r\n                        const magnitude = Math.sqrt(vx * vx + vy * vy) || 1;\r\n                        abilities.lastDirection = { x: vx / magnitude, y: vy / magnitude };\r\n                    }\r\n                }
+                motion.velocity.y = vertical * motion.speed;
+
+                if (entity.hasComponent(PlayerAbilities)) {
+                    const abilities = entity.getComponent(PlayerAbilities);
+                    const vx = motion.velocity.x;
+                    const vy = motion.velocity.y;
+                    if (Math.abs(vx) > 0.05 || Math.abs(vy) > 0.05) {
+                        const magnitude = Math.sqrt(vx * vx + vy * vy) || 1;
+                        abilities.lastDirection = { x: vx / magnitude, y: vy / magnitude };
+                    }
+                }
+
+                if (entity.hasComponent(PlayerAbilities)) {
+                    const abilities = entity.getComponent(PlayerAbilities);
+                    const vx = motion.velocity.x;
+                    const vy = motion.velocity.y;
+                    if (Math.abs(vx) > 0.05 || Math.abs(vy) > 0.05) {
+                        const magnitude = Math.sqrt(vx * vx + vy * vy) || 1;
+                        abilities.lastDirection = { x: vx / magnitude, y: vy / magnitude };
+                    }
+                }
             }
 
             if (entity.hasComponent(Weapon)) {
                 const weapon = entity.getComponent(Weapon);
                 const isActive = this.input ? this.input.isActionActive('attackPrimary') : false;
+                if (isActive && !weapon.isShooting) {
+                    weapon.justActivated = true;
+                }
                 weapon.isShooting = !!isActive;
             }
         });
@@ -141,6 +164,7 @@ class MovementSystem extends System {
 }
 
 
+
 class AbilitySystem extends System {
     constructor(game, eventBus, inputService) {
         super();
@@ -148,6 +172,7 @@ class AbilitySystem extends System {
         this.eventBus = eventBus || null;
         this.inputService = inputService || null;
         this._handlers = [];
+        this._revertTimers = new WeakMap();
         this._bindInput();
     }
 
@@ -161,6 +186,13 @@ class AbilitySystem extends System {
             } catch (error) {
                 console.error('AbilitySystem: failed to unregister command', error);
             }
+        }
+
+        if (this._revertTimers) {
+            this._revertTimers.forEach(timer => {
+                try { clearTimeout(timer); } catch (error) {}
+            });
+            this._revertTimers = new WeakMap();
         }
     }
 
@@ -245,6 +277,21 @@ class AbilitySystem extends System {
         state.timer = state.cooldown;
         state.queued = false;
 
+        const transform = player.getComponent(Transform);
+        if (transform) {
+            this.game.spawnEffect({
+                position: { x: transform.position.x, y: transform.position.y },
+                tint: 0xffaa33,
+                alpha: 0.95,
+                lifeTime: 0.4,
+                fade: 1.2,
+                scale: 1.2,
+                animation: 'comboBreaker'
+            });
+        }
+
+        this._playPlayerAnimation(player, 'comboBreaker', { revertAfter: 600 });
+
         if (typeof updateComboDisplay === 'function') {
             updateComboDisplay(0);
         }
@@ -269,6 +316,7 @@ class AbilitySystem extends System {
             return;
         }
 
+        const origin = { x: transform.position.x, y: transform.position.y };
         const direction = abilities.lastDirection || { x: 0, y: -1 };
         const magnitude = Math.sqrt(direction.x * direction.x + direction.y * direction.y) || 1;
         const normalized = { x: direction.x / magnitude, y: direction.y / magnitude };
@@ -281,12 +329,68 @@ class AbilitySystem extends System {
         state.timer = state.cooldown;
         state.queued = false;
 
+        this._playPlayerAnimation(player, 'teleport', { revertAfter: 400 });
+
+        this.game.spawnEffect({
+            position: origin,
+            tint: 0x66ccff,
+            alpha: 0.7,
+            lifeTime: 0.25,
+            fade: 1.5,
+            scale: 0.9,
+            animation: 'teleport-trail'
+        });
+        this.game.spawnEffect({
+            position: { x: transform.position.x, y: transform.position.y },
+            tint: 0xffffff,
+            alpha: 0.8,
+            lifeTime: 0.3,
+            fade: 1.8,
+            scale: 1.0,
+            animation: 'teleport-arrive'
+        });
+
         if (typeof showMessage === 'function') {
             showMessage('Teleport!', '#66ccff');
         }
 
         if (this.eventBus) {
             this.eventBus.emit('ability:teleport', { player, direction: normalized });
+        }
+    }
+
+    _playPlayerAnimation(player, animation, options = {}) {
+        if (!player || !player.hasComponent(Sprite)) {
+            return;
+        }
+        const sprite = player.getComponent(Sprite).sprite;
+        if (sprite instanceof PIXI.AnimatedSprite) {
+            if (typeof sprite.gotoAndPlay === 'function') {
+                try {
+                    sprite.gotoAndPlay(animation);
+                } catch (error) {
+                    if (typeof sprite.play === 'function') {
+                        sprite.play(animation);
+                    }
+                }
+            } else if (typeof sprite.play === 'function') {
+                sprite.play(animation);
+            }
+            if (typeof options.speed === 'number') {
+                sprite.animationSpeed = options.speed;
+            }
+        }
+
+        if (options.revertAfter) {
+            const existing = this._revertTimers.get(player);
+            if (existing) {
+                clearTimeout(existing);
+            }
+            const timer = setTimeout(() => {
+                this._revertTimers.delete(player);
+                this._playPlayerAnimation(player, options.revertTo || 'idle');
+            }, options.revertAfter);
+            this._revertTimers.set(player, timer);
         }
     }
 
@@ -316,6 +420,39 @@ class AbilitySystem extends System {
         return Math.min(Math.max(value, min), max);
     }
 }
+
+
+class EffectLifetimeSystem extends System {
+    constructor(game) {
+        super();
+        this.game = game;
+    }
+
+    update(entities, delta) {
+        const deltaSeconds = delta / 60;
+        entities.forEach(entity => {
+            if (entity.poolId !== 'effect') {
+                return;
+            }
+
+            if (typeof entity.lifeTime === 'number') {
+                entity.lifeTime -= deltaSeconds;
+                if (entity.lifeTime <= 0) {
+                    entity.isRemoved = true;
+                }
+            }
+
+            if (typeof entity.fadeRate === 'number') {
+                const sprite = entity.getComponent(Sprite)?.sprite;
+                if (sprite) {
+                    const nextAlpha = sprite.alpha - entity.fadeRate * deltaSeconds;
+                    sprite.alpha = nextAlpha > 0 ? nextAlpha : 0;
+                }
+            }
+        });
+    }
+}
+
 class EnemySpawningSystem extends System {
     constructor(game, config = {}) {
         super();
@@ -363,29 +500,30 @@ class EnemySpawningSystem extends System {
             const positions = this._resolvePositions(count, spawn);
 
             positions.forEach(pos => {
-                const enemy = this._createEnemy(template, pos, spawn.altitude);
-                this.game.addEntity(enemy);
+
+                const screen = this._getScreen();
+
+                const spawnX = screen.width * pos;
+
+                const spawnY = typeof spawn.altitude === 'number' ? spawn.altitude : -50;
+
+                this.game.spawnEnemyFromTemplate(template, {
+
+                    positionRatio: pos,
+
+                    position: { x: spawnX, y: spawnY },
+
+                    altitude: spawn.altitude
+
+                });
+
             });
+
         });
+
     }
 
-    _createEnemy(template, positionRatio, altitude) {
-        const screen = this._getScreen();
-        const spawnX = screen.width * positionRatio;
-        const spawnY = typeof altitude === 'number' ? altitude : -50;
 
-        const enemy = new Entity();
-        enemy.addComponent(new Transform({ x: spawnX, y: spawnY }));
-        enemy.addComponent(new Sprite(PIXI.Assets.get(template.texture)));
-        enemy.addComponent(new Motion({ x: 0, y: template.verticalSpeed || 2 }));
-        enemy.addComponent(new Enemy());
-        enemy.addComponent(new Collider(20));
-
-        const behaviorConfig = Object.assign({}, template, { originX: spawnX });
-        enemy.addComponent(new EnemyBehavior(behaviorConfig));
-
-        return enemy;
-    }
 
     _resolvePositions(count, spawn) {
         if (Array.isArray(spawn.positions) && spawn.positions.length) {
@@ -445,26 +583,32 @@ class ShootingSystem extends System {
 
             const weapon = entity.getComponent(Weapon);
             const transform = entity.getComponent(Transform);
-            weapon.fireTimer += delta / 60;
+            // delta is already in seconds; accumulate directly
+            weapon.fireTimer += delta;
 
-            if (!weapon.isShooting || weapon.fireTimer < weapon.fireRate) {
+            const justActivated = !!weapon.justActivated;
+            if (justActivated) {
+                weapon.justActivated = false;
+            }
+
+            const canFire = justActivated || (weapon.isShooting && weapon.fireTimer >= weapon.fireRate);
+            if (!canFire) {
                 return;
             }
 
             weapon.fireTimer = 0;
 
-            const bullet = new Entity();
-            bullet.addComponent(new Transform({ x: transform.position.x, y: transform.position.y - 20 }));
-            const spriteComponent = new Sprite(PIXI.Texture.WHITE);
-            spriteComponent.sprite.width = 5;
-            spriteComponent.sprite.height = 12;
-            spriteComponent.sprite.tint = 0xffff88;
-            bullet.addComponent(spriteComponent);
-            bullet.addComponent(new Motion({ x: 0, y: -12 }));
-            bullet.addComponent(new Bullet());
-            bullet.addComponent(new Collider(5));
+            const bullet = this.game.spawnPlayerBullet({ x: transform.position.x, y: transform.position.y - 20 }, { x: 0, y: -12 }, { tint: 0xffff88 });
 
-            this.game.addEntity(bullet);
+
+
+            if (!bullet) {
+
+                return;
+
+            }
+
+
 
             if (this.eventBus) {
                 this.eventBus.emit('combat:projectile-fired', {
@@ -476,6 +620,7 @@ class ShootingSystem extends System {
     }
 }
 
+
 class CollisionSystem extends System {
     constructor(game, eventBus) {
         super();
@@ -483,65 +628,135 @@ class CollisionSystem extends System {
         this.eventBus = eventBus || null;
         this._playerDefeated = false;
         this._defeatedBosses = new WeakSet();
+        this._grid = new SpatialGrid({ cellSize: 160 });
     }
 
     update(entities, delta) {
-        const bullets = entities.filter(e => e.hasComponent(Bullet) && !e.isRemoved);
-        const enemies = entities.filter(e => e.hasComponent(Enemy) && !e.isRemoved);
-        const bosses = entities.filter(e => e.hasComponent(Boss) && !e.isRemoved);
-        const enemyProjectiles = entities.filter(e => e.hasComponent(EnemyBullet) && !e.isRemoved);
-        const player = entities.find(e => e.hasComponent(Player) && !e.isRemoved);
+        this._grid.clear();
+
+        const bullets = [];
+        const enemies = [];
+        let player = null;
+
+        for (const entity of entities) {
+            if (entity.isRemoved) {
+                continue;
+            }
+
+            if (entity.hasComponent(Player)) {
+                player = entity;
+                this._insertIntoGrid(entity);
+                continue;
+            }
+
+            if (entity.hasComponent(Bullet)) {
+                bullets.push(entity);
+                this._insertIntoGrid(entity);
+                continue;
+            }
+
+            if (entity.hasComponent(EnemyBullet) || entity.hasComponent(Boss)) {
+                this._insertIntoGrid(entity);
+                continue;
+            }
+
+            if (entity.hasComponent(Enemy)) {
+                enemies.push(entity);
+                this._insertIntoGrid(entity);
+            }
+        }
+
+        const playerBounds = player ? this._computeBounds(player) : null;
 
         bullets.forEach(bullet => {
-            enemies.forEach(enemy => {
-                if (this._isColliding(bullet, enemy)) {
-                    this._handleBulletHitsEnemy(bullet, enemy);
-                }
-            });
+            const bulletBounds = this._computeBounds(bullet);
+            if (!bulletBounds) {
+                return;
+            }
+            const candidates = this._grid.query(bulletBounds);
 
-            bosses.forEach(boss => {
-                if (this._isColliding(bullet, boss)) {
-                    this._handleBulletHitsBoss(bullet, boss);
+            candidates.forEach(candidate => {
+                if (candidate === bullet || candidate.isRemoved) {
+                    return;
+                }
+
+                if (candidate.hasComponent(Enemy) && this._isColliding(bullet, candidate)) {
+                    this._handleBulletHitsEnemy(bullet, candidate);
+                } else if (candidate.hasComponent(Boss) && this._isColliding(bullet, candidate)) {
+                    this._handleBulletHitsBoss(bullet, candidate);
                 }
             });
         });
 
-        if (player) {
-            enemies.forEach(enemy => {
-                if (this._isColliding(player, enemy)) {
-                    this._handleEnemyHitsPlayer(enemy, player);
-                }
-            });
+        if (player && playerBounds) {
+            const playerCandidates = this._grid.query(playerBounds);
 
-            enemyProjectiles.forEach(projectile => {
-                if (this._isColliding(player, projectile)) {
-                    this._handleProjectileHitsPlayer(projectile, player);
+            playerCandidates.forEach(candidate => {
+                if (candidate === player || candidate.isRemoved) {
+                    return;
+                }
+
+                if (candidate.hasComponent(Enemy) && this._isColliding(player, candidate)) {
+                    this._handleEnemyHitsPlayer(candidate, player);
+                } else if (candidate.hasComponent(EnemyBullet) && this._isColliding(player, candidate)) {
+                    this._handleProjectileHitsPlayer(candidate, player);
                 }
             });
         }
     }
 
-    _isColliding(entityA, entityB) {
-        const transformA = entityA.getComponent(Transform);
-        const transformB = entityB.getComponent(Transform);
-        const colliderA = entityA.getComponent(Collider);
-        const colliderB = entityB.getComponent(Collider);
-
-        if (!transformA || !transformB || !colliderA || !colliderB) {
-            return false;
+    _computeBounds(entity) {
+        if (!entity.hasComponent(Transform) || !entity.hasComponent(Collider)) {
+            return null;
         }
 
-        const dx = transformA.position.x - transformB.position.x;
-        const dy = transformA.position.y - transformB.position.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+        const transform = entity.getComponent(Transform);
+        const collider = entity.getComponent(Collider);
+        const radius = collider.radius || 0;
 
-        return distance < colliderA.radius + colliderB.radius;
+        return {
+            minX: transform.position.x - radius,
+            minY: transform.position.y - radius,
+            maxX: transform.position.x + radius,
+            maxY: transform.position.y + radius
+        };
+    }
+
+    _insertIntoGrid(entity) {
+        const bounds = this._computeBounds(entity);
+        if (!bounds) {
+            return;
+        }
+        this._grid.insert(entity, bounds);
+    }
+
+    getDiagnostics() {
+        if (!this._grid) {
+            return { cells: 0, entities: 0 };
+        }
+        return {
+            cells: this._grid.cellCount(),
+            entities: this._grid.entityCount()
+        };
     }
 
     _handleBulletHitsEnemy(bullet, enemy) {
         bullet.isRemoved = true;
         enemy.isRemoved = true;
         this._emitDamage(enemy, bullet, 10, enemy.getComponent(Health), 'projectile');
+
+        // VFX: bullet impact at collision
+        const bulletTransform = bullet.getComponent(Transform);
+        if (bulletTransform && this.game && typeof this.game.spawnEffect === 'function') {
+            this.game.spawnEffect({
+                position: { x: bulletTransform.position.x, y: bulletTransform.position.y },
+                alpha: 0.9,
+                lifeTime: 0.2,
+                fade: 1.5,
+                scale: 1.0,
+                animation: 'bullet-impact'
+            });
+        }
     }
 
     _handleBulletHitsBoss(bullet, boss) {
@@ -557,6 +772,19 @@ class CollisionSystem extends System {
         }
 
         this._emitDamage(boss, bullet, 10, health, 'projectile');
+
+        // VFX: bullet impact at boss
+        const bulletTransform = bullet.getComponent(Transform);
+        if (bulletTransform && this.game && typeof this.game.spawnEffect === 'function') {
+            this.game.spawnEffect({
+                position: { x: bulletTransform.position.x, y: bulletTransform.position.y },
+                alpha: 0.95,
+                lifeTime: 0.25,
+                fade: 1.6,
+                scale: 1.0,
+                animation: 'bullet-impact'
+            });
+        }
 
         if (health.health <= 0 && !this._defeatedBosses.has(boss)) {
             this._defeatedBosses.add(boss);
@@ -714,6 +942,18 @@ class BossAISystem extends System {
                 if (changedPhase && changedPhase.message && typeof showMessage === 'function') {
                     showMessage(changedPhase.message, '#66ccff');
                 }
+
+            // VFX: boss phase transition summon glyph
+            if (changedPhase && this.game && typeof this.game.spawnEffect === 'function') {
+                this.game.spawnEffect({
+                    position: { x: transform.position.x, y: transform.position.y },
+                    alpha: 0.9,
+                    lifeTime: 0.5,
+                    fade: 1.8,
+                    scale: 1.2,
+                    animation: 'boss-summon'
+                });
+            }
             } else if (phaseComp) {
                 currentPhase = phaseComp.getCurrent();
             }
@@ -744,7 +984,8 @@ class BossShootingSystem extends System {
     }
 
     update(entities, delta) {
-        const deltaSeconds = delta / 60;
+        // delta is already in seconds per GameApplication._tick
+        const deltaSeconds = delta;
 
         entities.forEach(entity => {
             if (!entity.hasComponent(Boss) || !entity.hasComponent(Transform)) {
@@ -795,6 +1036,19 @@ class BossShootingSystem extends System {
                 }
                 if (phase) {
                     phase.spiralOffset = (offset + 0.6) % (Math.PI * 2);
+                }
+                break;
+            }
+            case 'beam': {
+                if (this.game && typeof this.game.spawnEffect === 'function' && transform) {
+                    this.game.spawnEffect({
+                        position: { x: transform.position.x, y: transform.position.y + 60 },
+                        alpha: 0.95,
+                        lifeTime: 0.6,
+                        fade: 1.6,
+                        scale: { x: 1.0, y: 1.0 },
+                        animation: 'beam_attack'
+                    });
                 }
                 break;
             }
@@ -869,6 +1123,11 @@ class CleanupSystem extends System {
                 continue;
             }
 
+            if (entity.poolId) {
+                this.game.releaseEntity(entity, i);
+                continue;
+            }
+
             if (entity.hasComponent(Sprite)) {
                 const sprite = entity.getComponent(Sprite).sprite;
                 if (sprite.parent) {
@@ -880,14 +1139,4 @@ class CleanupSystem extends System {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
 

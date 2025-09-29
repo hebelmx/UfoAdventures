@@ -1,0 +1,135 @@
+{
+  "frames": {
+    "strafe-01": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 302,
+        "h": 471
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 302,
+        "h": 471
+      },
+      "sourceSize": {
+        "w": 302,
+        "h": 471
+      }
+    },
+    "strafe-02": {
+      "frame": {
+        "x": 302,
+        "y": 0,
+        "w": 290,
+        "h": 465
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 290,
+        "h": 465
+      },
+      "sourceSize": {
+        "w": 290,
+        "h": 465
+      }
+    },
+    "strafe-03": {
+      "frame": {
+        "x": 592,
+        "y": 0,
+        "w": 279,
+        "h": 461
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 279,
+        "h": 461
+      },
+      "sourceSize": {
+        "w": 279,
+        "h": 461
+      }
+    },
+    "strafe-04": {
+      "frame": {
+        "x": 871,
+        "y": 0,
+        "w": 266,
+        "h": 453
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 266,
+        "h": 453
+      },
+      "sourceSize": {
+        "w": 266,
+        "h": 453
+      }
+    },
+    "strafe-05": {
+      "frame": {
+        "x": 0,
+        "y": 471,
+        "w": 279,
+        "h": 461
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 279,
+        "h": 461
+      },
+      "sourceSize": {
+        "w": 279,
+        "h": 461
+      }
+    },
+    "strafe-06": {
+      "frame": {
+        "x": 0,
+        "y": 932,
+        "w": 290,
+        "h": 465
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 290,
+        "h": 465
+      },
+      "sourceSize": {
+        "w": 290,
+        "h": 465
+      }
+    }
+  },
+  "meta": {
+    "app": "ufo-tools-pack",
+    "version": "1.0",
+    "image": "amidogus-atlas-strafe.png",
+    "size": {
+      "w": 2048,
+      "h": 2048
+    },
+    "scale": "1",
+    "alias": "amidogus-atlas-strafe"
+  }
+}

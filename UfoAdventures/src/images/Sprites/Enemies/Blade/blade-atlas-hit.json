@@ -1,0 +1,95 @@
+{
+  "frames": {
+    "hit-01": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 587,
+        "h": 601
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 587,
+        "h": 601
+      },
+      "sourceSize": {
+        "w": 587,
+        "h": 601
+      }
+    },
+    "hit-02": {
+      "frame": {
+        "x": 587,
+        "y": 0,
+        "w": 587,
+        "h": 601
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 587,
+        "h": 601
+      },
+      "sourceSize": {
+        "w": 587,
+        "h": 601
+      }
+    },
+    "hit-03": {
+      "frame": {
+        "x": 0,
+        "y": 601,
+        "w": 616,
+        "h": 630
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 616,
+        "h": 630
+      },
+      "sourceSize": {
+        "w": 616,
+        "h": 630
+      }
+    },
+    "hit-04": {
+      "frame": {
+        "x": 1174,
+        "y": 0,
+        "w": 587,
+        "h": 601
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 587,
+        "h": 601
+      },
+      "sourceSize": {
+        "w": 587,
+        "h": 601
+      }
+    }
+  },
+  "meta": {
+    "app": "ufo-tools-pack",
+    "version": "1.0",
+    "image": "blade-atlas-hit.png",
+    "size": {
+      "w": 2048,
+      "h": 2048
+    },
+    "scale": "1",
+    "alias": "blade-atlas-hit"
+  }
+}
