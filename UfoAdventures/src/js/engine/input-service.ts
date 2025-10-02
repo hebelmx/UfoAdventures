@@ -1,10 +1,31 @@
-class InputService {
-    constructor(eventBus) {
-        this.eventBus = eventBus || null;
-        this._actionBindings = new Map();
-        this._keyBindings = new Map();
-        this._axisBindings = new Map();
-        this._actionState = new Map();
+import { EventBus } from './event-bus';
+
+export interface ActionState {
+    active: boolean;
+    lastKey: string | null;
+    timestamp: number;
+}
+
+export interface AxisBinding {
+    positive: Set<string>;
+    negative: Set<string>;
+}
+
+export interface InputConfig {
+    actions?: { [key: string]: string | string[] };
+    axes?: { name: string, positive: string | string[], negative: string | string[] }[];
+}
+
+export class InputService {
+    private readonly eventBus: EventBus | null;
+    private _actionBindings: Map<string, Set<string>> = new Map();
+    private _keyBindings: Map<string, Set<string>> = new Map();
+    private _axisBindings: Map<string, AxisBinding> = new Map();
+    private _actionState: Map<string, ActionState> = new Map();
+    private _enabled = false;
+
+    constructor(eventBus: EventBus | null) {
+        this.eventBus = eventBus;
 
         this._handleKeyDown = this._handleKeyDown.bind(this);
         this._handleKeyUp = this._handleKeyUp.bind(this);
@@ -22,7 +43,7 @@ class InputService {
         window.addEventListener('contextmenu', (e) => { try { e.preventDefault(); } catch(_) {} });
     }
 
-    configure(config = {}) {
+    configure(config: InputConfig = {}): void {
         const actions = config.actions || {};
         const axes = Array.isArray(config.axes) ? config.axes : [];
 
@@ -32,7 +53,7 @@ class InputService {
         this._actionState.clear();
 
         Object.keys(actions).forEach(actionName => {
-            const keys = Array.isArray(actions[actionName]) ? actions[actionName] : [actions[actionName]];
+            const keys = Array.isArray(actions[actionName]) ? actions[actionName] : [actions[actionName] as string];
             const normalizedKeys = keys.filter(Boolean);
             this._actionBindings.set(actionName, new Set(normalizedKeys));
             this._actionState.set(actionName, { active: false, lastKey: null, timestamp: 0 });
@@ -41,7 +62,7 @@ class InputService {
                 if (!this._keyBindings.has(keyCode)) {
                     this._keyBindings.set(keyCode, new Set());
                 }
-                this._keyBindings.get(keyCode).add(actionName);
+                this._keyBindings.get(keyCode)!.add(actionName);
             });
         });
 
@@ -56,7 +77,7 @@ class InputService {
         });
     }
 
-    registerCommand(action, handler, options = {}) {
+    registerCommand(action: string, handler: (payload: any) => void, options: { trigger?: 'up' | 'down' } = {}): () => void {
         if (!this.eventBus) {
             console.warn('InputService.registerCommand called without an EventBus');
             return () => {};
@@ -67,22 +88,22 @@ class InputService {
         return this.eventBus.on(eventName, handler);
     }
 
-    unregisterCommand(off) {
+    unregisterCommand(off: () => void): void {
         if (typeof off === 'function') {
             off();
         }
     }
 
-    isActionActive(action) {
+    isActionActive(action: string): boolean {
         const state = this._actionState.get(action);
         return !!(state && state.active);
     }
 
-    getActionState(action) {
+    getActionState(action: string): ActionState {
         return this._actionState.get(action) || { active: false, lastKey: null, timestamp: 0 };
     }
 
-    getAxisValue(name) {
+    getAxisValue(name: string): number {
         const axis = this._axisBindings.get(name);
         if (!axis) {
             return 0;
@@ -100,16 +121,25 @@ class InputService {
             }
         });
 
-        if (value > 1) {
-            value = 1;
-        } else if (value < -1) {
-            value = -1;
-        }
-
-        return value;
+        return Math.max(-1, Math.min(1, value));
     }
 
-    reset() {
+    enable(): void {
+        if (this._enabled) {
+            return;
+        }
+        this._enabled = true;
+    }
+
+    disable(): void {
+        if (!this._enabled) {
+            return;
+        }
+        this._enabled = false;
+        this.reset();
+    }
+
+    reset(): void {
         this._actionState.forEach((state, action) => {
             if (state.active) {
                 state.active = false;
@@ -120,7 +150,8 @@ class InputService {
         });
     }
 
-    destroy() {
+    destroy(): void {
+        this.disable();
         window.removeEventListener('keydown', this._handleKeyDown);
         window.removeEventListener('keyup', this._handleKeyUp);
         window.removeEventListener('blur', this._handleBlur);
@@ -133,7 +164,7 @@ class InputService {
         this._actionState.clear();
     }
 
-    _normalizeActionList(actions) {
+    private _normalizeActionList(actions: string | string[] | undefined): Set<string> {
         if (!actions) {
             return new Set();
         }
@@ -143,14 +174,17 @@ class InputService {
         return new Set(actions.filter(Boolean));
     }
 
-    _handleKeyDown(event) {
+    private _handleKeyDown(event: KeyboardEvent): void {
+        if (!this._enabled) {
+            return;
+        }
+
         const actions = this._keyBindings.get(event.code);
         if (!actions || !actions.size) {
             return;
         }
 
         const timestamp = performance.now();
-        // Prevent default browser actions (e.g., Space scroll) when mapped to game actions
         try { event.preventDefault(); } catch (e) {}
         actions.forEach(action => {
             const state = this._actionState.get(action);
@@ -163,7 +197,11 @@ class InputService {
         });
     }
 
-    _handleKeyUp(event) {
+    private _handleKeyUp(event: KeyboardEvent): void {
+        if (!this._enabled) {
+            return;
+        }
+
         const actions = this._keyBindings.get(event.code);
         if (!actions || !actions.size) {
             return;
@@ -182,25 +220,30 @@ class InputService {
         });
     }
 
-    _handleKeyPress(event) {
-        // Some browsers trigger button clicks on keypress (e.g., Space) even if keydown was prevented.
-        // If this key maps to any game action, prevent default to avoid activating focused buttons.
+    private _handleKeyPress(event: KeyboardEvent): void {
+        if (!this._enabled) {
+            return;
+        }
+
         const actions = this._keyBindings.get(event.code);
         if (actions && actions.size) {
             try { event.preventDefault(); } catch (e) {}
         }
     }
 
-    _mouseCode(button) {
+    private _mouseCode(button: number): string {
         switch (button) {
             case 0: return 'MouseLeft';
             case 1: return 'MouseMiddle';
             case 2: return 'MouseRight';
-            default: return 'Mouse' + String(button);
+            default: return `Mouse${button}`;
         }
     }
 
-    _handleMouseDown(event) {
+    private _handleMouseDown(event: MouseEvent): void {
+        if (!this._enabled) {
+            return;
+        }
         const code = this._mouseCode(event.button);
         const actions = this._keyBindings.get(code);
         if (!actions || !actions.size) {
@@ -219,7 +262,10 @@ class InputService {
         });
     }
 
-    _handleMouseUp(event) {
+    private _handleMouseUp(event: MouseEvent): void {
+        if (!this._enabled) {
+            return;
+        }
         const code = this._mouseCode(event.button);
         const actions = this._keyBindings.get(code);
         if (!actions || !actions.size) {
@@ -238,11 +284,11 @@ class InputService {
         });
     }
 
-    _handleBlur() {
+    private _handleBlur(): void {
         this.reset();
     }
 
-    _emitAction(action, trigger, keyCode, originalEvent) {
+    private _emitAction(action: string, trigger: 'up' | 'down', keyCode: string | null, originalEvent: Event | null): void {
         if (!this.eventBus) {
             return;
         }
@@ -250,14 +296,14 @@ class InputService {
         const payload = {
             action,
             trigger,
-            keyCode: keyCode || null,
-            originalEvent: originalEvent || null,
+            keyCode,
+            originalEvent,
         };
         this.eventBus.emit(this._eventName(action, trigger), payload);
         this.eventBus.emit(this._eventName('any', trigger), payload);
     }
 
-    _eventName(action, trigger) {
-        return 'input:' + action + ':' + trigger;
+    private _eventName(action: string, trigger: 'up' | 'down'): string {
+        return `input:${action}:${trigger}`;
     }
 }

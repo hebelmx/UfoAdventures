@@ -474,6 +474,176 @@
       "enemyDemo"
     ]
   },
+  "missions": {
+    "default": "operation-first-contact",
+    "list": [
+      {
+        "id": "operation-first-contact",
+        "name": "Operation First Contact",
+        "mode": "adventure",
+        "description": "Repel Tarak's scout vanguard and hold the approach lane until reinforcements arrive.",
+        "objectives": [
+          { "id": "clear-wave", "type": "eliminate", "target": "enemy", "count": 35, "label": "Destroy 35 invaders" },
+          { "id": "defeat-boss", "type": "defeatBoss", "label": "Eliminate Tarak" },
+          { "id": "time-check", "type": "timeUnder", "seconds": 210, "label": "Complete in under 3:30" }
+        ],
+        "scoring": {
+          "baseScore": 1000,
+          "enemyKill": 40,
+          "bossBonus": 800,
+          "objectiveBonus": 300,
+          "timeBonus": { "threshold": 210, "perSecond": 6 },
+          "hitPenalty": 12
+        },
+        "rewards": {
+          "xp": 300,
+          "credits": 150
+        }
+      },
+      {
+        "id": "tarak-showdown",
+        "name": "Tarak Showdown",
+        "mode": "boss",
+        "description": "Face Tarak head-on in his lair and survive the full phase cycle.",
+        "objectives": [
+          { "id": "defeat-boss", "type": "defeatBoss", "label": "Break Tarak's defenses" },
+          { "id": "minimal-damage", "type": "damageUnder", "amount": 80, "label": "Take less than 80 damage" }
+        ],
+        "scoring": {
+          "baseScore": 1500,
+          "enemyKill": 0,
+          "bossBonus": 1200,
+          "objectiveBonus": 400,
+          "timeBonus": { "threshold": 180, "perSecond": 8 },
+          "hitPenalty": 18
+        },
+        "rewards": {
+          "xp": 500,
+          "credits": 260
+        }
+      },
+      {
+        "id": "gauntlet-proving",
+        "name": "Gauntlet Proving Grounds",
+        "mode": "arcade",
+        "description": "Stress-test your loadout in the simulator and chase a personal best.",
+        "objectives": [
+          { "id": "eliminate", "type": "eliminate", "target": "enemy", "count": 50, "label": "Destroy 50 hostiles" },
+          { "id": "time-survive", "type": "survive", "seconds": 120, "label": "Survive for 2 minutes" }
+        ],
+        "scoring": {
+          "baseScore": 800,
+          "enemyKill": 25,
+          "objectiveBonus": 200,
+          "timeBonus": { "threshold": 120, "perSecond": 4 },
+          "hitPenalty": 8
+        },
+        "rewards": {
+          "xp": 180,
+          "credits": 90
+        }
+      },
+      {
+        "id": "training-sandbox",
+        "name": "Holodeck Training",
+        "mode": "training",
+        "description": "Practice movement and abilities against low-threat drones without fear of defeat.",
+        "objectives": [
+          { "id": "practice", "type": "survive", "seconds": 180, "label": "Survive for 3 minutes" }
+        ],
+        "scoring": {
+          "baseScore": 0,
+          "enemyKill": 15,
+          "objectiveBonus": 100,
+          "timeBonus": { "threshold": 180, "perSecond": 2 },
+          "hitPenalty": 0
+        },
+        "rewards": {
+          "xp": 60,
+          "credits": 25
+        }
+      }
+    ]
+  },
+  "weapons": {
+    "player-blaster": {
+      "cooldown": 0.35,
+      "projectiles": [
+        { "dx": 0, "dy": -12, "tint": 16777032, "type": "player" }
+      ]
+    },
+    "player-shockwave": {
+      "cooldown": 8,
+      "burst": 1,
+      "projectiles": [
+        { "dx": -6, "dy": -10, "tint": 6750207, "type": "player" },
+        { "dx": 0, "dy": -11, "tint": 6750207, "type": "player" },
+        { "dx": 6, "dy": -10, "tint": 6750207, "type": "player" }
+      ],
+      "spread": true
+    },
+    "enemy-dart": {
+      "cooldown": 1.4,
+      "projectiles": [
+        { "dx": 0, "dy": 5.6, "tint": 16733525, "type": "enemy" }
+      ]
+    },
+    "enemy-fan": {
+      "cooldown": 1.9,
+      "projectiles": [
+        { "dx": -1.5, "dy": 5.8, "tint": 16724787, "type": "enemy" },
+        { "dx": 0, "dy": 6.2, "tint": 16751392, "type": "enemy" },
+        { "dx": 1.5, "dy": 5.8, "tint": 16724787, "type": "enemy" }
+      ]
+    },
+    "boss-beam": {
+      "cooldown": 2.5,
+      "beam": {
+        "duration": 1.4,
+        "width": 28,
+        "damage": 30,
+        "tint": 16761095
+      }
+    }
+  },
+  "behaviorTrees": {
+    "scout-loop": {
+      "type": "sequence",
+      "loop": true,
+      "children": [
+        { "type": "action", "name": "setOscillation", "duration": 2.2, "amplitude": 90, "frequency": 1.3, "speedY": 2.4 },
+        { "type": "action", "name": "fireWeapon", "duration": 0.5, "weaponId": "enemy-dart" },
+        { "type": "wait", "duration": 0.4 }
+      ]
+    },
+    "fighter-assault": {
+      "type": "sequence",
+      "loop": true,
+      "children": [
+        { "type": "action", "name": "setSwoop", "duration": 1.2, "diveSpeed": 4.2, "climbSpeed": -3.0, "vertical": 1.6 },
+        { "type": "action", "name": "fireWeapon", "duration": 0.6, "weaponId": "enemy-dart" },
+        { "type": "wait", "duration": 0.6 }
+      ]
+    },
+    "strafer-barrage": {
+      "type": "sequence",
+      "loop": true,
+      "children": [
+        { "type": "action", "name": "strafe", "duration": 1.0, "speed": 3.1 },
+        { "type": "action", "name": "fireWeapon", "duration": 0.8, "weaponId": "enemy-fan" },
+        { "type": "wait", "duration": 0.5 }
+      ]
+    },
+    "boss-phase-beam": {
+      "type": "sequence",
+      "loop": true,
+      "children": [
+        { "type": "action", "name": "telegraph", "duration": 0.8, "effect": "beam_attack", "message": "Tarak prepares a beam!" },
+        { "type": "action", "name": "fireWeapon", "duration": 1.0, "weaponId": "boss-beam" },
+        { "type": "wait", "duration": 1.2 }
+      ]
+    }
+  },
   "input": {
     "actions": {
       "moveUp": [
@@ -506,6 +676,13 @@
         "ShiftLeft",
         "ShiftRight"
       ],
+      "shield": [
+        "KeyO",
+        "MouseMiddle"
+      ],
+      "stasisField": [
+        "KeyP"
+      ],
       "pause": [
         "Escape"
       ],
@@ -516,6 +693,9 @@
       "togglePerformanceOverlay": [
         "Backquote",
         "F6"
+      ],
+      "logPerformanceMetrics": [
+        "F7"
       ]
     },
     "axes": [
@@ -551,7 +731,9 @@
         },
         "id": "scout",
         "verticalSpeed": 2.2,
-        "amplitude": 90
+        "amplitude": 90,
+        "weaponId": "enemy-dart",
+        "behaviorTreeId": "scout-loop"
       },
       {
         "pattern": "swoop",
@@ -564,7 +746,9 @@
         "climbSpeed": -3.2,
         "verticalSpeed": 1.8,
         "horizontalDrift": 1.5,
-        "diveSpeed": 4.5
+        "diveSpeed": 4.5,
+        "weaponId": "enemy-dart",
+        "behaviorTreeId": "fighter-assault"
       },
       {
         "horizontalSpeed": 3.2,
@@ -575,7 +759,9 @@
         },
         "pattern": "strafe",
         "id": "strafer",
-        "verticalSpeed": 2.6
+        "verticalSpeed": 2.6,
+        "weaponId": "enemy-fan",
+        "behaviorTreeId": "strafer-barrage"
       }
     ],
     "waves": [
@@ -640,6 +826,12 @@
         "horizontalSpeed": 2.0,
         "verticalDrift": 0.2,
         "fireRate": 1.2,
+        "behaviorTreeId": "boss-phase-beam",
+        "telegraphEffect": "boss-summon",
+        "summon": [
+          { "template": "scout", "count": 2, "spread": 0.4, "altitude": -40 }
+        ],
+        "vulnerabilityWindow": 0.8,
         "threshold": 1.0
       },
       {
@@ -648,6 +840,12 @@
         "horizontalSpeed": 2.8,
         "verticalDrift": 0.0,
         "fireRate": 0.85,
+        "behaviorTreeId": "boss-phase-beam",
+        "telegraphEffect": "beam_attack",
+        "summon": [
+          { "template": "fighter", "count": 2, "spread": 0.5, "altitude": -60 }
+        ],
+        "vulnerabilityWindow": 1.2,
         "threshold": 0.6
       },
       {
@@ -656,8 +854,15 @@
         "horizontalSpeed": 3.2,
         "verticalDrift": -0.1,
         "fireRate": 0.55,
+        "behaviorTreeId": "boss-phase-beam",
+        "telegraphEffect": "beam_attack",
+        "summon": [
+          { "template": "strafer", "count": 2, "spread": 0.6, "altitude": -80 }
+        ],
+        "vulnerabilityWindow": 1.6,
         "threshold": 0.3
       }
     ]
   }
 }
+

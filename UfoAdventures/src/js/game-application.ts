@@ -1,105 +1,357 @@
-class GameApplication {
+import * as PIXI from 'pixi.js';
+import { ServiceLocator } from './engine/service-locator';
+import { EventBus } from './engine/event-bus';
+import { ConfigService } from './engine/config-service';
+import { ResourceManager } from './engine/resource-manager';
+import { SceneManager, IScene } from './engine/scene-manager';
+import { InputService } from './engine/input-service';
+import { SaveService } from './engine/save-service';
+import { AudioService, AudioSettings } from './engine/audio-service';
+import { MissionService } from './engine/mission-service';
+import { BehaviorTreeService } from './engine/behavior-tree-service';
+import { WeaponService } from './engine/weapon-service';
+import { ProgressionService } from './engine/progression-service';
+import { SceneTransitions } from './ui/scene-transitions';
+import { BootstrapScene } from './scenes/bootstrap-scene';
+import { AssetLoadingScene } from './scenes/asset-loading-scene';
+import { MainMenuScene } from './scenes/main-menu-scene';
+import { GameplayScene } from './scenes/gameplay-scene';
+import { PauseScene } from './scenes/pause-scene';
+import { InventoryScene } from './scenes/inventory-scene';
+import { ResultsScene } from './scenes/results-scene';
+import { OptionsScene } from './scenes/options-scene';
+import { CreditsScene } from './scenes/credits-scene';
+import { LeaderboardScene } from './scenes/leaderboard-scene';
+import { ArcadeScene } from './scenes/arcade-scene';
+import { TrainingScene } from './scenes/training-scene';
+import type { GameConfiguration, ApplicationScreenConfig } from './engine/game-configuration';
+
+export class GameApplication {
+    private readonly canvas: HTMLCanvasElement;
+    private readonly services: ServiceLocator = new ServiceLocator();
+    private userSettings: AudioSettings & { difficulty: string };
+    private pixiApp: PIXI.Application | null = null;
+    private _sceneManager: SceneManager | null = null;
+    private _sceneTransitions: SceneTransitions | null = null;
+    private _ticker: PIXI.Ticker | null = null;
+    private readonly _tickHandler: () => void;
+    private _fixedDelta = 1 / 60;
+    private _accumulator = 0;
+
     constructor() {
-        this.canvas = document.getElementById('gameCanvas');
+        this.canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
         if (!this.canvas) {
-            throw new Error('GameApplication: #gameCanvas element not found');
+            throw new Error('GameApplication: canvas element not found');
         }
-
-        this.services = new ServiceLocator();
-        this.eventBus = new EventBus();
-        this.configService = new ConfigService('config/game-config.json');
-        this.resourceManager = new ResourceManager();
-        this.sceneManager = new SceneManager(this.services);
-        this.inputService = new InputService(this.eventBus);
-
-        this.services.register('eventBus', this.eventBus);
-        this.services.register('configService', this.configService);
-        this.services.register('resourceManager', this.resourceManager);
-        this.services.register('sceneManager', this.sceneManager);
-        this.services.register('inputService', this.inputService);
-        this.services.register('gameApplication', this);
-
-        this.app = null;
-        this.fixedTimeStep = 1000 / 60;
-        this.accumulator = 0;
-        this._isBooted = false;
-        this._tick = this._tick.bind(this);
+        this.userSettings = {
+            masterVolume: 1.0,
+            musicVolume: 0.8,
+            sfxVolume: 1.0,
+            difficulty: 'normal',
+            music: 'on',
+            sfx: 'on'
+        };
+        this._tickHandler = this._onTick.bind(this);
     }
 
-    async boot() {
-        if (this._isBooted) {
+    async boot(): Promise<void> {
+        try {
+            await this._initializeServices();
+            await this._registerScenes();
+            const sceneManager = this.services.resolve<SceneManager>('sceneManager');
+            await sceneManager.change('bootstrap');
+        } catch (error) {
+            console.error('GameApplication: failed to boot', error);
+            throw error;
+        }
+    }
+
+    public getSceneManager(): SceneManager | null {
+        return this._sceneManager;
+    }
+
+    public getService<T>(key: string): T | null {
+        return this.services.optional<T>(key);
+    }
+
+    private async _initializeServices(): Promise<void> {
+        this.services.replace('gameApplication', this);
+
+        const eventBus = new EventBus();
+        this.services.register('eventBus', eventBus);
+
+        const configService = new ConfigService('config/game-config.json');
+        this.services.register('configService', configService);
+
+        const resourceManager = new ResourceManager();
+        this.services.register('resourceManager', resourceManager);
+
+        const sceneManager = new SceneManager(this.services);
+        this.services.register('sceneManager', sceneManager);
+        this._sceneManager = sceneManager;
+
+        const inputService = new InputService(eventBus);
+        this.services.register('inputService', inputService);
+
+        const saveService = new SaveService({
+            dbName: 'UFOAdventures',
+            storeName: 'saves',
+            version: 1
+        });
+        this.services.register('saveService', saveService);
+        await saveService.ready();
+
+        const audioService = new AudioService({ resourceManager });
+        this.services.register('audioService', audioService);
+
+        const missionService = new MissionService();
+        this.services.register('missionService', missionService);
+
+        const behaviorTreeService = new BehaviorTreeService();
+        this.services.register('behaviorTreeService', behaviorTreeService);
+
+        const weaponService = new WeaponService();
+        this.services.register('weaponService', weaponService);
+
+        // Load configuration and apply to runtime services
+        const config = await configService.load<GameConfiguration>();
+        this._initializePixiApp(config?.application?.screen || {});
+        this.services.register('pixiApp', this.pixiApp);
+
+        this._applyConfiguration({
+            config,
+            missionService,
+            behaviorTreeService,
+            weaponService,
+            inputService
+        });
+
+        // Instantiate progression service after configuration is available
+        const progressionOptions = { ...(config?.progression || {}), saveService };
+        const progressionService = new ProgressionService(progressionOptions);
+        this.services.register('progressionService', progressionService);
+        await progressionService.ready();
+
+        // Load and apply persisted user settings
+        await this._loadUserSettings();
+        this._applyUserSettings();
+
+        // Attach optional scene transition helper
+        if (typeof SceneTransitions === 'function') {
+            this._sceneTransitions = new SceneTransitions();
+            this._sceneTransitions.attach(sceneManager);
+            this.services.register('sceneTransitions', this._sceneTransitions);
+        }
+
+        inputService.enable();
+        this._startTicker();
+    }
+
+    private async _registerScenes(): Promise<void> {
+        const sceneManager = this.services.resolve<SceneManager>('sceneManager');
+        
+        // Register all scenes
+        this._registerScene(sceneManager, new BootstrapScene(this.services));
+        this._registerScene(sceneManager, new AssetLoadingScene(this.services));
+        this._registerScene(sceneManager, new MainMenuScene(this.services));
+        this._registerScene(sceneManager, new GameplayScene(this.services));
+        this._registerScene(sceneManager, new PauseScene(this.services));
+        this._registerScene(sceneManager, new InventoryScene(this.services));
+        this._registerScene(sceneManager, new ResultsScene(this.services));
+        this._registerScene(sceneManager, new OptionsScene(this.services));
+        this._registerScene(sceneManager, new CreditsScene(this.services));
+        this._registerScene(sceneManager, new LeaderboardScene(this.services));
+        this._registerScene(sceneManager, new ArcadeScene(this.services));
+        this._registerScene(sceneManager, new TrainingScene(this.services));
+    }
+
+    private async _loadUserSettings(): Promise<void> {
+        try {
+            const saveService = this.services.resolve<SaveService>('saveService');
+            const savedSettings = await saveService.load<any>('userSettings');
+            if (savedSettings) {
+                this.userSettings = { ...this.userSettings, ...savedSettings };
+            }
+        } catch (error) {
+            console.warn('GameApplication: failed to load user settings', error);
+        }
+    }
+
+    async saveUserSettings(): Promise<void> {
+        try {
+            const saveService = this.services.resolve<SaveService>('saveService');
+            await saveService.save('userSettings', this.userSettings);
+        } catch (error) {
+            console.error('GameApplication: failed to save user settings', error);
+        }
+    }
+
+    setUserSettings(settings: Partial<AudioSettings & { difficulty: string }> = {}): void {
+        if (!settings || typeof settings !== 'object') {
+            return;
+        }
+        this.userSettings = { ...this.userSettings, ...settings };
+        this._applyUserSettings();
+        this.saveUserSettings();
+    }
+
+    private _applyUserSettings(): void {
+        const audioService = this.services.optional<AudioService>('audioService');
+        if (audioService) {
+            audioService.applySettings(this.userSettings);
+        }
+
+        const eventBus = this.services.optional<EventBus>('eventBus');
+        if (eventBus) {
+            eventBus.emit('settings:changed', this.userSettings);
+        }
+    }
+
+    getUserSettings(): AudioSettings & { difficulty: string } {
+        return { ...this.userSettings };
+    }
+
+    async shutdown(): Promise<void> {
+        try {
+            await this.saveUserSettings();
+
+            if (this.pixiApp && this._ticker) {
+                this.pixiApp.ticker.remove(this._tickHandler, this);
+            }
+
+            const sceneManager = this.services.optional<SceneManager>('sceneManager');
+            if (sceneManager) {
+                await sceneManager.clear();
+            }
+
+            const inputService = this.services.optional<InputService>('inputService');
+            if (inputService) {
+                inputService.disable();
+            }
+
+            const audioService = this.services.optional<AudioService>('audioService');
+            if (audioService && typeof (audioService as any).shutdown === 'function') {
+                await (audioService as any).shutdown();
+            }
+
+            if (this._sceneTransitions && typeof this._sceneTransitions.detach === 'function') {
+                try { this._sceneTransitions.detach(); } catch (error) { console.warn('GameApplication: failed to detach scene transitions', error); }
+            }
+
+            if (this.pixiApp) {
+                try {
+                    this.pixiApp.destroy(false);
+                } catch (error) {
+                    console.warn('GameApplication: failed to destroy PIXI app', error);
+                }
+                this.pixiApp = null;
+            }
+
+            this._ticker = null;
+            this._sceneManager = null;
+            this._sceneTransitions = null;
+            this._accumulator = 0;
+
+            this.services.reset();
+        } catch (error) {
+            console.error('GameApplication: error during shutdown', error);
+        }
+    }
+
+    private _registerScene(sceneManager: SceneManager, scene: IScene): void {
+        if (!sceneManager || !scene) {
+            return;
+        }
+        const name = scene.name;
+        if (!name) {
+            throw new Error('Scene registration requires a scene with a name.');
+        }
+        sceneManager.register(name, scene);
+    }
+
+    private _applyConfiguration({ config = {}, missionService, behaviorTreeService, weaponService, inputService }: { config: GameConfiguration, missionService: MissionService, behaviorTreeService: BehaviorTreeService, weaponService: WeaponService, inputService: InputService }): void {
+        if (missionService && config.missions) {
+            missionService.configure(config.missions);
+        }
+        if (behaviorTreeService && config.behaviorTrees) {
+            behaviorTreeService.configure(config.behaviorTrees);
+        }
+        if (weaponService && config.weapons) {
+            weaponService.configure(config.weapons);
+        }
+        if (inputService && config.input) {
+            inputService.configure(config.input);
+        }
+    }
+
+    private _initializePixiApp(screen: ApplicationScreenConfig = {}): void {
+        if (this.pixiApp) {
             return;
         }
 
-        await this.configService.load();
-        const inputConfig = this.configService.get('input', {});
-        this.inputService.configure(inputConfig);
-        this._initialisePixi();
-        this.services.register('pixiApp', this.app);
+        const width = Number.isFinite(screen.width) ? screen.width : 800;
+        const height = Number.isFinite(screen.height) ? screen.height : 600;
+        const backgroundColor = this._normalizeColor(screen.backgroundColor);
 
-        this._registerScenes();
-        this._isBooted = true;
-
-        await this.sceneManager.change('bootstrap');
-        this.app.ticker.add(this._tick);
+        try {
+            this.pixiApp = new PIXI.Application({
+                view: this.canvas,
+                width,
+                height,
+                backgroundColor,
+                antialias: true
+            });
+            if (this.pixiApp?.stage) {
+                this.pixiApp.stage.sortableChildren = true;
+            }
+        } catch (error) {
+            console.error('GameApplication: failed to initialize PIXI application', error);
+            throw error;
+        }
     }
 
-    _initialisePixi() {
-        const screenConfig = this.configService.get('application.screen', {});
-        const width = screenConfig.width || 800;
-        const height = screenConfig.height || 600;
-        const backgroundColor = this._parseColor(screenConfig.backgroundColor, 0x000000);
-
-        this.app = new PIXI.Application({
-            width,
-            height,
-            backgroundColor,
-            view: this.canvas,
-            antialias: true
-        });
-
-        this.app.stage.sortableChildren = true;
+    private _startTicker(): void {
+        if (!this.pixiApp || !this._sceneManager) {
+            return;
+        }
+        this._fixedDelta = 1 / 60;
+        this._accumulator = 0;
+        this._ticker = this.pixiApp.ticker;
+        if (this._ticker) {
+            this._ticker.add(this._tickHandler, this);
+        }
     }
 
-    _registerScenes() {
-        this.sceneManager.register('bootstrap', new BootstrapScene(this.services));
-        this.sceneManager.register('asset-loading', new AssetLoadingScene(this.services));
-        this.sceneManager.register('main-menu', new MainMenuScene(this.services));
-        this.sceneManager.register('gameplay', new GameplayScene(this.services));
-        this.sceneManager.register('pause-menu', new PauseScene(this.services));
-        this.sceneManager.register('inventory', new InventoryScene(this.services));
-        this.sceneManager.register('results', new ResultsScene(this.services));
-    }
-
-    _tick() {
-        const elapsedMS = this.app.ticker.elapsedMS || this.fixedTimeStep;
-        this.accumulator += elapsedMS;
-        const stepSeconds = this.fixedTimeStep / 1000;
-
-        while (this.accumulator >= this.fixedTimeStep) {
-            this.sceneManager.fixedUpdate(stepSeconds);
-            this.accumulator -= this.fixedTimeStep;
+    private _onTick(): void {
+        if (!this._sceneManager || !this.pixiApp) {
+            return;
         }
 
-        this.sceneManager.update(elapsedMS / 1000);
+        const ticker = this.pixiApp.ticker;
+        const deltaSeconds = ticker ? Math.min(ticker.deltaMS / 1000, 0.25) : this._fixedDelta;
+
+        this._accumulator += deltaSeconds;
+
+        while (this._accumulator >= this._fixedDelta) {
+            this._sceneManager.fixedUpdate(this._fixedDelta);
+            this._accumulator -= this._fixedDelta;
+        }
+
+        this._sceneManager.update(deltaSeconds);
     }
 
-    _parseColor(value, fallback) {
+    private _normalizeColor(value?: number | string): number {
         if (typeof value === 'number' && Number.isFinite(value)) {
             return value;
         }
-
         if (typeof value === 'string') {
-            const hex = value.trim().replace('#', '');
-            const parsed = Number.parseInt(hex, 16);
-            if (!Number.isNaN(parsed)) {
-                return parsed;
+            const trimmed = value.trim();
+            if (/^#?[0-9a-fA-F]{6}$/.test(trimmed)) {
+                const hex = trimmed.startsWith('#') ? trimmed.slice(1) : trimmed;
+                return parseInt(hex, 16);
             }
         }
-
-        return fallback;
+        return 0x0f192a;
     }
 }
-
-
 

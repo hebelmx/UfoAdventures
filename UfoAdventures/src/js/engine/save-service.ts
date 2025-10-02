@@ -1,31 +1,57 @@
-class SaveService {
-    constructor(options = {}) {
+export interface SaveServiceOptions {
+    dbName?: string;
+    storeName?: string;
+    version?: number;
+    keyPrefix?: string;
+}
+
+export interface SaveRecord<T = unknown> {
+    key: string;
+    value: T;
+    timestamp: number;
+}
+
+type LocalStorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem' | 'key' | 'length'>;
+
+export class SaveService {
+    private readonly dbName: string;
+    private readonly storeName: string;
+    private readonly version: number;
+    private readonly keyPrefix: string;
+    private _indexedDB: IDBFactory | null;
+    private _dbPromise: Promise<IDBDatabase | null> | null = null;
+    private readonly _localStorage: LocalStorageLike | null;
+    private readonly _memoryStore: Map<string, SaveRecord> = new Map();
+    private _isFallback: boolean;
+    private readonly _readyPromise: Promise<IDBDatabase | null>;
+
+    constructor(options: SaveServiceOptions = {}) {
         this.dbName = options.dbName || 'UFOAdventures';
         this.storeName = options.storeName || 'saves';
-        this.version = Number.isFinite(options.version) ? options.version : 1;
-        this.keyPrefix = options.keyPrefix || (this.dbName + ':' + this.storeName + ':');
+        this.version = Number.isFinite(options.version) ? Number(options.version) : 1;
+        this.keyPrefix = options.keyPrefix || `${this.dbName}:${this.storeName}:`;
         this._indexedDB = this._resolveIndexedDB();
-        this._dbPromise = null;
         this._localStorage = this._resolveLocalStorage();
-        this._memoryStore = new Map();
         this._isFallback = !this._indexedDB;
-        this._readyPromise = this._indexedDB ? this._openDatabase().catch(error => {
-            console.warn('SaveService: IndexedDB unavailable, falling back to local storage.', error);
-            this._indexedDB = null;
-            this._isFallback = true;
-            return null;
-        }) : Promise.resolve(null);
+        this._readyPromise = this._indexedDB
+            ? this._openDatabase().catch(error => {
+                console.warn('SaveService: IndexedDB unavailable, falling back to local storage.', error);
+                this._indexedDB = null;
+                this._isFallback = true;
+                return null;
+            })
+            : Promise.resolve(null);
     }
 
-    ready() {
+    ready(): Promise<IDBDatabase | null> {
         return this._readyPromise;
     }
 
-    async save(key, value) {
+    async save(key: string, value: unknown): Promise<void> {
         if (!key) {
             return;
         }
-        const record = { key, value, timestamp: Date.now() };
+        const record: SaveRecord = { key, value, timestamp: Date.now() };
         if (this._indexedDB) {
             await this._writeIndexedDB(record);
         } else {
@@ -33,18 +59,18 @@ class SaveService {
         }
     }
 
-    async load(key) {
+    async load<T = unknown>(key: string): Promise<T | null> {
         if (!key) {
             return null;
         }
         if (this._indexedDB) {
             const record = await this._readIndexedDB(key);
-            return record ? record.value : null;
+            return record ? (record.value as T) : null;
         }
-        return this._readFallback(key);
+        return this._readFallback<T>(key);
     }
 
-    async delete(key) {
+    async delete(key: string): Promise<void> {
         if (!key) {
             return;
         }
@@ -55,14 +81,14 @@ class SaveService {
         }
     }
 
-    async list(prefix = null) {
+    async list(prefix: string | null = null): Promise<SaveRecord[]> {
         if (this._indexedDB) {
             return this._listIndexedDB(prefix);
         }
         return this._listFallback(prefix);
     }
 
-    async clear(prefix = null) {
+    async clear(prefix: string | null = null): Promise<void> {
         if (this._indexedDB) {
             await this._clearIndexedDB(prefix);
         } else {
@@ -70,19 +96,25 @@ class SaveService {
         }
     }
 
-    _resolveIndexedDB() {
+    private _resolveIndexedDB(): IDBFactory | null {
         try {
             if (typeof window === 'undefined') {
                 return null;
             }
-            return window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB || null;
+            return (
+                window.indexedDB ||
+                (window as any).mozIndexedDB ||
+                (window as any).webkitIndexedDB ||
+                (window as any).msIndexedDB ||
+                null
+            );
         } catch (error) {
             console.warn('SaveService: IndexedDB not accessible.', error);
             return null;
         }
     }
 
-    _resolveLocalStorage() {
+    private _resolveLocalStorage(): LocalStorageLike | null {
         try {
             if (typeof window !== 'undefined' && window.localStorage) {
                 const key = '__save_service_probe__';
@@ -96,15 +128,15 @@ class SaveService {
         return null;
     }
 
-    async _openDatabase() {
+    private async _openDatabase(): Promise<IDBDatabase | null> {
         if (!this._indexedDB) {
             return null;
         }
         if (this._dbPromise) {
             return this._dbPromise;
         }
-        this._dbPromise = new Promise((resolve, reject) => {
-            const request = this._indexedDB.open(this.dbName, this.version);
+        this._dbPromise = new Promise<IDBDatabase | null>((resolve, reject) => {
+            const request = this._indexedDB!.open(this.dbName, this.version);
             request.onupgradeneeded = () => {
                 const db = request.result;
                 if (!db.objectStoreNames.contains(this.storeName)) {
@@ -128,64 +160,86 @@ class SaveService {
         return this._dbPromise;
     }
 
-    async _withStore(mode, handler) {
+    private async _withStore<T>(
+        mode: IDBTransactionMode,
+        handler: (
+            store: IDBObjectStore,
+            tx: IDBTransaction,
+            resolve: (value?: T | PromiseLike<T>) => void,
+            reject: (reason?: unknown) => void
+        ) => T | void
+    ): Promise<T> {
         const db = await this._openDatabase();
         if (!db) {
             throw new Error('SaveService: IndexedDB unavailable.');
         }
-        return new Promise((resolve, reject) => {
+        return new Promise<T>((resolve, reject) => {
             const tx = db.transaction(this.storeName, mode);
             const store = tx.objectStore(this.storeName);
-            let result;
+            let result: T | undefined;
+            let settled = false;
+            const wrapResolve = (value?: T | PromiseLike<T>) => {
+                settled = true;
+                if (value === undefined) {
+                    resolve(undefined as unknown as T);
+                } else {
+                    resolve(value);
+                }
+            };
+            const wrapReject = (reason?: unknown) => {
+                settled = true;
+                reject(reason);
+            };
             try {
-                result = handler(store, tx, resolve, reject);
+                const handlerResult = handler(store, tx, wrapResolve, wrapReject);
+                if (handlerResult !== undefined) {
+                    result = handlerResult;
+                }
             } catch (error) {
-                reject(error);
+                wrapReject(error);
             }
             tx.oncomplete = () => {
-                resolve(result);
+                if (!settled) {
+                    resolve((result as T) ?? (undefined as unknown as T));
+                }
             };
-            tx.onabort = () => {
-                reject(tx.error || new Error('SaveService: transaction aborted.'));
-            };
-            tx.onerror = () => {
-                reject(tx.error || new Error('SaveService: transaction error.'));
-            };
+            tx.onabort = () => wrapReject(tx.error || new Error('SaveService: transaction aborted.'));
+            tx.onerror = () => wrapReject(tx.error || new Error('SaveService: transaction error.'));
         });
     }
 
-    async _writeIndexedDB(record) {
-        await this._withStore('readwrite', (store) => {
+    private async _writeIndexedDB(record: SaveRecord): Promise<void> {
+        await this._withStore('readwrite', store => {
             store.put(record);
         });
     }
 
-    async _readIndexedDB(key) {
-        return this._withStore('readonly', (store, tx, resolve, reject) => {
+    private async _readIndexedDB(key: string): Promise<SaveRecord | null> {
+        return this._withStore('readonly', (store, _tx, resolve, reject) => {
             const request = store.get(key);
-            request.onsuccess = () => resolve(request.result || null);
+            request.onsuccess = () => resolve((request.result as SaveRecord | null) || null);
             request.onerror = () => reject(request.error || new Error('SaveService: failed to load record.'));
         });
     }
 
-    async _deleteIndexedDB(key) {
-        await this._withStore('readwrite', (store) => {
+    private async _deleteIndexedDB(key: string): Promise<void> {
+        await this._withStore('readwrite', store => {
             store.delete(key);
         });
     }
 
-    async _listIndexedDB(prefix) {
-        const records = [];
-        await this._withStore('readonly', (store, tx, resolve, reject) => {
+    private async _listIndexedDB(prefix: string | null): Promise<SaveRecord[]> {
+        const records: SaveRecord[] = [];
+        await this._withStore('readonly', (store, _tx, resolve, reject) => {
             const request = store.openCursor();
-            request.onsuccess = (event) => {
-                const cursor = event.target.result;
+            request.onsuccess = event => {
+                const cursor = (event.target as IDBRequest<IDBCursorWithValue | null>).result;
                 if (!cursor) {
                     resolve();
                     return;
                 }
-                if (!prefix || cursor.key.startsWith(prefix)) {
-                    records.push(cursor.value);
+                if (!prefix || String(cursor.key).startsWith(prefix)) {
+                    records.push(cursor.value as SaveRecord);
                 }
                 cursor.continue();
             };
@@ -194,22 +248,24 @@ class SaveService {
         return records;
     }
 
-    async _clearIndexedDB(prefix) {
+    private async _clearIndexedDB(prefix: string | null): Promise<void> {
         if (!prefix) {
-            await this._withStore('readwrite', (store) => store.clear());
+            await this._withStore('readwrite', store => {
+                store.clear();
+            });
             return;
         }
-        const keysToDelete = [];
-        await this._withStore('readonly', (store, tx, resolve, reject) => {
-            const request = store.openKeyCursor();
-            request.onsuccess = (event) => {
-                const cursor = event.target.result;
+        const keysToDelete: string[] = [];
+        await this._withStore('readonly', (store, _tx, resolve, reject) => {
+            const request = store.openCursor();
+            request.onsuccess = event => {
+                const cursor = (event.target as IDBRequest<IDBCursorWithValue | null>).result;
                 if (!cursor) {
                     resolve();
                     return;
                 }
-                if (cursor.key && cursor.key.startsWith(prefix)) {
-                    keysToDelete.push(cursor.key);
+                if (String(cursor.key).startsWith(prefix)) {
+                    keysToDelete.push(String(cursor.key));
                 }
                 cursor.continue();
             };
@@ -218,12 +274,12 @@ class SaveService {
         if (!keysToDelete.length) {
             return;
         }
-        await this._withStore('readwrite', (store) => {
-            keysToDelete.forEach((key) => store.delete(key));
+        await this._withStore('readwrite', store => {
+            keysToDelete.forEach(key => store.delete(key));
         });
     }
 
-    _writeFallback(record) {
+    private _writeFallback(record: SaveRecord): void {
         if (this._localStorage) {
             try {
                 this._localStorage.setItem(this.keyPrefix + record.key, JSON.stringify(record));
@@ -235,24 +291,24 @@ class SaveService {
         this._memoryStore.set(record.key, record);
     }
 
-    _readFallback(key) {
+    private _readFallback<T>(key: string): T | null {
         if (this._localStorage) {
             try {
                 const raw = this._localStorage.getItem(this.keyPrefix + key);
                 if (!raw) {
                     return null;
                 }
-                const parsed = JSON.parse(raw);
+                const parsed = JSON.parse(raw) as SaveRecord<T>;
                 return parsed ? parsed.value : null;
             } catch (error) {
                 console.warn('SaveService: failed to read from localStorage, checking memory store.', error);
             }
         }
-        const record = this._memoryStore.get(key);
+        const record = this._memoryStore.get(key) as SaveRecord<T> | undefined;
         return record ? record.value : null;
     }
 
-    _deleteFallback(key) {
+    private _deleteFallback(key: string): void {
         if (this._localStorage) {
             try {
                 this._localStorage.removeItem(this.keyPrefix + key);
@@ -263,11 +319,12 @@ class SaveService {
         this._memoryStore.delete(key);
     }
 
-    _listFallback(prefix) {
-        const records = [];
-        if (this._localStorage) {
-            for (let i = 0; i < this._localStorage.length; i++) {
-                const storageKey = this._localStorage.key(i);
+    private _listFallback(prefix: string | null): SaveRecord[] {
+        const records: SaveRecord[] = [];
+        const storage = this._localStorage;
+        if (storage) {
+            for (let i = 0; i < storage.length; i++) {
+                const storageKey = storage.key(i);
                 if (!storageKey || !storageKey.startsWith(this.keyPrefix)) {
                     continue;
                 }
@@ -276,7 +333,7 @@ class SaveService {
                     continue;
                 }
                 try {
-                    const parsed = JSON.parse(this._localStorage.getItem(storageKey));
+                    const parsed = JSON.parse(storage.getItem(storageKey) || 'null') as SaveRecord | null;
                     if (parsed) {
                         records.push(parsed);
                     }
@@ -301,11 +358,12 @@ class SaveService {
         return records;
     }
 
-    _clearFallback(prefix) {
-        if (this._localStorage) {
-            const keys = [];
-            for (let i = 0; i < this._localStorage.length; i++) {
-                const storageKey = this._localStorage.key(i);
+    private _clearFallback(prefix: string | null): void {
+        const storage = this._localStorage;
+        if (storage) {
+            const keys: string[] = [];
+            for (let i = 0; i < storage.length; i++) {
+                const storageKey = storage.key(i);
                 if (storageKey && storageKey.startsWith(this.keyPrefix)) {
                     const logicalKey = storageKey.slice(this.keyPrefix.length);
                     if (!prefix || logicalKey.startsWith(prefix)) {
@@ -315,7 +373,7 @@ class SaveService {
             }
             keys.forEach(key => {
                 try {
-                    this._localStorage.removeItem(key);
+                    storage.removeItem(key);
                 } catch (error) {
                     console.warn('SaveService: failed to clear localStorage key', key, error);
                 }
@@ -332,5 +390,3 @@ class SaveService {
         }
     }
 }
-
-window.SaveService = SaveService;

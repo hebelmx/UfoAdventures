@@ -1,11 +1,15 @@
-class CreditsScene extends Scene {
-    constructor(services) {
+import { Scene, SceneManager } from '../engine/scene-manager';
+import { ServiceLocator } from '../engine/service-locator';
+
+export class CreditsScene extends Scene {
+    private _overlay: HTMLElement | null = null;
+    private _handler: (() => void) | null = null;
+
+    constructor(services: ServiceLocator) {
         super('credits', services);
-        this._overlay = null;
-        this._handler = null;
     }
 
-    async onEnter() {
+    async onEnter(): Promise<void> {
         this._overlay = document.getElementById('creditsOverlay');
         if (this._overlay) {
             this._overlay.style.display = 'flex';
@@ -17,7 +21,7 @@ class CreditsScene extends Scene {
         }
     }
 
-    async onExit() {
+    async onExit(): Promise<void> {
         if (this._handler) {
             const closeButton = document.getElementById('creditsCloseButton');
             try {
@@ -34,8 +38,8 @@ class CreditsScene extends Scene {
         await super.onExit();
     }
 
-    _close() {
-        const sceneManager = this.services.resolve('sceneManager');
+    private _close(): void {
+        const sceneManager = this.services.resolve<SceneManager>('sceneManager');
         sceneManager.pop();
     }
 }

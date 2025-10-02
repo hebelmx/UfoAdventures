@@ -1,22 +1,31 @@
-class TrainingScene extends Scene {
-    constructor(services) {
+import { Scene, SceneManager } from '../engine/scene-manager';
+import { ServiceLocator } from '../engine/service-locator';
+
+interface UIHandler {
+    element: HTMLElement;
+    handler: () => void;
+}
+
+export class TrainingScene extends Scene {
+    private _overlay: HTMLElement | null = null;
+    private _sceneTransitions: any | null = null;
+    private readonly _handlers: UIHandler[] = [];
+    private readonly _missionId = 'training-sandbox';
+
+    constructor(services: ServiceLocator) {
         super('training', services);
-        this._overlay = null;
-        this._sceneTransitions = null;
-        this._handlers = [];
-        this._missionId = 'training-sandbox';
     }
 
-    async onEnter() {
+    async onEnter(): Promise<void> {
         this._overlay = document.getElementById('trainingOverlay');
         if (this._overlay) {
             this._overlay.style.display = 'flex';
         }
-        this._sceneTransitions = this.services.optional('sceneTransitions');
+        this._sceneTransitions = this.services.optional<any>('sceneTransitions');
         this._bind();
     }
 
-    async onExit() {
+    async onExit(): Promise<void> {
         this._unbind();
         if (this._overlay) {
             this._overlay.style.display = 'none';
@@ -26,7 +35,7 @@ class TrainingScene extends Scene {
         await super.onExit();
     }
 
-    _bind() {
+    private _bind(): void {
         const startButton = document.getElementById('trainingStartButton');
         if (startButton) {
             const handler = () => this._startTraining();
@@ -41,22 +50,23 @@ class TrainingScene extends Scene {
         }
     }
 
-    _unbind() {
+    private _unbind(): void {
         while (this._handlers.length) {
-            const { element, handler } = this._handlers.pop();
+            const { element, handler } = this._handlers.pop()!;
             try {
                 element.removeEventListener('click', handler);
-            } catch (error) {
+            }
+            catch (error) {
                 console.warn('TrainingScene: failed to remove handler', error);
             }
         }
     }
 
-    _startTraining() {
+    private _startTraining(): void {
         if (this._sceneTransitions && typeof this._sceneTransitions.isActive === 'function' && this._sceneTransitions.isActive()) {
             return;
         }
-        const sceneManager = this.services.resolve('sceneManager');
+        const sceneManager = this.services.resolve<SceneManager>('sceneManager');
         sceneManager.replace('gameplay', {
             missionId: this._missionId,
             mode: 'training',
@@ -66,15 +76,11 @@ class TrainingScene extends Scene {
         });
     }
 
-    _close() {
+    private _close(): void {
         if (this._sceneTransitions && typeof this._sceneTransitions.isActive === 'function' && this._sceneTransitions.isActive()) {
             return;
         }
-        const sceneManager = this.services.resolve('sceneManager');
+        const sceneManager = this.services.resolve<SceneManager>('sceneManager');
         sceneManager.pop();
     }
 }
-
-
-
-

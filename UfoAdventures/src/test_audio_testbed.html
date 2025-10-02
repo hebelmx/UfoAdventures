@@ -7,13 +7,13 @@
         body { background: #04060d; color: #e4ebff; font-family: sans-serif; }
         .wrap { max-width: 840px; margin: 2rem auto; padding: 1.5rem 2rem; background: #111a2e; border-radius: 12px; }
         button { margin: 0.5rem 0.75rem 0.5rem 0; padding: 0.6rem 1rem; border: none; border-radius: 6px; font-size: 1rem; cursor: pointer; }
-        .log { margin-top: 1rem; background: rgba(0,0,0,0.35); padding: 1rem; border-radius: 8px; min-height: 120px; max-height: 240px; overflow-y: auto; font-family: Consolas, monospace; font-size: 0.9rem; }
+        .log { margin-top: 1rem; background: rgba(0,0,0,0.35); padding: 1rem; border-radius: 8px; min-height: 120px; max-height: 240px; overflow-y: auto; font-family: Consolas, monospace; font-size: 0.9rem; white-space: pre-wrap; }
     </style>
 </head>
 <body>
     <div class="wrap">
         <h1>Audio Service Testbed</h1>
-        <p>Temporary harness to drive the future `AudioService` API via button clicks before integration into the runtime.</p>
+        <p>Exercise the production <code>AudioService</code> API with placeholder assets.</p>
         <div>
             <button id="play-bgm">Play Background Music</button>
             <button id="stop-bgm">Stop Music</button>
@@ -23,38 +23,47 @@
         <div class="log" id="audio-log"></div>
     </div>
 
+    <script src="js/engine/audio-service.js?v=1"></script>
     <script>
-        class StubAudioService {
-            constructor(logCb) {
-                this.log = logCb;
-                this.bgm = null;
-            }
-            playMusic(track) {
-                this.bgm = track;
-                this.log(`playMusic(${track})`);
-            }
-            stopMusic() {
-                this.log('stopMusic()');
-                this.bgm = null;
-            }
-            playSound(alias, options = {}) {
-                this.log(`playSound(${alias}, ${JSON.stringify(options)})`);
-            }
-        }
+        const SILENCE = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA=';
+        const audioLog = document.getElementById('audio-log');
+        const audioService = new AudioService();
 
-        const logEl = document.getElementById('audio-log');
         function log(message) {
             const stamp = new Date().toLocaleTimeString();
-            logEl.textContent += `[${stamp}] ${message}\n`;
-            logEl.scrollTop = logEl.scrollHeight;
+            audioLog.textContent = `[${stamp}] ${message}\n` + audioLog.textContent;
         }
 
-        const audio = new StubAudioService(log);
+        audioService.configure({
+            music: [
+                { alias: 'music_main_theme', src: SILENCE, loop: true, volume: 0.5 }
+            ],
+            sfx: [
+                { alias: 'sfx_combo_breaker', src: SILENCE, volume: 0.8 },
+                { alias: 'sfx_boss_phase_shift', src: SILENCE, volume: 0.8 }
+            ]
+        }, { music: 'on', sfx: 'on' }).then(() => {
+            log('AudioService configured');
+        }).catch(error => {
+            log('Failed to configure AudioService: ' + error.message);
+        });
 
-        document.getElementById('play-bgm').addEventListener('click', () => audio.playMusic('bgm_space_loop'));
-        document.getElementById('stop-bgm').addEventListener('click', () => audio.stopMusic());
-        document.getElementById('play-ability').addEventListener('click', () => audio.playSound('ability_combo_breaker', { volume: 0.75 }));
-        document.getElementById('play-boss').addEventListener('click', () => audio.playSound('boss_phase_shift', { volume: 1.0 }));
+        document.getElementById('play-bgm').addEventListener('click', () => {
+            audioService.playMusic('music_main_theme', { loop: true });
+            log('playMusic(music_main_theme)');
+        });
+        document.getElementById('stop-bgm').addEventListener('click', () => {
+            audioService.stopMusic();
+            log('stopMusic()');
+        });
+        document.getElementById('play-ability').addEventListener('click', () => {
+            audioService.playSound('sfx_combo_breaker');
+            log('playSound(sfx_combo_breaker)');
+        });
+        document.getElementById('play-boss').addEventListener('click', () => {
+            audioService.playSound('sfx_boss_phase_shift');
+            log('playSound(sfx_boss_phase_shift)');
+        });
     </script>
 </body>
 </html>

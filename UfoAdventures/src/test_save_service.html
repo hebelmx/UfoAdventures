@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Save Service Probe</title>
+    <style>
+        body { background: #060b16; color: #dfe8ff; font-family: Arial, sans-serif; margin: 0; padding: 2rem; }
+        .panel { max-width: 720px; margin: 0 auto; background: #121d33; border-radius: 12px; padding: 1.5rem 2rem; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35); }
+        h1 { margin-top: 0; }
+        label { display: block; margin-bottom: 0.8rem; }
+        input, textarea { width: 100%; padding: 0.6rem; border-radius: 6px; border: 1px solid #213254; background: #0a1324; color: #e4ecff; }
+        textarea { min-height: 120px; resize: vertical; }
+        button { margin-right: 0.75rem; margin-top: 1rem; padding: 0.6rem 1.2rem; border-radius: 6px; border: none; background: #2f86ff; color: #fff; font-weight: 600; cursor: pointer; }
+        button:disabled { background: #1d2740; cursor: not-allowed; }
+        pre { background: #0a1324; padding: 1rem; border-radius: 8px; overflow-x: auto; }
+        .log { font-family: Consolas, monospace; font-size: 0.9rem; margin-top: 1.5rem; white-space: pre-wrap; }
+        .controls { display: flex; flex-wrap: wrap; align-items: center; }
+        .controls button { margin-top: 0; margin-bottom: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <h1>Save Service Probe</h1>
+        <p>Use this page to manually verify the IndexedDB-backed SaveService implementation. Values are serialized as JSON.</p>
+        <label>
+            Key
+            <input id="keyInput" placeholder="e.g. ufoadventures:test" value="ufoadventures:test" />
+        </label>
+        <label>
+            JSON Payload
+            <textarea id="valueInput">{"sample":true}</textarea>
+        </label>
+        <div class="controls">
+            <button id="saveButton">Save</button>
+            <button id="loadButton">Load</button>
+            <button id="deleteButton">Delete</button>
+            <button id="listButton">List All</button>
+            <button id="clearButton">Clear Prefix</button>
+        </div>
+        <pre id="output">Preparing save service…</pre>
+    </div>
+
+    <script src="js/engine/save-service.js?v=1"></script>
+    <script>
+        (async () => {
+            const output = document.getElementById('output');
+            const keyInput = document.getElementById('keyInput');
+            const valueInput = document.getElementById('valueInput');
+            const saveButton = document.getElementById('saveButton');
+            const loadButton = document.getElementById('loadButton');
+            const deleteButton = document.getElementById('deleteButton');
+            const listButton = document.getElementById('listButton');
+            const clearButton = document.getElementById('clearButton');
+
+            const saveService = new SaveService({ dbName: 'UFOAdventures', storeName: 'saves', version: 1 });
+            try {
+                await saveService.ready();
+                log('SaveService ready. IndexedDB fallback? ' + (!saveService._indexedDB));
+            } catch (error) {
+                log('Failed to initialise SaveService. ' + error.message);
+            }
+
+            function log(message, data) {
+                const stamp = new Date().toLocaleTimeString();
+                output.textContent = '[' + stamp + '] ' + message + (data !== undefined ? '\n' + JSON.stringify(data, null, 2) : '');
+            }
+
+            async function withPayload(handler) {
+                saveButton.disabled = true;
+                loadButton.disabled = true;
+                deleteButton.disabled = true;
+                listButton.disabled = true;
+                clearButton.disabled = true;
+                try {
+                    await handler();
+                } catch (error) {
+                    console.error(error);
+                    log('Operation failed: ' + error.message);
+                } finally {
+                    saveButton.disabled = false;
+                    loadButton.disabled = false;
+                    deleteButton.disabled = false;
+                    listButton.disabled = false;
+                    clearButton.disabled = false;
+                }
+            }
+
+            saveButton.addEventListener('click', () => withPayload(async () => {
+                const key = keyInput.value.trim();
+                if (!key) {
+                    log('Provide a key before saving.');
+                    return;
+                }
+                let payload;
+                try {
+                    payload = JSON.parse(valueInput.value || '{}');
+                } catch (error) {
+                    log('Invalid JSON payload: ' + error.message);
+                    return;
+                }
+                await saveService.save(key, payload);
+                log('Saved payload for key ' + key, payload);
+            }));
+
+            loadButton.addEventListener('click', () => withPayload(async () => {
+                const key = keyInput.value.trim();
+                if (!key) {
+                    log('Provide a key to load.');
+                    return;
+                }
+                const value = await saveService.load(key);
+                log(value ? ('Loaded key ' + key) : ('No data stored for ' + key), value);
+            }));
+
+            deleteButton.addEventListener('click', () => withPayload(async () => {
+                const key = keyInput.value.trim();
+                if (!key) {
+                    log('Provide a key to delete.');
+                    return;
+                }
+                await saveService.delete(key);
+                log('Deleted key ' + key);
+            }));
+
+            listButton.addEventListener('click', () => withPayload(async () => {
+                const prefix = keyInput.value.trim();
+                const records = await saveService.list(prefix ? prefix : null);
+                log('Listed ' + records.length + ' record(s)' + (prefix ? (' for prefix ' + prefix) : ''), records);
+            }));
+
+            clearButton.addEventListener('click', () => withPayload(async () => {
+                const prefix = keyInput.value.trim();
+                await saveService.clear(prefix ? prefix : null);
+                log('Cleared ' + (prefix ? ('keys starting with ' + prefix) : 'all keys in store'));
+            }));
+        })();
+    </script>
+</body>
+</html>

@@ -1,16 +1,31 @@
-class SpatialGrid {
-    constructor(options = {}) {
-        this.cellSize = options.cellSize || 120;
-        this._cells = new Map();
-        this._entityToCellKeys = new Map();
+export interface SpatialGridOptions {
+    cellSize?: number;
+}
+
+export interface SpatialBounds {
+    minX: number;
+    minY: number;
+    maxX: number;
+    maxY: number;
+}
+
+export class SpatialGrid<T> {
+    readonly cellSize: number;
+    private readonly _cells: Map<string, Set<T>> = new Map();
+    private readonly _entityToCellKeys: Map<T, string[]> = new Map();
+
+    constructor(options: SpatialGridOptions = {}) {
+        this.cellSize = Number.isFinite(options.cellSize) && options.cellSize !== undefined
+            ? Math.max(1, options.cellSize)
+            : 120;
     }
 
-    clear() {
+    clear(): void {
         this._cells.clear();
         this._entityToCellKeys.clear();
     }
 
-    insert(entity, bounds) {
+    insert(entity: T | null | undefined, bounds: SpatialBounds | null | undefined): void {
         if (!entity || !bounds) {
             return;
         }
@@ -22,16 +37,16 @@ class SpatialGrid {
             if (!this._cells.has(key)) {
                 this._cells.set(key, new Set());
             }
-            this._cells.get(key).add(entity);
+            this._cells.get(key)!.add(entity);
         }
     }
 
-    update(entity, bounds) {
+    update(entity: T | null | undefined, bounds: SpatialBounds | null | undefined): void {
         this.remove(entity);
         this.insert(entity, bounds);
     }
 
-    remove(entity) {
+    remove(entity: T | null | undefined): void {
         if (!entity) {
             return;
         }
@@ -43,31 +58,32 @@ class SpatialGrid {
 
         for (const key of keys) {
             const bucket = this._cells.get(key);
-            if (bucket) {
-                bucket.delete(entity);
-                if (!bucket.size) {
-                    this._cells.delete(key);
-                }
+            if (!bucket) {
+                continue;
+            }
+            bucket.delete(entity);
+            if (bucket.size === 0) {
+                this._cells.delete(key);
             }
         }
 
         this._entityToCellKeys.delete(entity);
     }
 
-    cellCount() {
+    cellCount(): number {
         return this._cells.size;
     }
 
-    entityCount() {
+    entityCount(): number {
         return this._entityToCellKeys.size;
     }
 
-    query(bounds) {
+    query(bounds: SpatialBounds | null | undefined): Set<T> {
         if (!bounds) {
             return new Set();
         }
 
-        const results = new Set();
+        const results = new Set<T>();
         const keys = this._getCellKeys(bounds);
         for (const key of keys) {
             const bucket = this._cells.get(key);
@@ -78,21 +94,20 @@ class SpatialGrid {
         return results;
     }
 
-    _getCellKeys({ minX, minY, maxX, maxY }) {
+    private _getCellKeys(bounds: SpatialBounds): string[] {
+        const { minX, minY, maxX, maxY } = bounds;
         const size = this.cellSize;
         const startX = Math.floor(minX / size);
         const startY = Math.floor(minY / size);
         const endX = Math.floor(maxX / size);
         const endY = Math.floor(maxY / size);
 
-        const keys = [];
-        for (let gx = startX; gx <= endX; gx++) {
-            for (let gy = startY; gy <= endY; gy++) {
-                keys.push(gx + ':' + gy);
+        const keys: string[] = [];
+        for (let gx = startX; gx <= endX; gx += 1) {
+            for (let gy = startY; gy <= endY; gy += 1) {
+                keys.push(`${gx}:${gy}`);
             }
         }
         return keys;
     }
 }
-
-window.SpatialGrid = SpatialGrid;

@@ -1,32 +1,62 @@
-class AudioService {
-    constructor(options = {}) {
+import { ResourceManager } from './resource-manager';
+import { EventBus } from './event-bus';
+import { Boss, Enemy } from './components';
+import { Player } from '../entities/player';
+import type { Entity } from './core';
+import type { CombatDamageEvent, CombatProjectileFiredEvent, CombatTargetType, GameResultsRequest } from './event-payloads';
+
+export interface AudioServiceOptions {
+    resourceManager: ResourceManager;
+}
+
+export interface AudioTrack {
+    type: 'music' | 'sfx';
+    element: HTMLAudioElement | null;
+    baseVolume: number;
+    loop: boolean;
+    meta?: any;
+}
+
+export interface AudioSettings {
+    music: 'on' | 'off';
+    sfx: 'on' | 'off';
+    musicVolume?: number;
+    sfxVolume?: number;
+    masterVolume?: number;
+}
+
+export class AudioService {
+    private readonly _resourceManager: ResourceManager | null;
+    private readonly _tracks: Map<string, AudioTrack> = new Map();
+    private _eventBus: EventBus | null = null;
+    private _subscriptions: (() => void)[] = [];
+    private _masterVolume = 1;
+    private _muted = false;
+    private _settings: AudioSettings = { music: 'on', sfx: 'on' };
+    private _currentMusicAlias: string | null = null;
+    private _currentMusic: HTMLAudioElement | null = null;
+    private readonly _activeSounds: Set<HTMLAudioElement> = new Set();
+    private readonly _supportsAudio: boolean;
+
+    constructor(options: Partial<AudioServiceOptions> = {}) {
         this._resourceManager = options.resourceManager || null;
-        this._tracks = new Map();
-        this._eventBus = null;
-        this._subscriptions = [];
-        this._masterVolume = 1;
-        this._muted = false;
-        this._settings = { music: 'on', sfx: 'on' };
-        this._currentMusicAlias = null;
-        this._currentMusic = null;
-        this._activeSounds = new Set();
         this._supportsAudio = typeof Audio !== 'undefined';
     }
 
-    async configure(config = {}, settings = {}) {
+    async configure(config: { music?: any[], sfx?: any[] } = {}, settings: Partial<AudioSettings> = {}): Promise<void> {
         this._tracks.clear();
         this._currentMusicAlias = null;
         this._currentMusic = null;
         const music = Array.isArray(config.music) ? config.music : [];
         const sfx = Array.isArray(config.sfx) ? config.sfx : [];
-        const loaders = [];
+        const loaders: Promise<void>[] = []; 
         music.forEach(def => loaders.push(this._loadTrack(def, 'music')));
         sfx.forEach(def => loaders.push(this._loadTrack(def, 'sfx')));
         await Promise.all(loaders);
         this.applySettings(settings);
     }
 
-    attach(eventBus) {
+    attach(eventBus: EventBus): void {
         if (!eventBus || this._eventBus === eventBus) {
             return;
         }
@@ -35,32 +65,31 @@ class AudioService {
         this._subscriptions = [
             eventBus.on('ability:combo-breaker', () => this.playSound('sfx_combo_breaker')),
             eventBus.on('ability:teleport', () => this.playSound('sfx_teleport')),
-            eventBus.on('combat:projectile-fired', payload => this._handleProjectileFired(payload)),
-            eventBus.on('combat:damage', payload => this._handleDamage(payload)),
+            eventBus.on<CombatProjectileFiredEvent>('combat:projectile-fired', payload => this._handleProjectileFired(payload)),
+            eventBus.on<CombatDamageEvent>('combat:damage', payload => this._handleDamage(payload)),
             eventBus.on('boss:phase-change', () => this.playSound('sfx_boss_phase_shift')),
             eventBus.on('boss:defeated', () => {
                 this.playSound('sfx_boss_defeated');
             }),
-            eventBus.on('game:request-results', payload => this._handleResults(payload))
+            eventBus.on<GameResultsRequest>('game:request-results', payload => this._handleResults(payload))
         ];
     }
 
-    detach() {
+    detach(): void {
         while (this._subscriptions.length) {
             const off = this._subscriptions.pop();
-            try {
-                if (typeof off === 'function') {
+            if (off) {
+                try {
                     off();
+                } catch (error) {
+                    console.warn('AudioService: failed to detach event listener', error);
                 }
-            } catch (error) {
-                console.warn('AudioService: failed to detach event listener', error);
             }
         }
         this._eventBus = null;
     }
 
-    applySettings(settings = {}) {
-        // Convert from GameApplication settings format
+    applySettings(settings: Partial<AudioSettings> = {}): void {
         if (typeof settings.musicVolume === 'number') {
             this._settings.music = settings.musicVolume > 0 ? 'on' : 'off';
             this._settings.musicVolume = settings.musicVolume;
@@ -75,33 +104,29 @@ class AudioService {
         this._updateMusicChannel();
     }
 
-    setMasterVolume(value) {
+    setMasterVolume(value: number): void {
         const normalized = Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : 1;
         this._masterVolume = normalized;
         this._updateMusicChannel();
         this._activeSounds.forEach(sound => {
-            if (sound && typeof sound.volume === 'number') {
-                sound.volume = this._calculateSfxVolume(sound._baseVolume || 1);
-            }
+            sound.volume = this._calculateSfxVolume((sound as any)._baseVolume || 1);
         });
     }
 
-    mute(flag = true) {
+    mute(flag = true): void {
         this._muted = !!flag;
         this._updateMusicChannel();
         this._activeSounds.forEach(sound => {
-            if (sound && typeof sound.volume === 'number') {
-                sound.volume = this._muted ? 0 : this._calculateSfxVolume(sound._baseVolume || 1);
-            }
+            sound.volume = this._muted ? 0 : this._calculateSfxVolume((sound as any)._baseVolume || 1);
         });
         if (this._muted && this._currentMusic) {
             this._currentMusic.pause();
-        } else if (!this._muted && this._currentMusic && !this._currentMusic.paused) {
+        } else if (!this._muted && this._currentMusic && this._currentMusic.paused) {
             this._currentMusic.play().catch(() => {});
         }
     }
 
-    playMusic(alias, options = {}) {
+    playMusic(alias: string, options: { loop?: boolean } = {}): void {
         if (!alias) {
             return;
         }
@@ -128,7 +153,7 @@ class AudioService {
         }
     }
 
-    stopMusic() {
+    stopMusic(): void {
         if (!this._currentMusic) {
             return;
         }
@@ -142,7 +167,7 @@ class AudioService {
         this._currentMusicAlias = null;
     }
 
-    playSound(alias, options = {}) {
+    playSound(alias: string, options: { loop?: boolean, volume?: number, offset?: number } = {}): void {
         if (this._muted || this._settings.sfx === 'off') {
             return;
         }
@@ -153,36 +178,32 @@ class AudioService {
         }
         const element = track.element ? this._cloneAudioElement(track) : this._createStubAudio();
         element.loop = !!options.loop;
-        element._baseVolume = (options.volume !== undefined ? options.volume : track.baseVolume || 1);
-        element.volume = this._calculateSfxVolume(element._baseVolume);
+        (element as any)._baseVolume = (options.volume !== undefined ? options.volume : track.baseVolume || 1);
+        element.volume = this._calculateSfxVolume((element as any)._baseVolume);
         element.currentTime = options.offset || 0;
         this._activeSounds.add(element);
         const cleanup = () => {
-            element.removeEventListener && element.removeEventListener('ended', cleanup);
-            element.removeEventListener && element.removeEventListener('error', cleanup);
+            element.removeEventListener('ended', cleanup);
+            element.removeEventListener('error', cleanup);
             this._activeSounds.delete(element);
         };
-        if (element.addEventListener) {
-            element.addEventListener('ended', cleanup, { once: true });
-            element.addEventListener('error', cleanup, { once: true });
-        }
-        const playPromise = element.play ? element.play() : null;
+        element.addEventListener('ended', cleanup, { once: true });
+        element.addEventListener('error', cleanup, { once: true });
+        const playPromise = element.play();
         if (playPromise && typeof playPromise.catch === 'function') {
             playPromise.catch(error => {
                 console.warn('AudioService: failed to play sound', alias, error);
                 cleanup();
             });
-        } else if (!playPromise) {
-            cleanup();
         }
     }
 
-    _cloneAudioElement(track) {
+    private _cloneAudioElement(track: AudioTrack): HTMLAudioElement {
         if (!this._supportsAudio || !track.element) {
             return this._createStubAudio();
         }
         const template = track.element;
-        const clone = template.cloneNode(true);
+        const clone = template.cloneNode(true) as HTMLAudioElement;
         if (!clone || !clone.src) {
             const audio = new Audio(template.src);
             audio.crossOrigin = template.crossOrigin || 'anonymous';
@@ -191,7 +212,7 @@ class AudioService {
         return clone;
     }
 
-    async _loadTrack(definition = {}, type) {
+    private async _loadTrack(definition: any = {}, type: 'music' | 'sfx'): Promise<void> {
         const alias = definition.alias;
         const src = definition.src;
         if (!alias || !src) {
@@ -217,7 +238,7 @@ class AudioService {
         }
     }
 
-    _createAudioElement(definition) {
+    private _createAudioElement(definition: any): Promise<HTMLAudioElement> {
         return new Promise((resolve, reject) => {
             try {
                 const audio = new Audio();
@@ -237,9 +258,9 @@ class AudioService {
                     cleanup();
                     resolve(audio);
                 };
-                const onError = (event) => {
+                const onError = (event: Event | string) => {
                     cleanup();
-                    reject(new Error('Audio failed to load: ' + (event?.message || audio.src)));
+                    reject(new Error(`Audio failed to load: ${typeof event === 'string' ? event : audio.src}`));
                 };
                 audio.addEventListener('canplaythrough', onReady, { once: true });
                 audio.addEventListener('error', onError, { once: true });
@@ -250,24 +271,24 @@ class AudioService {
         });
     }
 
-    _createStubAudio() {
+    private _createStubAudio(): HTMLAudioElement {
         return {
             paused: true,
             loop: false,
             volume: 0,
             currentTime: 0,
-            play() { return Promise.resolve(); },
-            pause() {},
-            addEventListener() {},
-            removeEventListener() {}
-        };
+            play: () => Promise.resolve(),
+            pause: () => {},
+            addEventListener: () => {},
+            removeEventListener: () => {}
+        } as any;
     }
 
-    _updateMusicChannel() {
+    private _updateMusicChannel(): void {
         if (!this._currentMusic) {
             return;
         }
-        const track = this._tracks.get(this._currentMusicAlias);
+        const track = this._tracks.get(this._currentMusicAlias!);
         const baseVolume = track ? (track.baseVolume ?? 1) : 1;
         const effectiveVolume = this._shouldPlayMusic() ? baseVolume * this._masterVolume : 0;
         this._currentMusic.volume = effectiveVolume;
@@ -283,18 +304,21 @@ class AudioService {
         }
     }
 
-    _calculateSfxVolume(base) {
+    private _calculateSfxVolume(base: number): number {
         if (this._muted || this._settings.sfx === 'off') {
             return 0;
         }
         return Math.max(0, Math.min(1, base * this._masterVolume));
     }
 
-    _shouldPlayMusic() {
+    private _shouldPlayMusic(): boolean {
         return !this._muted && this._settings.music !== 'off';
     }
 
-    _handleProjectileFired(payload = {}) {
+    private _handleProjectileFired(payload?: CombatProjectileFiredEvent): void {
+        if (!payload) {
+            return;
+        }
         const source = payload.source || (payload.origin && payload.origin.hasComponent && payload.origin.hasComponent(Player) ? 'player' : 'enemy');
         if (source === 'player') {
             this.playSound('sfx_player_fire', { volume: 0.65 });
@@ -303,8 +327,8 @@ class AudioService {
         }
     }
 
-    _handleDamage(payload = {}) {
-        const type = payload.targetType || this._inferTargetType(payload.target);
+    private _handleDamage(payload?: CombatDamageEvent): void {
+        const type = payload?.targetType ?? this._inferTargetType(payload?.target ?? null);
         if (type === 'player') {
             this.playSound('sfx_player_damage');
         } else if (type === 'enemy') {
@@ -312,24 +336,24 @@ class AudioService {
         }
     }
 
-    _inferTargetType(target) {
+    private _inferTargetType(target: Entity | null): CombatTargetType {
         if (!target || typeof target.hasComponent !== 'function') {
             return null;
         }
-        if (typeof Player !== 'undefined' && target.hasComponent(Player)) {
+        if (target.hasComponent(Player)) {
             return 'player';
         }
-        if (typeof Boss !== 'undefined' && target.hasComponent(Boss)) {
+        if (target.hasComponent(Boss)) {
             return 'boss';
         }
-        if (typeof Enemy !== 'undefined' && target.hasComponent(Enemy)) {
+        if (target.hasComponent(Enemy)) {
             return 'enemy';
         }
         return null;
     }
 
-    _handleResults(payload = {}) {
-        const outcome = payload.outcome || payload.reason || 'complete';
+    private _handleResults(payload?: GameResultsRequest): void {
+        const outcome = payload?.outcome || payload?.reason || 'complete';
         if (outcome === 'complete' || outcome === 'victory') {
             this.playSound('sfx_results_success', { volume: 0.8 });
         } else {
@@ -339,5 +363,3 @@ class AudioService {
         this.playMusic('music_results', { loop: false });
     }
 }
-
-window.AudioService = AudioService;

@@ -1,17 +1,30 @@
-class LeaderboardScene extends Scene {
-    constructor(services) {
+import { Scene, SceneManager } from '../engine/scene-manager';
+import { ServiceLocator } from '../engine/service-locator';
+import { MissionService, Mission } from '../engine/mission-service';
+import { ProgressionService } from '../engine/progression-service';
+import { RunSummary } from '../engine/mission-service';
+
+interface UIHandler {
+    element: HTMLElement;
+    handler: (event: Event) => void;
+    type?: string;
+}
+
+export class LeaderboardScene extends Scene {
+    private _overlay: HTMLElement | null = null;
+    private _missionSelect: HTMLSelectElement | null = null;
+    private _tableBody: HTMLTableSectionElement | null = null;
+    private readonly _handlers: UIHandler[] = [];
+    private _missions: Mission[] = [];
+    private _progressionService: ProgressionService | null = null;
+
+    constructor(services: ServiceLocator) {
         super('leaderboard', services);
-        this._overlay = null;
-        this._missionSelect = null;
-        this._tableBody = null;
-        this._handlers = [];
-        this._missions = [];
-        this._progressionService = null;
     }
 
-    async onEnter() {
+    async onEnter(): Promise<void> {
         this._overlay = document.getElementById('leaderboardOverlay');
-        this._missionSelect = document.getElementById('leaderboardMissionSelect');
+        this._missionSelect = document.getElementById('leaderboardMissionSelect') as HTMLSelectElement;
         const table = document.getElementById('leaderboardTable');
         this._tableBody = table ? table.querySelector('tbody') : null;
 
@@ -19,8 +32,8 @@ class LeaderboardScene extends Scene {
             this._overlay.style.display = 'flex';
         }
 
-        const missionService = this.services.resolve('missionService');
-        this._progressionService = this.services.resolve('progressionService');
+        const missionService = this.services.resolve<MissionService>('missionService');
+        this._progressionService = this.services.resolve<ProgressionService>('progressionService');
         this._missions = missionService.getAll();
         this._renderMissionOptions();
         const initialMission = this._missionSelect && this._missionSelect.value ? this._missionSelect.value : (this._missions[0]?.id || null);
@@ -31,7 +44,7 @@ class LeaderboardScene extends Scene {
         this._bind();
     }
 
-    async onExit() {
+    async onExit(): Promise<void> {
         this._unbind();
         if (this._overlay) {
             this._overlay.style.display = 'none';
@@ -44,9 +57,9 @@ class LeaderboardScene extends Scene {
         await super.onExit();
     }
 
-    _bind() {
+    private _bind(): void {
         if (this._missionSelect) {
-            const handler = () => this._renderLeaderboard(this._missionSelect.value);
+            const handler = () => this._renderLeaderboard(this._missionSelect!.value);
             this._missionSelect.addEventListener('change', handler);
             this._handlers.push({ element: this._missionSelect, handler, type: 'change' });
         }
@@ -59,9 +72,9 @@ class LeaderboardScene extends Scene {
         }
     }
 
-    _unbind() {
+    private _unbind(): void {
         while (this._handlers.length) {
-            const { element, handler, type } = this._handlers.pop();
+            const { element, handler, type } = this._handlers.pop()!;
             try {
                 element.removeEventListener(type || 'click', handler);
             } catch (error) {
@@ -70,12 +83,13 @@ class LeaderboardScene extends Scene {
         }
     }
 
-    _renderMissionOptions() {
-        if (!this._missionSelect) {
+    private _renderMissionOptions(): void {
+        const select = this._missionSelect;
+        if (!select) {
             return;
         }
-        const current = this._missionSelect.value;
-        this._missionSelect.innerHTML = '';
+        const current = select.value;
+        select.innerHTML = '';
         this._missions.forEach(mission => {
             const option = document.createElement('option');
             option.value = mission.id;
@@ -83,23 +97,24 @@ class LeaderboardScene extends Scene {
             if (current && current === mission.id) {
                 option.selected = true;
             }
-            this._missionSelect.appendChild(option);
+            select.appendChild(option);
         });
     }
-
-    _renderLeaderboard(missionId) {
-        if (!this._tableBody || !this._progressionService) {
+    private _renderLeaderboard(missionId: string | null): void {
+        const tableBody = this._tableBody;
+        const progression = this._progressionService;
+        if (!tableBody || !progression) {
             return;
         }
-        const runs = this._progressionService.getRuns(missionId, 20);
-        this._tableBody.innerHTML = '';
+        const runs = missionId ? progression.getRuns(missionId, 20) : [];
+        tableBody.innerHTML = '';
         if (!runs.length) {
             const row = document.createElement('tr');
             const cell = document.createElement('td');
             cell.colSpan = 5;
             cell.textContent = 'No recorded runs yet.';
             row.appendChild(cell);
-            this._tableBody.appendChild(row);
+            tableBody.appendChild(row);
             return;
         }
         runs.forEach((run, index) => {
@@ -110,11 +125,11 @@ class LeaderboardScene extends Scene {
             row.appendChild(rankCell);
 
             const callsignCell = document.createElement('td');
-            callsignCell.textContent = run.callsign || 'Anon';
+            callsignCell.textContent = (run as any).callsign || 'Anon';
             row.appendChild(callsignCell);
 
             const scoreCell = document.createElement('td');
-            scoreCell.textContent = run.score != null ? run.score : 0;
+            scoreCell.textContent = String(run.score ?? 0);
             row.appendChild(scoreCell);
 
             const timeCell = document.createElement('td');
@@ -122,29 +137,27 @@ class LeaderboardScene extends Scene {
             row.appendChild(timeCell);
 
             const outcomeCell = document.createElement('td');
-            outcomeCell.textContent = run.outcome || 'â€”';
+            outcomeCell.textContent = run.outcome || '—';
             row.appendChild(outcomeCell);
 
-            this._tableBody.appendChild(row);
+            tableBody.appendChild(row);
         });
     }
-
-    _formatDuration(seconds) {
+    private _formatDuration(seconds?: number): string {
         if (!Number.isFinite(seconds)) {
             return '0s';
         }
-        const total = Math.max(0, seconds);
+        const total = Math.max(0, seconds!);
         const mins = Math.floor(total / 60);
         const secs = Math.round(total % 60);
         if (mins <= 0) {
-            return secs + 's';
+            return `${secs}s`;
         }
-        return mins + 'm ' + secs + 's';
+        return `${mins}m ${secs}s`;
     }
 
-    _close() {
-        const sceneManager = this.services.resolve('sceneManager');
+    private _close(): void {
+        const sceneManager = this.services.resolve<SceneManager>('sceneManager');
         sceneManager.pop();
     }
 }
-

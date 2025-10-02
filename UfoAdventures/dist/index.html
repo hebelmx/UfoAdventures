@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=800, initial-scale=1.0">
+    <title>Adriel''s Game - UFO Adventures</title>
+  <script type="module" crossorigin src="/assets/index-Cc8Sy1Pv.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-Sf43jn-3.css">
+</head>
+<body>
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-card">
+            <h1 class="loading-title">UFO Adventures</h1>
+            <p class="loading-text">Loading assets...</p>
+            <p class="loading-subtext">Calibrating thrusters and aligning mission briefings...</p>
+        </div>
+    </div>
+
+    <div id="sceneTransition" class="scene-transition"></div>
+
+    <div class="game-container">
+        <canvas id="gameCanvas" width="800" height="600" aria-label="Gameplay canvas"></canvas>
+
+        <div class="ui-overlay" aria-hidden="true">
+            <div class="ui-panel hud-status">
+                <div class="hud-row">
+                    <span class="hud-label">Hull Integrity</span>
+                    <div class="health-bar">
+                        <div id="healthFill" class="health-fill" style="width: 100%"></div>
+                    </div>
+                </div>
+                <div class="hud-row">
+                    <span class="hud-label">Combo</span>
+                    <div class="combo-bar">
+                        <div id="comboFill" class="combo-fill" style="width: 0%"></div>
+                    </div>
+                    <span id="comboCount" class="combo-count">0</span>
+                </div>
+                <div class="hud-row">
+                    <span class="hud-label">Lives</span>
+                    <div id="livesDisplay" class="lives-display" aria-label="Remaining lives"></div>
+                </div>
+
+                <div class="ability-panel">
+                    <div class="ability-row">
+                        <span class="ability-label">Combo Breaker</span>
+                        <div class="ability-bar"><div id="abilityCombo" class="ability-fill"></div></div>
+                    </div>
+                    <div class="ability-row">
+                        <span class="ability-label">Teleport</span>
+                        <div class="ability-bar"><div id="abilityTeleport" class="ability-fill"></div></div>
+                    </div>
+                    <div class="ability-row">
+                        <span class="ability-label">Aegis Shield</span>
+                        <div class="ability-bar"><div id="abilityShield" class="ability-fill"></div></div>
+                    </div>
+                    <div class="ability-row">
+                        <span class="ability-label">Stasis Field</span>
+                        <div class="ability-bar"><div id="abilityStasis" class="ability-fill"></div></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="ui-panel hud-log">
+                <h3>Damage Log</h3>
+                <div id="damageLog" class="damage-log" aria-live="polite"></div>
+            </div>
+        </div>
+
+        <div id="bossHealthBar" class="boss-health-bar" aria-hidden="true">
+            <span class="boss-name">Boss Integrity</span>
+            <div id="bossHealthFill" class="boss-health-fill"></div>
+        </div>
+
+        <div id="gameMessages" class="game-messages" aria-live="assertive"></div>
+    </div>
+
+    <aside class="controls-panel" aria-label="Control reference">
+        <h3>Pilot Controls</h3>
+        <ul>
+            <li>Move: WASD / Arrow Keys</li>
+            <li>Primary Fire: Space / Left Click</li>
+            <li>Abilities: J (Combo) · K (Teleport) · L (Shield)</li>
+            <li>Pause: Escape · Inventory: I</li>
+        </ul>
+    </aside>
+
+    <div id="mainMenuOverlay" class="overlay-screen" style="display: none;">
+        <div class="overlay-card overlay-card--wide">
+            <div class="menu-nav">
+                <button id="menuCampaignButton" class="menu-nav__button">Campaign</button>
+                <button id="menuArcadeButton" class="menu-nav__button">Arcade</button>
+                <button id="menuTrainingButton" class="menu-nav__button">Training</button>
+                <button id="menuOptionsButton" class="menu-nav__button">Options</button>
+                <button id="menuCreditsButton" class="menu-nav__button">Credits</button>
+                <button id="menuLeaderboardSceneButton" class="menu-nav__button">Leaderboards</button>
+            </div>
+
+            <h2 id="missionHeader" class="menu-heading">Loading Adriel''s Game - UFO Adventures...</h2>
+            <div class="mission-grid">
+                <div id="missionList" class="mission-list" aria-label="Available missions"></div>
+                <section class="mission-preview" aria-live="polite">
+                    <h3 id="missionTitle" class="mission-title">Select a mission</h3>
+                    <p id="missionDescription" class="mission-description">Highlight a mission on the left to review critical intel.</p>
+                    <ul id="missionObjectiveList" class="mission-objectives"></ul>
+                    <div id="missionRewards" class="mission-rewards"></div>
+                    <div id="missionLeaderboardPreview" class="mission-leaderboard mission-leaderboard--collapsed"></div>
+                    <div class="mission-buttons">
+                        <button id="missionLeaderboardButton" class="overlay-button overlay-button--secondary">View Leaderboard</button>
+                        <button id="missionLaunchButton" class="overlay-button">Launch Mission</button>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <div id="pauseOverlay" class="overlay-screen" style="display: none;">
+        <div class="overlay-card">
+            <h2>Mission Paused</h2>
+            <p>Take a breather, pilot. The invasion can wait a moment.</p>
+            <div class="overlay-actions">
+                <button id="pauseResumeButton" class="overlay-button">Resume</button>
+                <button id="pauseInventoryButton" class="overlay-button overlay-button--secondary">Inventory</button>
+                <button id="pauseEndButton" class="overlay-button overlay-button--secondary">Mission Complete</button>
+                <button id="pauseQuitButton" class="overlay-button overlay-button--danger">Abort to Menu</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="inventoryOverlay" class="overlay-screen" style="display: none;">
+        <div class="overlay-card overlay-card--wide">
+            <h2>Inventory</h2>
+            <ul id="inventoryList" class="inventory-list"></ul>
+            <div class="overlay-actions">
+                <button id="inventoryCloseButton" class="overlay-button">Return</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="optionsOverlay" class="overlay-screen" style="display: none;">
+        <div class="overlay-card overlay-card--wide">
+            <h2>Flight Deck Options</h2>
+            <form id="optionsForm" class="options-form">
+                <div class="form-group">
+                    <label for="optionsMusic">Music</label>
+                    <select id="optionsMusic">
+                        <option value="on">On</option>
+                        <option value="off">Off</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="optionsSfx">Sound Effects</label>
+                    <select id="optionsSfx">
+                        <option value="on">On</option>
+                        <option value="off">Off</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="optionsDifficulty">Difficulty</label>
+                    <select id="optionsDifficulty">
+                        <option value="story">Story</option>
+                        <option value="standard" selected>Standard</option>
+                        <option value="hard">Hard</option>
+                    </select>
+                </div>
+                <div class="overlay-actions">
+                    <button type="submit" class="overlay-button">Save Settings</button>
+                    <button type="button" id="optionsCloseButton" class="overlay-button overlay-button--secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="resultsOverlay" class="overlay-screen" style="display: none;">
+        <div class="overlay-card overlay-card--wide">
+            <h2 id="resultsTitle">Mission Debrief</h2>
+            <p id="resultsSummary" class="results-summary">Awaiting telemetry...</p>
+            <p id="resultsDetail" class="results-detail"></p>
+
+            <section class="results-section">
+                <h3>Objectives</h3>
+                <ul id="resultsObjectives" class="results-objectives"></ul>
+            </section>
+
+            <section class="results-section">
+                <h3>Telemetry</h3>
+                <div id="resultsStats" class="results-stats"></div>
+            </section>
+
+            <form id="resultsSubmissionForm" class="results-form">
+                <input id="resultsCallsign" name="callsign" type="text" placeholder="Callsign" maxlength="16" autocomplete="off" />
+                <button id="resultsSubmitButton" type="submit" class="overlay-button">Save Run</button>
+            </form>
+
+            <table id="resultsLeaderboard" class="results-table" aria-label="Recent runs">
+                <thead>
+                    <tr><th>#</th><th>Callsign</th><th>Score</th><th>Duration</th></tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+
+            <div class="overlay-actions">
+                <button id="resultsMenuButton" class="overlay-button overlay-button--secondary">Return to Menu</button>
+                <button id="resultsRetryButton" class="overlay-button">Retry Mission</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="leaderboardOverlay" class="overlay-screen" style="display: none;">
+        <div class="overlay-card overlay-card--wide">
+            <h2>Global Leaderboards</h2>
+            <label for="leaderboardMissionSelect" class="leaderboard-label">Mission</label>
+            <select id="leaderboardMissionSelect" class="leaderboard-select"></select>
+            <table id="leaderboardTable" class="results-table" aria-label="Leaderboard standings">
+                <thead><tr><th>#</th><th>Callsign</th><th>Score</th><th>Time</th></tr></thead>
+                <tbody></tbody>
+            </table>
+            <div class="overlay-actions">
+                <button id="leaderboardCloseButton" class="overlay-button">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="creditsOverlay" class="overlay-screen" style="display: none;">
+        <div class="overlay-card">
+            <h2>Credits</h2>
+            <p>Concept & Direction: Adriel</p>
+            <p>Code & Systems: UFO Adventures Team</p>
+            <p>Art & FX: Creative League</p>
+            <div class="overlay-actions">
+                <button id="creditsCloseButton" class="overlay-button">Back</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="arcadeOverlay" class="overlay-screen" style="display: none;">
+        <div class="overlay-card overlay-card--wide">
+            <h2>Arcade Gauntlet</h2>
+            <p>Survive endless waves and chase the scoreboard.</p>
+            <div id="arcadeLeaderboardPreview" class="results-table"></div>
+            <div class="overlay-actions">
+                <button id="arcadeStartButton" class="overlay-button">Launch Simulator</button>
+                <button id="arcadeBackButton" class="overlay-button overlay-button--secondary">Back</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="trainingOverlay" class="overlay-screen" style="display: none;">
+        <div class="overlay-card overlay-card--wide">
+            <h2>Training Holodeck</h2>
+            <p>Practice maneuvers without risk. Perfect for rookies and veterans alike.</p>
+            <div class="overlay-actions">
+                <button id="trainingStartButton" class="overlay-button">Begin Session</button>
+                <button id="trainingBackButton" class="overlay-button overlay-button--secondary">Return</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

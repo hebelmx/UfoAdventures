@@ -1,28 +1,54 @@
-class OptionsScene extends Scene {
-    constructor(services) {
+import { Scene, SceneManager } from '../engine/scene-manager';
+import { ServiceLocator } from '../engine/service-locator';
+import { SaveService } from '../engine/save-service';
+import { GameApplication } from '../game-application';
+
+
+import { showMessage } from '../ui';
+
+interface UIHandler {
+    element: HTMLElement;
+    handler: (event: Event) => void;
+    type?: string;
+}
+
+interface Options {
+    music: 'on' | 'off';
+    sfx: 'on' | 'off';
+    difficulty: 'story' | 'standard' | 'hard';
+}
+
+const DEFAULT_OPTIONS: Options = {
+    music: 'on',
+    sfx: 'on',
+    difficulty: 'standard'
+};
+
+export class OptionsScene extends Scene {
+    private _overlay: HTMLElement | null = null;
+    private _saveService: SaveService | null = null;
+    private _gameApplication: GameApplication | null = null;
+    private _form: HTMLFormElement | null = null;
+    private readonly _storageKey = 'ufoadventures:options';
+    private readonly _handlers: UIHandler[] = [];
+
+    constructor(services: ServiceLocator) {
         super('options', services);
-        this._overlay = null;
-        this._saveService = null;
-        this._gameApplication = null;
-        this._form = null;
-        this._audioService = null;
-        this._storageKey = 'ufoadventures:options';
-        this._handlers = [];
     }
 
-    async onEnter() {
+    async onEnter(): Promise<void> {
         this._overlay = document.getElementById('optionsOverlay');
-        this._form = document.getElementById('optionsForm');
+        this._form = document.getElementById('optionsForm') as HTMLFormElement;
         if (this._overlay) {
             this._overlay.style.display = 'flex';
         }
-        this._saveService = this.services.optional ? this.services.optional('saveService') : null;
-        this._gameApplication = window.gameApp || null;
+        this._saveService = this.services.optional<SaveService>('saveService');
+        this._gameApplication = this.services.optional<GameApplication>('gameApplication');
         await this._restoreValues();
         this._bind();
     }
 
-    async onExit() {
+    async onExit(): Promise<void> {
         this._unbind();
         if (this._overlay) {
             this._overlay.style.display = 'none';
@@ -32,19 +58,18 @@ class OptionsScene extends Scene {
         await super.onExit();
         this._saveService = null;
         this._gameApplication = null;
-        this._audioService = null;
     }
 
-    _bind() {
+    private _bind(): void {
         const closeButton = document.getElementById('optionsCloseButton');
         if (closeButton) {
             const handler = () => this._close();
-            closeButton.addEventListener('click', handler);
-            this._handlers.push({ element: closeButton, handler });
+            closeButton.addEventListener('click', handler as EventListener);
+            this._handlers.push({ element: closeButton, handler: handler as EventListener });
         }
 
         if (this._form) {
-            const submitHandler = async (event) => {
+            const submitHandler = async (event: Event) => {
                 event.preventDefault();
                 try {
                     await this._persistValues();
@@ -64,9 +89,9 @@ class OptionsScene extends Scene {
         }
     }
 
-    _unbind() {
+    private _unbind(): void {
         while (this._handlers.length) {
-            const { element, handler, type } = this._handlers.pop();
+            const { element, handler, type } = this._handlers.pop()!;
             try {
                 element.removeEventListener(type || 'click', handler);
             } catch (error) {
@@ -75,11 +100,11 @@ class OptionsScene extends Scene {
         }
     }
 
-    async _restoreValues() {
+    private async _restoreValues(): Promise<void> {
         const stored = await this._load();
-        const music = document.getElementById('optionsMusic');
-        const sfx = document.getElementById('optionsSfx');
-        const difficulty = document.getElementById('optionsDifficulty');
+        const music = document.getElementById('optionsMusic') as HTMLSelectElement;
+        const sfx = document.getElementById('optionsSfx') as HTMLSelectElement;
+        const difficulty = document.getElementById('optionsDifficulty') as HTMLSelectElement;
         if (music && stored.music) {
             music.value = stored.music;
         }
@@ -91,18 +116,16 @@ class OptionsScene extends Scene {
         }
     }
 
-
-    async _persistValues() {
-        const music = document.getElementById('optionsMusic');
-        const sfx = document.getElementById('optionsSfx');
-        const difficulty = document.getElementById('optionsDifficulty');
-        const payload = {
-            music: music ? music.value : 'on',
-            sfx: sfx ? sfx.value : 'on',
-            difficulty: difficulty ? difficulty.value : 'standard'
+    private async _persistValues(): Promise<void> {
+        const music = document.getElementById('optionsMusic') as HTMLSelectElement;
+        const sfx = document.getElementById('optionsSfx') as HTMLSelectElement;
+        const difficulty = document.getElementById('optionsDifficulty') as HTMLSelectElement;
+        const payload: Options = {
+            music: music ? music.value as 'on' | 'off' : 'on',
+            sfx: sfx ? sfx.value as 'on' | 'off' : 'on',
+            difficulty: difficulty ? difficulty.value as 'story' | 'standard' | 'hard' : 'standard'
         };
         
-        // Convert to GameApplication settings format
         const settings = {
             musicVolume: payload.music === 'on' ? 0.8 : 0,
             sfxVolume: payload.sfx === 'on' ? 1.0 : 0,
@@ -110,17 +133,17 @@ class OptionsScene extends Scene {
         };
         
         await this._save(payload);
-        if (this._gameApplication && typeof this._gameApplication.setUserSettings === 'function') {
+        if (this._gameApplication) {
             this._gameApplication.setUserSettings(settings);
         }
     }
 
-    async _load() {
-        if (this._saveService && typeof this._saveService.load === 'function') {
+    private async _load(): Promise<Options> {
+        if (this._saveService) {
             try {
-                const data = await this._saveService.load(this._storageKey);
+                const data = await this._saveService.load<Options>(this._storageKey);
                 if (data && typeof data === 'object') {
-                    return Object.assign({ music: 'on', sfx: 'on', difficulty: 'standard' }, data);
+                    return { ...DEFAULT_OPTIONS, ...data };
                 }
             } catch (error) {
                 console.warn('OptionsScene: failed to load options from SaveService', error);
@@ -129,20 +152,20 @@ class OptionsScene extends Scene {
         try {
             const raw = window.localStorage ? window.localStorage.getItem(this._storageKey) : null;
             if (!raw) {
-                return { music: 'on', sfx: 'on', difficulty: 'standard' };
+                return { ...DEFAULT_OPTIONS };
             }
             const parsed = JSON.parse(raw);
             if (parsed && typeof parsed === 'object') {
-                return Object.assign({ music: 'on', sfx: 'on', difficulty: 'standard' }, parsed);
+                return { ...DEFAULT_OPTIONS, ...parsed };
             }
         } catch (error) {
             console.warn('OptionsScene: failed to load stored options', error);
         }
-        return { music: 'on', sfx: 'on', difficulty: 'standard' };
+        return { ...DEFAULT_OPTIONS };
     }
 
-    async _save(payload) {
-        if (this._saveService && typeof this._saveService.save === 'function') {
+    private async _save(payload: Options): Promise<void> {
+        if (this._saveService) {
             await this._saveService.save(this._storageKey, payload);
             return;
         }
@@ -153,14 +176,11 @@ class OptionsScene extends Scene {
         }
     }
 
-    _close() {
-        const sceneManager = this.services.resolve('sceneManager');
+    private _close(): void {
+        const sceneManager = this.services.resolve<SceneManager>('sceneManager');
         sceneManager.pop();
     }
 }
-
-
-
 
 
 

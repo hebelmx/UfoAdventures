@@ -1,26 +1,37 @@
-let gameApp;
+import { initializeUI } from './ui';
+import { GameApplication } from './game-application';
+
+let gameApp: GameApplication;
 
 window.addEventListener('load', async () => {
     try {
+        initializeUI();
         gameApp = new GameApplication();
         await gameApp.boot();
-        window.gameApp = gameApp;
-        // Expose runtime for Playwright
-        try {
-            const services = gameApp.services;
-            const sceneManager = services.resolve('sceneManager');
-            const gameplayScene = sceneManager ? sceneManager._getScene('gameplay') : null;
-            Object.defineProperty(window, '__gameRuntime', {
-                get() {
-                    return gameplayScene && gameplayScene.runtime ? gameplayScene.runtime : null;
-                }, configurable: true
-            });
-        } catch {}
+        
+        const exposeToWindow = import.meta.env.DEV || (window.__E2E__ === true);
+        if (exposeToWindow) {
+            window.gameApp = gameApp;
+        }
+
     } catch (error) {
         console.error('Failed to boot UFO Adventures', error);
         const loadingText = document.querySelector('.loading-text');
         if (loadingText) {
             loadingText.textContent = 'Failed to start. Check console logs.';
         }
+    }
+});
+
+window.addEventListener('beforeunload', async () => {
+    if (gameApp) {
+        try {
+            await gameApp.shutdown();
+        } catch (error) {
+            console.error('Error during shutdown', error);
+        }
+    }
+    if (window.gameApp === gameApp) {
+        delete window.gameApp;
     }
 });

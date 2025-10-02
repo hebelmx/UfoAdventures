@@ -1,9 +1,9 @@
-class BehaviorTreeService {
-    constructor() {
-        this._trees = new Map();
-    }
+import type { BehaviorTreeNodeDefinition } from './combat-types';
 
-    configure(config = {}) {
+export class BehaviorTreeService {
+    private readonly _trees: Map<string, BehaviorTreeNodeDefinition> = new Map();
+
+    configure(config: Record<string, BehaviorTreeNodeDefinition> = {}): void {
         this._trees.clear();
         const entries = config || {};
         Object.keys(entries).forEach(id => {
@@ -17,7 +17,7 @@ class BehaviorTreeService {
         });
     }
 
-    getTree(id) {
+    getTree(id: string): BehaviorTreeNodeDefinition | null {
         if (!id) {
             return null;
         }
@@ -25,11 +25,11 @@ class BehaviorTreeService {
         return cached ? this._clone(cached) : null;
     }
 
-    has(id) {
+    has(id: string): boolean {
         return this._trees.has(id);
     }
 
-    _clone(value) {
+    private _clone<T>(value: T): T {
         try {
             return JSON.parse(JSON.stringify(value));
         } catch (error) {
@@ -37,5 +37,3 @@ class BehaviorTreeService {
         }
     }
 }
-
-window.BehaviorTreeService = BehaviorTreeService;

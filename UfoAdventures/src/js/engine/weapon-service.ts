@@ -1,36 +1,46 @@
-class WeaponService {
-    constructor() {
-        this._weapons = new Map();
-        this._defaultId = 'player-blaster';
-    }
+export interface ProjectileDefinition {
+    type: string;
+    speed: number;
+    damage: number;
+    [key: string]: any;
+}
 
-    configure(config = {}) {
+export interface WeaponDefinition {
+    cooldown: number;
+    projectiles: ProjectileDefinition[];
+    [key: string]: any;
+}
+
+export class WeaponService {
+    private readonly _weapons: Map<string, WeaponDefinition> = new Map();
+    private _defaultId: string | null = 'player-blaster';
+
+    configure(config: { [key: string]: Partial<WeaponDefinition> } = {}): void {
         this._weapons.clear();
         Object.keys(config || {}).forEach(id => {
-            const definition = Object.assign({}, config[id]);
-            if (!definition.cooldown) {
-                definition.cooldown = 0.5;
-            }
-            if (!Array.isArray(definition.projectiles)) {
-                definition.projectiles = [];
-            }
+            const definition: WeaponDefinition = {
+                cooldown: 0.5,
+                projectiles: [],
+                ...config[id]
+            };
             this._weapons.set(id, definition);
         });
+
         if (config && config['player-blaster']) {
             this._defaultId = 'player-blaster';
         } else if (this._weapons.size) {
-            this._defaultId = this._weapons.keys().next().value;
+            const first = this._weapons.keys().next();
+            this._defaultId = first.done ? null : (typeof first.value === 'string' ? first.value : null);
         } else {
             this._defaultId = null;
         }
     }
 
-    get(id) {
-        if (!id) {
-            return this._defaultId ? this._weapons.get(this._defaultId) : null;
+    get(id?: string): WeaponDefinition | null {
+        const weaponId = id || this._defaultId;
+        if (!weaponId) {
+            return null;
         }
-        return this._weapons.get(id) || (this._defaultId ? this._weapons.get(this._defaultId) : null);
+        return this._weapons.get(weaponId) || null;
     }
 }
-
-window.WeaponService = WeaponService;

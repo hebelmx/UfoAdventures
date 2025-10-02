@@ -1,4 +1,8 @@
-class Player extends Component {
+// @ts-nocheck
+import { Component } from '../engine/core';
+import { Health } from '../engine/components';
+
+export class Player extends Component {
     constructor() {
         super();
         this.combo = 0;

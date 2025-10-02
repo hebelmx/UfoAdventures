@@ -9,6 +9,9 @@
     "doc": "docs"
   },
   "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
     "test": "npm run test:unit",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest watch",
@@ -17,10 +20,16 @@
     "test:all": "npm run test:unit && npm run test:e2e"
   },
   "keywords": [],
+  "dependencies": {
+    "pixi.js": "^8.13.2"
+  },
   "devDependencies": {
     "@playwright/test": "^1.55.1",
+    "@types/node": "^24.6.2",
     "@vitest/coverage-v8": "^1.4.0",
     "http-server": "^14.1.1",
+    "typescript": "^5.9.2",
+    "vite": "^7.1.7",
     "vitest": "^1.4.0"
   }
 }

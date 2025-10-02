@@ -1,28 +1,39 @@
-class ArcadeScene extends Scene {
-    constructor(services) {
+import { Scene, SceneManager } from '../engine/scene-manager';
+import { ServiceLocator } from '../engine/service-locator';
+import { ProgressionService } from '../engine/progression-service';
+import { RunSummary } from '../engine/mission-service';
+
+interface UIHandler {
+    element: HTMLElement;
+    handler: () => void;
+}
+
+export class ArcadeScene extends Scene {
+    private _overlay: HTMLElement | null = null;
+    private readonly _handlers: UIHandler[] = [];
+    private readonly _missionId = 'gauntlet-proving';
+    private _progressionService: ProgressionService | null = null;
+    private _sceneTransitions: any | null = null;
+
+    constructor(services: ServiceLocator) {
         super('arcade', services);
-        this._overlay = null;
-        this._handlers = [];
-        this._missionId = 'gauntlet-proving';
-        this._progressionService = null;
-        this._sceneTransitions = null;
     }
 
-    async onEnter() {
+    async onEnter(): Promise<void> {
         this._overlay = document.getElementById('arcadeOverlay');
         if (this._overlay) {
             this._overlay.style.display = 'flex';
         }
-        this._progressionService = this.services.resolve('progressionService');
-        if (this._progressionService && typeof this._progressionService.ready === 'function') {
+        this._progressionService = this.services.resolve<ProgressionService>('progressionService');
+        if (this._progressionService) {
             await this._progressionService.ready();
         }
-        this._sceneTransitions = this.services.optional('sceneTransitions');
+        this._sceneTransitions = this.services.optional<any>('sceneTransitions');
         this._renderPreview();
         this._bind();
     }
 
-    async onExit() {
+    async onExit(): Promise<void> {
         this._unbind();
         if (this._overlay) {
             this._overlay.style.display = 'none';
@@ -33,7 +44,7 @@ class ArcadeScene extends Scene {
         await super.onExit();
     }
 
-    _bind() {
+    private _bind(): void {
         const startButton = document.getElementById('arcadeStartButton');
         if (startButton) {
             const handler = () => this._startArcade();
@@ -49,9 +60,9 @@ class ArcadeScene extends Scene {
         }
     }
 
-    _unbind() {
+    private _unbind(): void {
         while (this._handlers.length) {
-            const { element, handler } = this._handlers.pop();
+            const { element, handler } = this._handlers.pop()!;
             try {
                 element.removeEventListener('click', handler);
             } catch (error) {
@@ -60,7 +71,7 @@ class ArcadeScene extends Scene {
         }
     }
 
-    _renderPreview() {
+    private _renderPreview(): void {
         const container = document.getElementById('arcadeLeaderboardPreview');
         if (!container || !this._progressionService) {
             return;
@@ -83,10 +94,10 @@ class ArcadeScene extends Scene {
             rankCell.textContent = String(index + 1);
             row.appendChild(rankCell);
             const callCell = document.createElement('td');
-            callCell.textContent = run.callsign || 'Anon';
+            callCell.textContent = (run as any).callsign || 'Anon';
             row.appendChild(callCell);
             const scoreCell = document.createElement('td');
-            scoreCell.textContent = run.score != null ? run.score : 0;
+            scoreCell.textContent = String(run.score ?? 0);
             row.appendChild(scoreCell);
             const timeCell = document.createElement('td');
             timeCell.textContent = this._formatDuration(run.durationSeconds);
@@ -97,11 +108,11 @@ class ArcadeScene extends Scene {
         container.appendChild(table);
     }
 
-    _startArcade() {
+    private _startArcade(): void {
         if (this._sceneTransitions && typeof this._sceneTransitions.isActive === 'function' && this._sceneTransitions.isActive()) {
             return;
         }
-        const sceneManager = this.services.resolve('sceneManager');
+        const sceneManager = this.services.resolve<SceneManager>('sceneManager');
         sceneManager.replace('gameplay', {
             missionId: this._missionId,
             mode: 'arcade',
@@ -111,27 +122,24 @@ class ArcadeScene extends Scene {
         });
     }
 
-    _close() {
+    private _close(): void {
         if (this._sceneTransitions && typeof this._sceneTransitions.isActive === 'function' && this._sceneTransitions.isActive()) {
             return;
         }
-        const sceneManager = this.services.resolve('sceneManager');
+        const sceneManager = this.services.resolve<SceneManager>('sceneManager');
         sceneManager.pop();
     }
 
-    _formatDuration(seconds) {
+    private _formatDuration(seconds?: number): string {
         if (!Number.isFinite(seconds)) {
             return '0s';
         }
-        const total = Math.max(0, seconds);
+        const total = Math.max(0, seconds!);
         const mins = Math.floor(total / 60);
         const secs = Math.round(total % 60);
         if (mins <= 0) {
-            return secs + 's';
+            return `${secs}s`;
         }
-        return mins + 'm ' + secs + 's';
+        return `${mins}m ${secs}s`;
     }
 }
-
-
-

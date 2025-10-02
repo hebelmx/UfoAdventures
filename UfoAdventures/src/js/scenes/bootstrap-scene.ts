@@ -1,9 +1,12 @@
-class BootstrapScene extends Scene {
-    constructor(services) {
+import { Scene, SceneManager } from '../engine/scene-manager';
+import { ServiceLocator } from '../engine/service-locator';
+
+export class BootstrapScene extends Scene {
+    constructor(services: ServiceLocator) {
         super('bootstrap', services);
     }
 
-    async onEnter() {
+    async onEnter(): Promise<void> {
         const loadingScreen = document.getElementById('loadingScreen');
         if (loadingScreen) {
             loadingScreen.style.display = 'flex';
@@ -14,9 +17,9 @@ class BootstrapScene extends Scene {
             loadingText.textContent = 'Preparing systems...';
         }
 
-        const sceneManager = this.services.resolve('sceneManager');
+        const sceneManager = this.services.resolve<SceneManager>('sceneManager');
         window.requestAnimationFrame(() => {
-            sceneManager.change('asset-loading').catch((error) => {
+            sceneManager.change('asset-loading').catch((error: any) => {
                 console.error('Failed to advance from bootstrap scene', error);
             });
         });

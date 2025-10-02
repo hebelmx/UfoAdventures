@@ -1,10 +1,90 @@
-class MissionService {
-    constructor() {
-        this._missions = new Map();
-        this._defaultId = null;
-    }
+export interface MissionObjective {
+    id?: string;
+    type: 'eliminate' | 'defeatBoss' | 'timeUnder' | 'survive' | 'damageUnder';
+    count?: number;
+    seconds?: number;
+    amount?: number;
+    label?: string;
+}
 
-    configure(config = {}) {
+export interface MissionScoring {
+    baseScore?: number;
+    enemyKill?: number;
+    bossBonus?: number;
+    hitPenalty?: number;
+    timeBonus?: {
+        threshold: number;
+        perSecond: number;
+    };
+    objectiveBonus?: number;
+}
+
+export interface Mission {
+    id: string;
+    name: string;
+    mode: string;
+    description?: string;
+    objectives: MissionObjective[];
+    scoring: MissionScoring;
+    rewards: Record<string, unknown>;
+}
+
+export interface MissionConfig {
+    list: Mission[];
+    default?: string;
+}
+
+export interface RunTelemetry {
+    startTime?: number;
+    endTime?: number;
+    durationSeconds?: number;
+    enemyKills?: number;
+    bossDefeated?: boolean;
+    damageTaken?: number;
+    abilitiesUsed?: { [key: string]: number };
+    livesLost?: number;
+    playerDefeated?: boolean;
+    flags?: { [key: string]: any };
+}
+
+export interface ObjectiveResult {
+    id: string;
+    label: string;
+    completed: boolean;
+    required?: number;
+    progress?: number;
+    metric?: number;
+    target?: number;
+}
+
+export interface RunSummary {
+    id: string;
+    missionId: string;
+    missionName: string;
+    mode: string;
+    outcome: string;
+    reason: string | null;
+    callsign?: string;
+    score: number;
+    startTime: number | null;
+    endTime: number | null;
+    durationSeconds: number;
+    enemyKills: number;
+    bossDefeated: boolean;
+    damageTaken: number;
+    abilitiesUsed?: { [key: string]: number };
+    livesLost?: number;
+    objectiveResults: ObjectiveResult[];
+    rewards: Record<string, unknown>;
+    flags: Record<string, unknown>;
+    timestamp: number;
+}
+
+export class MissionService {
+    private readonly _missions: Map<string, Mission> = new Map();
+    private _defaultId: string | null = null;
+
+    configure(config: Partial<MissionConfig> = {}): void {
         const list = Array.isArray(config.list) ? config.list : [];
         this._missions.clear();
 
@@ -12,10 +92,15 @@ class MissionService {
             if (!entry || !entry.id) {
                 return;
             }
-            const normalized = Object.assign({}, entry);
-            normalized.objectives = Array.isArray(entry.objectives) ? entry.objectives.map(obj => Object.assign({}, obj)) : [];
-            normalized.scoring = Object.assign({}, entry.scoring);
-            normalized.rewards = Object.assign({}, entry.rewards);
+            const normalized: Mission = {
+                id: entry.id,
+                name: entry.name,
+                mode: entry.mode,
+                description: entry.description,
+                objectives: Array.isArray(entry.objectives) ? entry.objectives.map(obj => ({ ...obj })) : [],
+                scoring: { ...entry.scoring },
+                rewards: { ...(entry.rewards || {}) }
+            };
             this._missions.set(entry.id, normalized);
         });
 
@@ -30,19 +115,19 @@ class MissionService {
         this._defaultId = configuredDefault || list[0].id;
     }
 
-    getAll() {
+    getAll(): Mission[] {
         return Array.from(this._missions.values());
     }
 
-    getById(id) {
+    getById(id: string): Mission | null {
         return id ? this._missions.get(id) || null : null;
     }
 
-    getDefault() {
+    getDefault(): Mission | null {
         return this._defaultId ? this._missions.get(this._defaultId) || null : null;
     }
 
-    resolveMission(params = {}) {
+    resolveMission(params: { missionId?: string, mode?: string } = {}): Mission | null {
         const explicit = params.missionId ? this.getById(params.missionId) : null;
         if (explicit) {
             return explicit;
@@ -58,7 +143,7 @@ class MissionService {
         return this.getDefault();
     }
 
-    evaluateObjectives(mission, telemetry = {}) {
+    evaluateObjectives(mission: Mission, telemetry: RunTelemetry = {}): ObjectiveResult[] {
         if (!mission) {
             return [];
         }
@@ -67,43 +152,43 @@ class MissionService {
         return objectives.map(objective => this._evaluateObjective(objective, telemetry));
     }
 
-    calculateScore(mission, telemetry = {}, objectiveResults = null) {
+    calculateScore(mission: Mission, telemetry: RunTelemetry = {}, objectiveResults: ObjectiveResult[] | null = null): number {
         if (!mission) {
             return 0;
         }
 
         const scoring = mission.scoring || {};
-        let score = Number.isFinite(scoring.baseScore) ? scoring.baseScore : 0;
+        let score = scoring.baseScore || 0;
 
-        if (Number.isFinite(scoring.enemyKill) && Number.isFinite(telemetry.enemyKills)) {
+        if (scoring.enemyKill && telemetry.enemyKills) {
             score += scoring.enemyKill * telemetry.enemyKills;
         }
 
-        if (Number.isFinite(scoring.bossBonus) && telemetry.bossDefeated) {
+        if (scoring.bossBonus && telemetry.bossDefeated) {
             score += scoring.bossBonus;
         }
 
-        const hitPenalty = Number.isFinite(scoring.hitPenalty) ? scoring.hitPenalty : 0;
-        if (hitPenalty && Number.isFinite(telemetry.damageTaken)) {
+        const hitPenalty = scoring.hitPenalty || 0;
+        if (hitPenalty && telemetry.damageTaken) {
             score -= hitPenalty * Math.round(telemetry.damageTaken / 10);
         }
 
-        const timeBonus = scoring.timeBonus || null;
-        if (timeBonus && Number.isFinite(timeBonus.threshold) && Number.isFinite(timeBonus.perSecond) && Number.isFinite(telemetry.durationSeconds)) {
+        const timeBonus = scoring.timeBonus;
+        if (timeBonus && timeBonus.threshold && timeBonus.perSecond && telemetry.durationSeconds) {
             const delta = Math.max(0, timeBonus.threshold - telemetry.durationSeconds);
             score += delta * timeBonus.perSecond;
         }
 
-        const objectives = Array.isArray(objectiveResults) ? objectiveResults : this.evaluateObjectives(mission, telemetry);
+        const objectives = objectiveResults || this.evaluateObjectives(mission, telemetry);
         const fulfilled = objectives.filter(obj => obj.completed);
-        if (fulfilled.length && Number.isFinite(scoring.objectiveBonus)) {
+        if (fulfilled.length && scoring.objectiveBonus) {
             score += fulfilled.length * scoring.objectiveBonus;
         }
 
         return Math.max(0, Math.round(score));
     }
 
-    buildRunSummary({ mission, telemetry = {}, outcome = 'complete', reason = null, timestamp = Date.now() }) {
+    buildRunSummary({ mission, telemetry = {}, outcome = 'complete', reason = null, timestamp = Date.now() }: { mission: Mission, telemetry: RunTelemetry, outcome?: string, reason?: string | null, timestamp?: number }): RunSummary | null {
         if (!mission) {
             return null;
         }
@@ -112,7 +197,7 @@ class MissionService {
         const score = this.calculateScore(mission, telemetry, objectiveResults);
 
         return {
-            id: mission.id + ':' + timestamp,
+            id: `${mission.id}:${timestamp}`,
             missionId: mission.id,
             missionName: mission.name,
             mode: mission.mode,
@@ -134,17 +219,17 @@ class MissionService {
         };
     }
 
-    _evaluateObjective(objective = {}, telemetry = {}) {
-        const base = {
-            id: objective.id || objective.type || 'objective',
+    private _evaluateObjective(objective: MissionObjective, telemetry: RunTelemetry): ObjectiveResult {
+        const base: ObjectiveResult = {
+            id: objective.id || objective.type,
             label: objective.label || this._labelForObjective(objective),
             completed: false
         };
 
         switch (objective.type) {
             case 'eliminate': {
-                const required = Number.isFinite(objective.count) ? objective.count : 0;
-                const progress = Number.isFinite(telemetry.enemyKills) ? telemetry.enemyKills : 0;
+                const required = objective.count || 0;
+                const progress = telemetry.enemyKills || 0;
                 base.required = required;
                 base.progress = progress;
                 base.completed = progress >= required && required > 0;
@@ -155,24 +240,24 @@ class MissionService {
                 break;
             }
             case 'timeUnder': {
-                const target = Number.isFinite(objective.seconds) ? objective.seconds : 0;
-                const duration = Number.isFinite(telemetry.durationSeconds) ? telemetry.durationSeconds : Infinity;
+                const target = objective.seconds || 0;
+                const duration = telemetry.durationSeconds || Infinity;
                 base.metric = duration;
                 base.target = target;
                 base.completed = duration <= target && duration > 0;
                 break;
             }
             case 'survive': {
-                const target = Number.isFinite(objective.seconds) ? objective.seconds : 0;
-                const duration = Number.isFinite(telemetry.durationSeconds) ? telemetry.durationSeconds : 0;
+                const target = objective.seconds || 0;
+                const duration = telemetry.durationSeconds || 0;
                 base.metric = duration;
                 base.target = target;
                 base.completed = duration >= target && !telemetry.playerDefeated;
                 break;
             }
             case 'damageUnder': {
-                const amount = Number.isFinite(objective.amount) ? objective.amount : 0;
-                const damage = Number.isFinite(telemetry.damageTaken) ? telemetry.damageTaken : Infinity;
+                const amount = objective.amount || 0;
+                const damage = telemetry.damageTaken || Infinity;
                 base.metric = damage;
                 base.target = amount;
                 base.completed = damage <= amount;
@@ -187,7 +272,7 @@ class MissionService {
         return base;
     }
 
-    _labelForObjective(objective = {}) {
+    private _labelForObjective(objective: MissionObjective): string {
         switch (objective.type) {
             case 'eliminate':
                 return 'Eliminate hostiles';
@@ -204,6 +289,3 @@ class MissionService {
         }
     }
 }
-
-window.MissionService = MissionService;
-

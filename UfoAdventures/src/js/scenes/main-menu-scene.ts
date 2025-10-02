@@ -1,59 +1,463 @@
-class MainMenuScene extends Scene {
-    constructor(services) {
+import { Scene, SceneManager } from '../engine/scene-manager';
+import { ServiceLocator } from '../engine/service-locator';
+import { MissionService, Mission, MissionObjective } from '../engine/mission-service';
+import { ProgressionService } from '../engine/progression-service';
+import { AudioService } from '../engine/audio-service';
+import { RunSummary } from '../engine/mission-service';
+import type { SceneTransitions } from '../ui/scene-transitions';
+
+interface MainMenuElements {
+    header: HTMLElement | null;
+    list: HTMLElement | null;
+    title: HTMLElement | null;
+    description: HTMLElement | null;
+    objectives: HTMLElement | null;
+    rewards: HTMLElement | null;
+    leaderboard: HTMLElement | null;
+    launchButton: HTMLButtonElement | null;
+    leaderboardButton: HTMLButtonElement | null;
+    campaignButton: HTMLButtonElement | null;
+    arcadeButton: HTMLButtonElement | null;
+    trainingButton: HTMLButtonElement | null;
+    optionsButton: HTMLButtonElement | null;
+    creditsButton: HTMLButtonElement | null;
+    leaderboardSceneButton: HTMLButtonElement | null;
+}
+
+interface UIHandler {
+    element: HTMLElement;
+    handler: () => void;
+}
+
+const createEmptyMainMenuElements = (): MainMenuElements => ({
+    header: null,
+    list: null,
+    title: null,
+    description: null,
+    objectives: null,
+    rewards: null,
+    leaderboard: null,
+    launchButton: null,
+    leaderboardButton: null,
+    campaignButton: null,
+    arcadeButton: null,
+    trainingButton: null,
+    optionsButton: null,
+    creditsButton: null,
+    leaderboardSceneButton: null
+});
+
+export class MainMenuScene extends Scene {
+    private _missions: Mission[] = [];
+    private _allMissions: Mission[] = [];
+    private _selectedMissionId: string | null = null;
+    private _elements: MainMenuElements = createEmptyMainMenuElements();
+    private readonly _cardHandlers: UIHandler[] = [];
+    private readonly _uiHandlers: UIHandler[] = [];
+    private _missionService: MissionService | null = null;
+    private _progressionService: ProgressionService | null = null;
+    private _sceneTransitions: SceneTransitions | null = null;
+    private _overlay: HTMLElement | null = null;
+
+    constructor(services: ServiceLocator) {
         super('main-menu', services);
-        this._buttonHandlers = [];
+    }
+    private _ensureOverlay(): HTMLElement | null {
+        if (!this._overlay && typeof document !== 'undefined') {
+            this._overlay = document.getElementById('mainMenuOverlay');
+        }
+        return this._overlay;
     }
 
-    async onEnter() {
+    private _setOverlayVisible(visible: boolean): void {
+        const overlay = this._ensureOverlay();
+        if (overlay) {
+            overlay.style.display = visible ? 'flex' : 'none';
+        }
+    }
+
+
+    async onEnter(): Promise<void> {
         const loadingScreen = document.getElementById('loadingScreen');
         if (loadingScreen) {
-            loadingScreen.style.display = 'flex';
+            loadingScreen.style.display = 'none';
         }
 
-        const loadingText = document.querySelector('.loading-text');
-        if (loadingText) {
-            loadingText.textContent = 'Select a mission to begin';
+        this._setOverlayVisible(true);
+
+        const audioService = this.services.optional<AudioService>('audioService');
+        if (audioService) {
+            audioService.playMusic('music_main_theme', { loop: true });
         }
 
-        const sceneManager = this.services.resolve('sceneManager');
-        const buttons = [
-            { id: 'startGameButton', mode: 'adventure' },
-            { id: 'startBossFightButton', mode: 'boss' },
-            { id: 'startEnemyDemoButton', mode: 'enemyDemo' },
-        ];
 
-        buttons.forEach(({ id, mode }) => {
-            const element = document.getElementById(id);
-            if (!element) {
-                console.warn('MainMenuScene: button not found', id);
-                return;
-            }
 
-            element.disabled = false;
-            const handler = () => {
-                element.disabled = true;
-                sceneManager.change('gameplay', { mode }).catch((error) => {
-                    console.error('Failed to start gameplay mode', mode, error);
-                    element.disabled = false;
-                });
-            };
+        this._elements = {
+            header: document.getElementById('missionHeader'),
+            list: document.getElementById('missionList'),
+            title: document.getElementById('missionTitle'),
+            description: document.getElementById('missionDescription'),
+            objectives: document.getElementById('missionObjectiveList'),
+            rewards: document.getElementById('missionRewards'),
+            leaderboard: document.getElementById('missionLeaderboardPreview'),
+            launchButton: document.getElementById('missionLaunchButton') as HTMLButtonElement,
+            leaderboardButton: document.getElementById('missionLeaderboardButton') as HTMLButtonElement,
+            campaignButton: document.getElementById('menuCampaignButton') as HTMLButtonElement,
+            arcadeButton: document.getElementById('menuArcadeButton') as HTMLButtonElement,
+            trainingButton: document.getElementById('menuTrainingButton') as HTMLButtonElement,
+            optionsButton: document.getElementById('menuOptionsButton') as HTMLButtonElement,
+            creditsButton: document.getElementById('menuCreditsButton') as HTMLButtonElement,
+            leaderboardSceneButton: document.getElementById('menuLeaderboardSceneButton') as HTMLButtonElement
+        } as MainMenuElements;
 
-            element.addEventListener('click', handler);
-            this._buttonHandlers.push({ element, handler });
-        });
+
+
+        if (this._elements.header) {
+            this._elements.header.textContent = 'Select a mission to begin';
+        }
+
+        this._missionService = this.services.resolve<MissionService>('missionService');
+        this._progressionService = this.services.resolve<ProgressionService>('progressionService');
+        this._sceneTransitions = this.services.optional<SceneTransitions>('sceneTransitions');
+
+        this._allMissions = this._missionService.getAll();
+        this._missions = this._allMissions.filter(mission => mission.mode === 'adventure' || mission.mode === 'boss');
+        if (!this._missions.length) {
+            this._missions = [{
+                id: 'adventure',
+                name: 'Free Flight',
+                mode: 'adventure',
+                description: 'Take to the skies in free play mode.',
+                objectives: [],
+                scoring: {},
+                rewards: {}
+            } as Mission];
+        }
+
+        const defaultMission = this._missionService.getDefault() || this._missions[0] || null;
+        this._selectedMissionId = defaultMission ? defaultMission.id : null;
+
+        this._renderMissionList();
+        this._renderPreview();
+        this._bindPrimaryButtons();
     }
 
-    async onExit() {
-        this._buttonHandlers.forEach(({ element, handler }) => {
-            element.removeEventListener('click', handler);
-        });
-        this._buttonHandlers = [];
+    async onExit(): Promise<void> {
+        this._teardownMissionCards();
+        this._teardownUIHandlers();
+        this._missions = [];
+        this._allMissions = [];
+        this._selectedMissionId = null;
 
-        const loadingText = document.querySelector('.loading-text');
-        if (loadingText) {
-            loadingText.textContent = 'Loading...';
+        if (this._elements.header) {
+            this._elements.header.textContent = 'Preparing mission data...';
         }
+
+
+        this._setOverlayVisible(false);
+        this._overlay = null;
+
+        this._elements = createEmptyMainMenuElements();
+        this._missionService = null;
+        this._progressionService = null;
+        this._sceneTransitions = null;
 
         await super.onExit();
     }
+
+    private _bindPrimaryButtons(): void {
+        const sceneManager = this.services.resolve<SceneManager>('sceneManager');
+
+        if (this._elements.launchButton) {
+            const handler = () => {
+                const mission = this._getSelectedMission();
+                if (!mission) {
+                    return;
+                }
+                this._elements.launchButton!.disabled = true;
+                sceneManager.change('gameplay', { mode: mission.mode, missionId: mission.id }).catch((error) => {
+                    console.error('Failed to start mission', mission.id, error);
+                    this._elements.launchButton!.disabled = false;
+                });
+            };
+            this._elements.launchButton.disabled = false;
+            this._elements.launchButton.addEventListener('click', handler);
+            this._uiHandlers.push({ element: this._elements.launchButton, handler });
+        }
+
+        if (this._elements.leaderboardButton) {
+            const handler = () => {
+                if (!this._elements.leaderboard) {
+                    return;
+                }
+                const isCollapsed = this._elements.leaderboard.classList.toggle('mission-leaderboard--collapsed');
+                const mission = this._getSelectedMission();
+                this._renderMissionLeaderboard(mission, isCollapsed);
+                this._elements.leaderboardButton!.textContent = isCollapsed ? 'View Leaderboard' : 'Hide Leaderboard';
+            };
+            this._elements.leaderboardButton.addEventListener('click', handler);
+            this._uiHandlers.push({ element: this._elements.leaderboardButton, handler });
+        }
+
+        this._bindNavigation();
+    }
+
+    private _teardownUIHandlers(): void {
+        while (this._uiHandlers.length) {
+            const { element, handler } = this._uiHandlers.pop()!;
+            try {
+                element.removeEventListener('click', handler);
+            } catch (error) {
+                console.warn('MainMenuScene: failed to remove handler', error);
+            }
+        }
+    }
+
+    private _teardownMissionCards(): void {
+        while (this._cardHandlers.length) {
+            const { element, handler } = this._cardHandlers.pop()!;
+            try {
+                element.removeEventListener('click', handler);
+            } catch (error) {
+                console.warn('MainMenuScene: failed to remove mission handler', error);
+            }
+        }
+    }
+
+    private _renderMissionList(): void {
+        const listEl = this._elements.list;
+        if (!listEl) {
+            return;
+        }
+
+        listEl.innerHTML = '';
+        this._teardownMissionCards();
+
+        if (!this._missions.length) {
+            const empty = document.createElement('div');
+            empty.className = 'mission-card';
+            empty.textContent = 'No missions available.';
+            listEl.appendChild(empty);
+            return;
+        }
+
+        this._missions.forEach(mission => {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'mission-card' + (mission.id === this._selectedMissionId ? ' mission-card--active' : '');
+
+            const name = document.createElement('h4');
+            name.textContent = mission.name;
+            const description = document.createElement('p');
+            description.textContent = (mission as any).description || 'No briefing available yet.';
+
+            button.appendChild(name);
+            button.appendChild(description);
+
+            const handler = () => {
+                this._selectedMissionId = mission.id;
+                this._renderMissionList();
+                this._renderPreview();
+            };
+
+            button.addEventListener('click', handler);
+            listEl.appendChild(button);
+            this._cardHandlers.push({ element: button, handler });
+        });
+    }
+
+    private _bindNavigation(): void {
+        this._bindNavButton(this._elements.campaignButton, () => this._showCampaign());
+        this._bindNavButton(this._elements.arcadeButton, () => this._openScene('arcade'));
+        this._bindNavButton(this._elements.trainingButton, () => this._openScene('training'));
+        this._bindNavButton(this._elements.optionsButton, () => this._openScene('options'));
+        this._bindNavButton(this._elements.creditsButton, () => this._openScene('credits'));
+        this._bindNavButton(this._elements.leaderboardSceneButton, () => this._openScene('leaderboard'));
+    }
+
+    private _showCampaign(): void {
+        if (this._elements.leaderboard) {
+            this._elements.leaderboard.classList.add('mission-leaderboard--collapsed');
+        }
+        if (this._elements.leaderboardButton) {
+            this._elements.leaderboardButton.textContent = 'View Leaderboard';
+        }
+        const campaignMissions = this._allMissions.filter(mission => mission.mode === 'adventure' || mission.mode === 'boss');
+        this._missions = campaignMissions.length ? campaignMissions : this._missions;
+        const defaultMission = this._missionService!.getDefault() || this._missions[0];
+        if (defaultMission) {
+            this._selectedMissionId = defaultMission.id;
+        }
+        if (!defaultMission && this._missions.length) {
+            this._selectedMissionId = this._missions[0].id;
+        }
+        this._renderMissionList();
+        this._renderPreview();
+    }
+
+    private _renderPreview(): void {
+        const mission = this._getSelectedMission();
+        if (!mission) {
+            return;
+        }
+
+        if (this._elements.title) {
+            this._elements.title.textContent = mission.name;
+        }
+
+        if (this._elements.description) {
+            this._elements.description.textContent = mission.description ?? 'Awaiting briefing.';
+        }
+
+        if (this._elements.objectives) {
+            this._elements.objectives.innerHTML = '';
+            const objectives = Array.isArray(mission.objectives) ? mission.objectives : [];
+            if (!objectives.length) {
+                const item = document.createElement('li');
+                item.textContent = 'No mission objectives specified.';
+                this._elements.objectives.appendChild(item);
+            } else {
+                objectives.forEach(obj => {
+                    const item = document.createElement('li');
+                    const label = obj.label || obj.type || 'Objective';
+                    const detail = this._describeObjective(obj);
+                    item.textContent = detail ? `${label} - ${detail}` : label;
+                    this._elements.objectives!.appendChild(item);
+                });
+            }
+        }
+
+        if (this._elements.rewards) {
+            this._elements.rewards.innerHTML = '';
+            const rewards = mission.rewards || {};
+            const entries = Object.entries(rewards);
+            if (!entries.length) {
+                this._elements.rewards.textContent = 'Rewards classified';
+            } else {
+                entries.forEach(([key, value]) => {
+                    const pill = document.createElement('span');
+                    const formatted = typeof value === 'number' ? value.toLocaleString() : String(value);
+                    pill.textContent = `${key.toUpperCase()}: ${formatted}`;
+                    this._elements.rewards!.appendChild(pill);
+                });
+            }
+        }
+
+        if (this._elements.leaderboard) {
+            this._renderMissionLeaderboard(mission, true);
+            this._elements.leaderboard.classList.add('mission-leaderboard--collapsed');
+        }
+
+        if (this._elements.leaderboardButton) {
+            this._elements.leaderboardButton.textContent = 'View Leaderboard';
+        }
+    }
+
+    private _renderMissionLeaderboard(mission: Mission | null, compact = false): void {
+        const container = this._elements.leaderboard;
+        if (!container || !mission) {
+            return;
+        }
+
+        container.innerHTML = '';
+
+        const header = document.createElement('h4');
+        header.textContent = 'Top Runs';
+        container.appendChild(header);
+
+        const runs = this._progressionService ? this._progressionService.getRuns(mission.id, compact ? 5 : 10) : [];
+        if (!runs.length) {
+            const empty = document.createElement('p');
+            empty.textContent = 'No recorded runs yet.';
+            container.appendChild(empty);
+            return;
+        }
+
+        const list = document.createElement('ul');
+        runs.forEach((run, index) => {
+            const item = document.createElement('li');
+            const rank = document.createElement('span');
+            rank.textContent = String(index + 1).padStart(2, '0');
+            const detail = document.createElement('span');
+            const callsign = run.callsign ?? 'Anon';
+            const score = (run.score ?? 0).toLocaleString();
+            detail.textContent = `${callsign} - ${score}`;
+            item.appendChild(rank);
+            item.appendChild(detail);
+            list.appendChild(item);
+        });
+        container.appendChild(list);
+    }
+
+    private _describeObjective(objective: MissionObjective): string {
+        if (!objective) {
+            return '';
+        }
+
+        switch (objective.type) {
+            case 'eliminate':
+                if (Number.isFinite(objective.count)) {
+                    return `${objective.count} targets`;
+                }
+                return '';
+            case 'timeUnder':
+            case 'survive':
+                if (Number.isFinite(objective.seconds)) {
+                    return this._formatSeconds(objective.seconds!);
+                }
+                return '';
+            case 'damageUnder':
+                if (Number.isFinite(objective.amount)) {
+                    return `<= ${objective.amount} dmg`;
+                }
+                return '';
+            case 'defeatBoss':
+            default:
+                return '';
+        }
+    }
+
+    private _formatSeconds(value: number): string {
+        if (!Number.isFinite(value)) {
+            return '';
+        }
+        const minutes = Math.floor(value / 60);
+        const seconds = Math.round(value % 60);
+        return `${minutes}m ${seconds}s`;
+    }
+
+    private _getSelectedMission(): Mission | null {
+        return this._missions.find(mission => mission.id === this._selectedMissionId) || this._missions[0] || null;
+    }
+
+    private _bindNavButton(element: HTMLButtonElement | null, handler: () => void): void {
+        if (!element || typeof handler !== 'function') {
+            return;
+        }
+        const wrapped = () => {
+            if (this._sceneTransitions?.isActive()) {
+                return;
+            }
+            handler();
+        };
+        element.addEventListener('click', wrapped);
+        this._uiHandlers.push({ element, handler: wrapped });
+    }
+
+    private _openScene(name: string): void {
+        const sceneManager = this.services.resolve<SceneManager>('sceneManager');
+        sceneManager.push(name).catch(error => {
+            console.error(`MainMenuScene: failed to open scene ${name}`, error);
+        });
+    }
 }
+
+
+
+
+
+
+
+
+
+

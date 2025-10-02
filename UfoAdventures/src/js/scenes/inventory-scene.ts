@@ -1,12 +1,25 @@
-class InventoryScene extends Scene {
-    constructor(services) {
+import { Scene, SceneManager } from '../engine/scene-manager';
+import { ServiceLocator } from '../engine/service-locator';
+
+interface UIHandler {
+    element: HTMLElement;
+    handler: () => void;
+}
+
+interface InventoryItem {
+    name: string;
+}
+
+export class InventoryScene extends Scene {
+    private _overlay: HTMLElement | null = null;
+    private readonly _handlers: UIHandler[] = [];
+    private _mode = 'adventure';
+
+    constructor(services: ServiceLocator) {
         super('inventory', services);
-        this._overlay = null;
-        this._handlers = [];
-        this._mode = 'adventure';
     }
 
-    async onEnter(params = {}) {
+    async onEnter(params: { mode?: string, inventory?: InventoryItem[] } = {}): Promise<void> {
         this._mode = params.mode || this._mode;
         this._overlay = document.getElementById('inventoryOverlay');
         if (this._overlay) {
@@ -17,7 +30,7 @@ class InventoryScene extends Scene {
         this._bindButtons();
     }
 
-    async onExit() {
+    async onExit(): Promise<void> {
         this._unbindButtons();
         if (this._overlay) {
             this._overlay.style.display = 'none';
@@ -27,7 +40,7 @@ class InventoryScene extends Scene {
         await super.onExit();
     }
 
-    _renderInventory(items) {
+    private _renderInventory(items: InventoryItem[]): void {
         const list = document.getElementById('inventoryList');
         if (!list) {
             return;
@@ -50,10 +63,10 @@ class InventoryScene extends Scene {
         });
     }
 
-    _bindButtons() {
-        const sceneManager = this.services.resolve('sceneManager');
+    private _bindButtons(): void {
+        const sceneManager = this.services.resolve<SceneManager>('sceneManager');
 
-        const close = document.getElementById('inventoryCloseButton');
+        const close = document.getElementById('inventoryCloseButton') as HTMLButtonElement | null;
         if (close) {
             const handler = async () => {
                 close.disabled = true;
@@ -69,11 +82,11 @@ class InventoryScene extends Scene {
         }
     }
 
-    _unbindButtons() {
+    private _unbindButtons(): void {
         while (this._handlers.length) {
-            const { element, handler } = this._handlers.pop();
+            const { element, handler } = this._handlers.pop()!;
             element.removeEventListener('click', handler);
-            element.disabled = false;
+            (element as HTMLButtonElement).disabled = false;
         }
     }
 }

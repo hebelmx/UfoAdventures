@@ -1,0 +1,34 @@
+{
+  "music": [
+    {
+      "alias": "music_main_theme",
+      "src": "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA=",
+      "loop": true,
+      "volume": 0.6
+    },
+    {
+      "alias": "music_boss_encounter",
+      "src": "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA=",
+      "loop": true,
+      "volume": 0.7
+    },
+    {
+      "alias": "music_results",
+      "src": "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA=",
+      "loop": false,
+      "volume": 0.5
+    }
+  ],
+  "sfx": [
+    { "alias": "sfx_player_fire", "src": "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA=", "volume": 0.6 },
+    { "alias": "sfx_enemy_fire", "src": "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA=", "volume": 0.55 },
+    { "alias": "sfx_combo_breaker", "src": "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA=", "volume": 0.75 },
+    { "alias": "sfx_teleport", "src": "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA=", "volume": 0.7 },
+    { "alias": "sfx_player_damage", "src": "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA=", "volume": 0.8 },
+    { "alias": "sfx_enemy_damage", "src": "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA=", "volume": 0.6 },
+    { "alias": "sfx_boss_phase_shift", "src": "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA=", "volume": 0.85 },
+    { "alias": "sfx_boss_defeated", "src": "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA=", "volume": 0.9 },
+    { "alias": "sfx_results_success", "src": "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA=", "volume": 0.7 },
+    { "alias": "sfx_results_failure", "src": "data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAIlYAAESsAAACABAAZGF0YQAAAAA=", "volume": 0.7 }
+  ]
+}

@@ -1,11 +1,33 @@
-class ResourceManager {
+import * as PIXI from 'pixi.js';
+
+export interface AssetManifestEntry {
+    alias: string;
+    src: string;
+    type?: 'spritesheet' | 'texture';
+    json?: string;
+    width?: number;
+    height?: number;
+    frames?: any[];
+    animations?: any;
+    frameName?: string;
+    anchor?: number[] | { x: number, y: number };
+    baseAlias?: string;
+    id?: string;
+    name?: string;
+    url?: string;
+}
+
+export class ResourceManager {
+    private _manifest: AssetManifestEntry[] = [];
+    private readonly _loaded: Set<string> = new Set();
+    private readonly _spritesheets: Map<string, PIXI.Spritesheet> = new Map();
+    private readonly _testMode: boolean;
+
     constructor() {
-        this._manifest = [];
-        this._loaded = new Set();
-        this._spritesheets = new Map();
+        this._testMode = this._detectTestMode();
     }
 
-    async loadManifest(manifest, onProgress) {
+    async loadManifest(manifest: AssetManifestEntry[], onProgress?: (progress: number, asset: string | null) => void): Promise<void> {
         if (!Array.isArray(manifest) || !manifest.length) {
             if (typeof onProgress === 'function') {
                 onProgress(1, null);
@@ -18,8 +40,10 @@ class ResourceManager {
         const total = this._manifest.length;
 
         for (const asset of this._manifest) {
-            const alias = asset.alias || asset.id || asset.name;
-            const src = asset.src || asset.url;
+            const aliasSource = asset.alias ?? asset.id ?? asset.name ?? '';
+            const srcSource = asset.src ?? asset.url ?? '';
+            const alias = aliasSource.trim();
+            const src = srcSource.trim();
 
             if (!alias || !src) {
                 console.warn('ResourceManager: invalid manifest entry', asset);
@@ -30,7 +54,7 @@ class ResourceManager {
                 continue;
             }
 
-            if (this._loaded.has(alias) && PIXI.Assets?.cache?.has(alias)) {
+            if (this._loaded.has(alias) && PIXI.Assets.cache.has(alias)) {
                 completed += 1;
                 if (typeof onProgress === 'function') {
                     onProgress(completed / total, alias);
@@ -39,10 +63,12 @@ class ResourceManager {
             }
 
             try {
-                if (asset.type === 'spritesheet') {
+                if (this._testMode) {
+                    await this._primeTestAsset(alias, asset.type, asset);
+                } else if (asset.type === 'spritesheet') {
                     await this._loadSpritesheet(alias, src, asset);
                 } else {
-                    await PIXI.Assets.load({ src, alias });
+                    await PIXI.Assets.load({ alias, src });
                 }
 
                 this._loaded.add(alias);
@@ -57,45 +83,67 @@ class ResourceManager {
         }
     }
 
-    get(alias) {
+    get<T extends PIXI.Texture | PIXI.Spritesheet>(alias: string): T | null {
         if (!alias) {
             return null;
         }
 
         if (this._spritesheets.has(alias)) {
-            return this._spritesheets.get(alias);
+            return this._spritesheets.get(alias) as T;
         }
 
         return PIXI.Assets.get(alias) ?? null;
     }
 
-    getSpritesheet(alias) {
+    getSpritesheet(alias: string): PIXI.Spritesheet | null {
         return this._spritesheets.get(alias) || null;
     }
 
-    has(alias) {
-        return !!alias && (this._loaded.has(alias) || PIXI.Assets?.cache?.has(alias) || this._spritesheets.has(alias));
+    has(alias: string): boolean {
+        return !!alias && (this._loaded.has(alias) || PIXI.Assets.cache.has(alias) || this._spritesheets.has(alias));
     }
 
-    reset() {
+    reset(): void {
         PIXI.Assets.reset();
         this._loaded.clear();
         this._spritesheets.clear();
         this._manifest = [];
     }
 
-    async _loadSpritesheet(alias, src, asset) {
-        const baseAlias = asset.baseAlias || `${alias}__base`;
-        const texture = await PIXI.Assets.load({ src, alias: baseAlias });
+    private _detectTestMode(): boolean {
+        try {
+            return typeof window !== 'undefined' && (window as any).__E2E__ === true;
+        } catch (error) {
+            return false;
+        }
+    }
 
-        let data = null;
-        // Prefer external JSON if provided (TexturePacker/PIXI format)
+    private async _primeTestAsset(alias: string, type: string | undefined, asset: AssetManifestEntry): Promise<void> {
+        if (type === 'spritesheet') {
+            await this._createPlaceholderSpritesheet(alias, asset);
+            return;
+        }
+
+        if (!PIXI.Assets.cache.has(alias)) {
+            PIXI.Assets.cache.set(alias, PIXI.Texture.WHITE);
+        }
+    }
+
+    private async _loadSpritesheet(alias: string, src: string, asset: AssetManifestEntry): Promise<void> {
+        if (this._testMode) {
+            await this._createPlaceholderSpritesheet(alias, asset);
+            return;
+        }
+
+        const baseAlias = asset.baseAlias || `${alias}__base`;
+        const texture = await PIXI.Assets.load<PIXI.Texture>({ src, alias: baseAlias });
+
+        let data: any = null;
         if (asset.json) {
             try {
                 const res = await fetch(asset.json);
                 if (res.ok) {
                     data = await res.json();
-                    // Ensure meta.image is the src for correct baseTexture linkage
                     if (!data.meta) {
                         data.meta = {};
                     }
@@ -107,8 +155,8 @@ class ResourceManager {
         }
 
         if (!data) {
-            const width = asset.width || texture.width || (texture.baseTexture?.realWidth ?? texture.baseTexture?.width) || 0;
-            const height = asset.height || texture.height || (texture.baseTexture?.realHeight ?? texture.baseTexture?.height) || 0;
+            const width = asset.width ?? texture.width ?? texture.baseTexture?.width ?? 0;
+            const height = asset.height ?? texture.height ?? texture.baseTexture?.height ?? 0;
 
             const frames = Array.isArray(asset.frames) && asset.frames.length
                 ? asset.frames
@@ -148,7 +196,7 @@ class ResourceManager {
             }
         }
 
-        const spritesheet = new PIXI.Spritesheet(texture, data);
+        const spritesheet = new PIXI.Spritesheet(texture.baseTexture, data);
         await spritesheet.parse();
 
         this._spritesheets.set(alias, spritesheet);
@@ -158,4 +206,45 @@ class ResourceManager {
             PIXI.Assets.cache.set(`${alias}:${name}`, tex);
         });
     }
+
+    private async _createPlaceholderSpritesheet(alias: string, asset: AssetManifestEntry = {} as AssetManifestEntry): Promise<void> {
+        const frameName = `${alias}__frame__`;
+        const baseTexture = PIXI.Texture.WHITE.baseTexture;
+        const animations: { [key: string]: string[] } = {};
+        const configured = asset.animations && typeof asset.animations === 'object' ? Object.keys(asset.animations) : [];
+
+        if (configured.length) {
+            configured.forEach((key) => {
+                animations[key] = [frameName];
+            });
+        } else {
+            animations.idle = [frameName];
+        }
+
+        const data = {
+            frames: {
+                [frameName]: {
+                    frame: { x: 0, y: 0, w: 1, h: 1 },
+                    spriteSourceSize: { x: 0, y: 0, w: 1, h: 1 },
+                    sourceSize: { w: 1, h: 1 },
+                    anchor: { x: 0.5, y: 0.5 }
+                }
+            },
+            animations,
+            meta: {
+                image: 'placeholder',
+                scale: 1,
+                size: { w: 1, h: 1 }
+            }
+        };
+
+        const spritesheet = new PIXI.Spritesheet(baseTexture, data);
+        await spritesheet.parse();
+
+        this._spritesheets.set(alias, spritesheet);
+        PIXI.Assets.cache.set(alias, spritesheet);
+        PIXI.Assets.cache.set(`${alias}:${frameName}`, PIXI.Texture.WHITE);
+    }
 }
+
+
