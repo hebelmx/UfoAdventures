@@ -2,13 +2,13 @@ export interface ProjectileDefinition {
     type: string;
     speed: number;
     damage: number;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 export interface WeaponDefinition {
     cooldown: number;
     projectiles: ProjectileDefinition[];
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 export class WeaponService {

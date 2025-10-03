@@ -11,6 +11,8 @@ window.addEventListener('load', async () => {
         
         const exposeToWindow = import.meta.env.DEV || (window.__E2E__ === true);
         if (exposeToWindow) {
+            const handles = window.__devHandles ?? (window.__devHandles = {});
+            handles.gameApp = gameApp;
             window.gameApp = gameApp;
         }
 
@@ -30,6 +32,9 @@ window.addEventListener('beforeunload', async () => {
         } catch (error) {
             console.error('Error during shutdown', error);
         }
+    }
+    if (window.__devHandles?.gameApp === gameApp) {
+        delete window.__devHandles.gameApp;
     }
     if (window.gameApp === gameApp) {
         delete window.gameApp;

@@ -77,7 +77,7 @@ export class InputService {
         });
     }
 
-    registerCommand(action: string, handler: (payload: any) => void, options: { trigger?: 'up' | 'down' } = {}): () => void {
+    registerCommand(action: string, handler: (payload: unknown) => void, options: { trigger?: 'up' | 'down' } = {}): () => void {
         if (!this.eventBus) {
             console.warn('InputService.registerCommand called without an EventBus');
             return () => {};

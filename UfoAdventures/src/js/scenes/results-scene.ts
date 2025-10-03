@@ -1,4 +1,5 @@
 import { Scene, SceneManager } from '../engine/scene-manager';
+import { setOverlayVisible } from '../ui/overlay-helpers';
 import { ServiceLocator } from '../engine/service-locator';
 import { MissionService, Mission, RunSummary, RunTelemetry, ObjectiveResult } from '../engine/mission-service';
 import { ProgressionService } from '../engine/progression-service';
@@ -46,9 +47,7 @@ export class ResultsScene extends Scene {
         }
 
         this._overlay = document.getElementById('resultsOverlay');
-        if (this._overlay) {
-            this._overlay.style.display = 'flex';
-        }
+        setOverlayVisible(this._overlay, true, '#resultsCallsign');
 
         this._mission = this._resolveMission(params);
         this._summary = this._resolveSummary(params, this._mission);
@@ -60,10 +59,8 @@ export class ResultsScene extends Scene {
 
     async onExit(): Promise<void> {
         this._unbindButtons();
-        if (this._overlay) {
-            this._overlay.style.display = 'none';
-            this._overlay = null;
-        }
+        setOverlayVisible(this._overlay, false);
+        this._overlay = null;
 
         this._mission = null;
         this._summary = null;

@@ -1,5 +1,6 @@
 import { Scene, SceneManager } from '../engine/scene-manager';
 import { ServiceLocator } from '../engine/service-locator';
+import { setOverlayVisible } from '../ui/overlay-helpers';
 
 export class BootstrapScene extends Scene {
     constructor(services: ServiceLocator) {
@@ -8,9 +9,7 @@ export class BootstrapScene extends Scene {
 
     async onEnter(): Promise<void> {
         const loadingScreen = document.getElementById('loadingScreen');
-        if (loadingScreen) {
-            loadingScreen.style.display = 'flex';
-        }
+        setOverlayVisible(loadingScreen, true);
 
         const loadingText = document.querySelector('.loading-text');
         if (loadingText) {
@@ -19,7 +18,7 @@ export class BootstrapScene extends Scene {
 
         const sceneManager = this.services.resolve<SceneManager>('sceneManager');
         window.requestAnimationFrame(() => {
-            sceneManager.change('asset-loading').catch((error: any) => {
+            sceneManager.change('asset-loading').catch((error: unknown) => {
                 console.error('Failed to advance from bootstrap scene', error);
             });
         });

@@ -7,12 +7,22 @@ export interface ProgressionServiceOptions {
     saveService?: SaveService;
 }
 
+interface StorageAdapter {
+    getItem(key: string): string | null;
+    setItem(key: string, value: string): void;
+    removeItem(key: string): void;
+}
+
+interface StoredRunCollection {
+    runs: RunSummary[];
+}
+
 export class ProgressionService {
     private readonly _storageKey: string;
     private readonly _maxPerMission: number;
     private _runs: RunSummary[] = [];
     private _saveService: SaveService | null;
-    private _storage: Storage | { getItem: (key: string) => string | null, setItem: (key: string, value: string) => void, removeItem: (key: string) => void } | null;
+    private _storage: StorageAdapter | null;
     private readonly _loadPromise: Promise<void>;
 
     constructor(options: ProgressionServiceOptions = {}) {
@@ -88,7 +98,7 @@ export class ProgressionService {
         this._runs = this._runs.filter(run => !removeIds.has(run.id));
     }
 
-    private _resolveStorage(): Storage | { getItem: (key: string) => string | null, setItem: (key: string, value: string) => void, removeItem: (key: string) => void } {
+    private _resolveStorage(): StorageAdapter {
         try {
             if (typeof window !== 'undefined' && window.localStorage) {
                 return window.localStorage;
@@ -98,20 +108,24 @@ export class ProgressionService {
         }
         const memory = new Map<string, string>();
         return {
-            getItem: (key: string) => memory.has(key) ? memory.get(key)! : null,
-            setItem: (key: string, value: string) => memory.set(key, value),
-            removeItem: (key: string) => memory.delete(key)
+            getItem: (key: string) => (memory.has(key) ? memory.get(key)! : null),
+            setItem: (key: string, value: string) => {
+                memory.set(key, value);
+            },
+            removeItem: (key: string) => {
+                memory.delete(key);
+            }
         };
     }
 
     private async _load(): Promise<void> {
         if (this._saveService) {
             try {
-                const data = await this._saveService.load<RunSummary[]>(this._storageKey);
+                const data = await this._saveService.load<RunSummary[] | StoredRunCollection>(this._storageKey);
                 if (Array.isArray(data)) {
                     this._runs = data.slice();
-                } else if (data && typeof data === 'object' && Array.isArray((data as any).runs)) {
-                    this._runs = (data as any).runs.slice();
+                } else if (ProgressionService._isStoredRunCollection(data)) {
+                    this._runs = data.runs.slice();
                 } else {
                     this._runs = [];
                 }
@@ -119,19 +133,25 @@ export class ProgressionService {
                 console.warn('ProgressionService: failed to load runs from SaveService', error);
                 this._runs = [];
             }
-        } else {
-            try {
-                const data = this._storage!.getItem(this._storageKey);
-                if (!data) {
-                    this._runs = [];
-                    return;
-                }
-                const parsed = JSON.parse(data);
-                this._runs = Array.isArray(parsed) ? parsed : [];
-            } catch (error) {
-                console.warn('ProgressionService: failed to load stored runs', error);
+            return;
+        }
+
+        if (!this._storage) {
+            this._runs = [];
+            return;
+        }
+
+        try {
+            const data = this._storage.getItem(this._storageKey);
+            if (!data) {
                 this._runs = [];
+                return;
             }
+            const parsed = JSON.parse(data) as unknown;
+            this._runs = Array.isArray(parsed) ? (parsed as RunSummary[]).slice() : [];
+        } catch (error) {
+            console.warn('ProgressionService: failed to load stored runs', error);
+            this._runs = [];
         }
     }
 
@@ -142,12 +162,25 @@ export class ProgressionService {
     private async _save(): Promise<void> {
         if (this._saveService) {
             await this._saveService.save(this._storageKey, this._runs);
-        } else {
-            try {
-                this._storage!.setItem(this._storageKey, JSON.stringify(this._runs));
-            } catch (error) {
-                console.warn('ProgressionService: failed to persist runs', error);
-            }
+            return;
         }
+
+        if (!this._storage) {
+            return;
+        }
+
+        try {
+            this._storage.setItem(this._storageKey, JSON.stringify(this._runs));
+        } catch (error) {
+            console.warn('ProgressionService: failed to persist runs', error);
+        }
+    }
+
+    private static _isStoredRunCollection(value: unknown): value is StoredRunCollection {
+        if (!value || typeof value !== 'object') {
+            return false;
+        }
+        const candidate = value as StoredRunCollection;
+        return Array.isArray(candidate.runs);
     }
 }

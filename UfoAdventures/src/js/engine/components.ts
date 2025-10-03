@@ -112,7 +112,7 @@ export class Enemy extends Component {}
 export interface BehaviorTreeStep {
     type?: string;
     duration?: number;
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
 export class BehaviorTreeComponent extends Component {

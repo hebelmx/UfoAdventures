@@ -9,12 +9,30 @@ export interface AudioServiceOptions {
     resourceManager: ResourceManager;
 }
 
+export interface AudioTrackDefinition {
+    alias: string;
+    src: string;
+    loop?: boolean;
+    volume?: number;
+    meta?: Record<string, unknown>;
+    crossOrigin?: string;
+}
+
+export interface AudioConfiguration {
+    music?: AudioTrackDefinition[];
+    sfx?: AudioTrackDefinition[];
+}
+
+type ManagedAudioElement = HTMLAudioElement & {
+    _baseVolume?: number;
+};
+
 export interface AudioTrack {
     type: 'music' | 'sfx';
     element: HTMLAudioElement | null;
     baseVolume: number;
     loop: boolean;
-    meta?: any;
+    meta?: Record<string, unknown>;
 }
 
 export interface AudioSettings {
@@ -43,7 +61,7 @@ export class AudioService {
         this._supportsAudio = typeof Audio !== 'undefined';
     }
 
-    async configure(config: { music?: any[], sfx?: any[] } = {}, settings: Partial<AudioSettings> = {}): Promise<void> {
+    async configure(config: AudioConfiguration = {}, settings: Partial<AudioSettings> = {}): Promise<void> {
         this._tracks.clear();
         this._currentMusicAlias = null;
         this._currentMusic = null;
@@ -109,7 +127,9 @@ export class AudioService {
         this._masterVolume = normalized;
         this._updateMusicChannel();
         this._activeSounds.forEach(sound => {
-            sound.volume = this._calculateSfxVolume((sound as any)._baseVolume || 1);
+            const managed = sound as ManagedAudioElement;
+            const base = managed._baseVolume ?? 1;
+            sound.volume = this._calculateSfxVolume(base);
         });
     }
 
@@ -117,7 +137,9 @@ export class AudioService {
         this._muted = !!flag;
         this._updateMusicChannel();
         this._activeSounds.forEach(sound => {
-            sound.volume = this._muted ? 0 : this._calculateSfxVolume((sound as any)._baseVolume || 1);
+            const managed = sound as ManagedAudioElement;
+            const base = managed._baseVolume ?? 1;
+            sound.volume = this._muted ? 0 : this._calculateSfxVolume(base);
         });
         if (this._muted && this._currentMusic) {
             this._currentMusic.pause();
@@ -177,10 +199,12 @@ export class AudioService {
             return;
         }
         const element = track.element ? this._cloneAudioElement(track) : this._createStubAudio();
-        element.loop = !!options.loop;
-        (element as any)._baseVolume = (options.volume !== undefined ? options.volume : track.baseVolume || 1);
-        element.volume = this._calculateSfxVolume((element as any)._baseVolume);
-        element.currentTime = options.offset || 0;
+        const managedElement = element as ManagedAudioElement;
+        managedElement.loop = !!options.loop;
+        const baseVolume = options.volume ?? track.baseVolume ?? 1;
+        managedElement._baseVolume = baseVolume;
+        managedElement.volume = this._calculateSfxVolume(baseVolume);
+        managedElement.currentTime = options.offset ?? 0;
         this._activeSounds.add(element);
         const cleanup = () => {
             element.removeEventListener('ended', cleanup);
@@ -198,29 +222,31 @@ export class AudioService {
         }
     }
 
-    private _cloneAudioElement(track: AudioTrack): HTMLAudioElement {
+    private _cloneAudioElement(track: AudioTrack): ManagedAudioElement {
         if (!this._supportsAudio || !track.element) {
             return this._createStubAudio();
         }
-        const template = track.element;
-        const clone = template.cloneNode(true) as HTMLAudioElement;
+        const template = track.element as ManagedAudioElement;
+        const clone = template.cloneNode(true) as ManagedAudioElement;
         if (!clone || !clone.src) {
-            const audio = new Audio(template.src);
+            const audio = new Audio(template.src) as ManagedAudioElement;
             audio.crossOrigin = template.crossOrigin || 'anonymous';
             return audio;
         }
+        clone._baseVolume = template._baseVolume;
         return clone;
     }
 
-    private async _loadTrack(definition: any = {}, type: 'music' | 'sfx'): Promise<void> {
+    private async _loadTrack(definition: AudioTrackDefinition, type: 'music' | 'sfx'): Promise<void> {
         const alias = definition.alias;
         const src = definition.src;
         if (!alias || !src) {
             console.warn('AudioService: invalid audio definition', definition);
             return;
         }
+        const baseVolume = typeof definition.volume === 'number' ? definition.volume : 1;
         if (!this._supportsAudio) {
-            this._tracks.set(alias, { type, element: null, baseVolume: definition.volume ?? 1, loop: !!definition.loop });
+            this._tracks.set(alias, { type, element: null, baseVolume, loop: !!definition.loop, meta: definition.meta });
             return;
         }
         try {
@@ -230,15 +256,15 @@ export class AudioService {
                 element,
                 baseVolume: definition.volume ?? 1,
                 loop: type === 'music' ? (definition.loop !== false) : !!definition.loop,
-                meta: definition
+                meta: definition.meta
             });
         } catch (error) {
             console.warn('AudioService: failed to load track', alias, error);
-            this._tracks.set(alias, { type, element: null, baseVolume: definition.volume ?? 1, loop: !!definition.loop });
+            this._tracks.set(alias, { type, element: null, baseVolume, loop: !!definition.loop, meta: definition.meta });
         }
     }
 
-    private _createAudioElement(definition: any): Promise<HTMLAudioElement> {
+    private _createAudioElement(definition: AudioTrackDefinition): Promise<HTMLAudioElement> {
         return new Promise((resolve, reject) => {
             try {
                 const audio = new Audio();
@@ -271,8 +297,8 @@ export class AudioService {
         });
     }
 
-    private _createStubAudio(): HTMLAudioElement {
-        return {
+    private _createStubAudio(): ManagedAudioElement {
+        const stub = {
             paused: true,
             loop: false,
             volume: 0,
@@ -280,8 +306,10 @@ export class AudioService {
             play: () => Promise.resolve(),
             pause: () => {},
             addEventListener: () => {},
-            removeEventListener: () => {}
-        } as any;
+            removeEventListener: () => {},
+            dispatchEvent: () => false
+        } as unknown as ManagedAudioElement;
+        return stub;
     }
 
     private _updateMusicChannel(): void {

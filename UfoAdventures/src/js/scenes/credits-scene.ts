@@ -1,4 +1,5 @@
 import { Scene, SceneManager } from '../engine/scene-manager';
+import { setOverlayVisible } from '../ui/overlay-helpers';
 import { ServiceLocator } from '../engine/service-locator';
 
 export class CreditsScene extends Scene {
@@ -11,9 +12,7 @@ export class CreditsScene extends Scene {
 
     async onEnter(): Promise<void> {
         this._overlay = document.getElementById('creditsOverlay');
-        if (this._overlay) {
-            this._overlay.style.display = 'flex';
-        }
+        setOverlayVisible(this._overlay, true, '#creditsCloseButton');
         const closeButton = document.getElementById('creditsCloseButton');
         if (closeButton) {
             this._handler = () => this._close();
@@ -30,9 +29,7 @@ export class CreditsScene extends Scene {
                 console.warn('CreditsScene: failed to remove handler', error);
             }
         }
-        if (this._overlay) {
-            this._overlay.style.display = 'none';
-        }
+        setOverlayVisible(this._overlay, false);
         this._overlay = null;
         this._handler = null;
         await super.onExit();

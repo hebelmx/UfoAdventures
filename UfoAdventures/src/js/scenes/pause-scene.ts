@@ -1,4 +1,5 @@
 import { Scene, SceneManager } from '../engine/scene-manager';
+import { setOverlayVisible } from '../ui/overlay-helpers';
 import { ServiceLocator } from '../engine/service-locator';
 import type { GameResultsRequest } from '../engine/event-payloads';
 
@@ -21,31 +22,23 @@ export class PauseScene extends Scene {
         this._mode = params.mode || 'adventure';
         this._missionId = params.missionId ?? null;
         this._overlay = document.getElementById('pauseOverlay');
-        if (this._overlay) {
-            this._overlay.style.display = 'flex';
-        }
+        setOverlayVisible(this._overlay, true, '#pauseResumeButton');
 
         this._bindButtons();
     }
 
     async onSuspend(): Promise<void> {
-        if (this._overlay) {
-            this._overlay.style.display = 'none';
-        }
+        setOverlayVisible(this._overlay, false);
     }
 
     async onResume(): Promise<void> {
-        if (this._overlay) {
-            this._overlay.style.display = 'flex';
-        }
+        setOverlayVisible(this._overlay, true, '#pauseResumeButton');
     }
 
     async onExit(): Promise<void> {
         this._unbindButtons();
-        if (this._overlay) {
-            this._overlay.style.display = 'none';
-            this._overlay = null;
-        }
+        setOverlayVisible(this._overlay, false);
+        this._overlay = null;
         this._missionId = null;
 
         await super.onExit();

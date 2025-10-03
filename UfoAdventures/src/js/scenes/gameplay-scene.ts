@@ -61,10 +61,8 @@ export class GameplayScene extends Scene {
         };
 
         this.runtime.start(this.mode, runtimeOptions);
-
-        if (typeof window !== 'undefined') {
-            window.gameplayRuntime = this.runtime;
-        }
+        this.services.replace('gameplayRuntime', this.runtime);
+        this._syncDevRuntime(this.runtime);
 
         const canvas = document.getElementById('gameCanvas');
         if (canvas) {
@@ -102,10 +100,8 @@ export class GameplayScene extends Scene {
             this.runtime.stop();
         }
 
-        if (typeof window !== 'undefined' && window.gameplayRuntime === this.runtime) {
-            delete window.gameplayRuntime;
-        }
-
+        this._syncDevRuntime(null);
+        this.services.unregister('gameplayRuntime');
         this._isTransitioning = false;
         this._missionId = null;
 
@@ -315,6 +311,31 @@ export class GameplayScene extends Scene {
             console.error('GameplayScene: failed to show results scene', error);
             this._isTransitioning = false;
         });
+    }
+
+    private _syncDevRuntime(runtime: GameplayRuntime | null): void {
+        if (typeof window === 'undefined') {
+            return;
+        }
+        const shouldExpose = (import.meta.env?.DEV ?? false) || window.__E2E__ === true;
+        if (!shouldExpose) {
+            if (!runtime && window.gameplayRuntime) {
+                delete window.gameplayRuntime;
+            }
+            return;
+        }
+        const handles = window.__devHandles ?? (window.__devHandles = {});
+        if (runtime) {
+            handles.gameplayRuntime = runtime;
+            window.gameplayRuntime = runtime;
+        } else {
+            if (handles.gameplayRuntime) {
+                delete handles.gameplayRuntime;
+            }
+            if (window.gameplayRuntime) {
+                delete window.gameplayRuntime;
+            }
+        }
     }
 
     private _coerceRunSummary(value: unknown): RunSummary | null {

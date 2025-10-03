@@ -1,4 +1,5 @@
 import { Scene, SceneManager } from '../engine/scene-manager';
+import { setOverlayVisible } from '../ui/overlay-helpers';
 import { ServiceLocator } from '../engine/service-locator';
 import { SaveService } from '../engine/save-service';
 import { GameApplication } from '../game-application';
@@ -39,9 +40,8 @@ export class OptionsScene extends Scene {
     async onEnter(): Promise<void> {
         this._overlay = document.getElementById('optionsOverlay');
         this._form = document.getElementById('optionsForm') as HTMLFormElement;
-        if (this._overlay) {
-            this._overlay.style.display = 'flex';
-        }
+        setOverlayVisible(this._overlay, true, '#optionsMusic');
+
         this._saveService = this.services.optional<SaveService>('saveService');
         this._gameApplication = this.services.optional<GameApplication>('gameApplication');
         await this._restoreValues();
@@ -50,9 +50,7 @@ export class OptionsScene extends Scene {
 
     async onExit(): Promise<void> {
         this._unbind();
-        if (this._overlay) {
-            this._overlay.style.display = 'none';
-        }
+        setOverlayVisible(this._overlay, false);
         this._overlay = null;
         this._form = null;
         await super.onExit();

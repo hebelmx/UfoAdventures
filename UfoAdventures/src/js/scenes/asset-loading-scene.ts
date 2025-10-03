@@ -6,6 +6,7 @@ import type { AssetManifestEntry } from '../engine/resource-manager';
 import { AudioService } from '../engine/audio-service';
 import { EventBus } from '../engine/event-bus';
 import type { GameApplication } from '../game-application';
+import { setOverlayVisible } from '../ui/overlay-helpers';
 
 export class AssetLoadingScene extends Scene {
     constructor(services: ServiceLocator) {
@@ -14,20 +15,16 @@ export class AssetLoadingScene extends Scene {
 
     async onEnter(): Promise<void> {
         const loadingScreen = document.getElementById('loadingScreen');
-        if (loadingScreen) {
-            loadingScreen.style.display = 'flex';
-        }
+        setOverlayVisible(loadingScreen, true);
 
         const loadingText = document.querySelector('.loading-text');
-        const isTestMode = typeof window !== 'undefined' && (window as any).__E2E__ === true;
+        const isTestMode = typeof window !== 'undefined' && window.__E2E__ === true;
         if (loadingText) {
             loadingText.textContent = isTestMode ? 'Assets ready' : 'Loading assets...';
         }
 
-        if (isTestMode) {
-            const sceneManager = this.services.resolve<SceneManager>('sceneManager');
-            await sceneManager.change('main-menu');
-            return;
+        if (isTestMode && typeof window !== 'undefined') {
+            console.info('AssetLoadingScene: skipping manifest for E2E run');
         }
 
         const configService = this.services.resolve<ConfigService>('configService');
@@ -39,7 +36,7 @@ export class AssetLoadingScene extends Scene {
         const entries = Array.isArray(manifest) ? manifest : [];
 
         await resourceManager.loadManifest(entries, (progress, alias) => {
-            if (!loadingText) {
+            if (!loadingText || isTestMode) {
                 return;
             }
 
@@ -52,10 +49,8 @@ export class AssetLoadingScene extends Scene {
             loadingText.textContent = 'Assets ready';
         }
 
-        // Configure audio service if available
-        if (audioService) {
+        if (!isTestMode && audioService) {
             try {
-                // Load audio configuration
                 const response = await fetch('config/audio-config.json');
                 const audioConfig = await response.json();
 
@@ -63,7 +58,6 @@ export class AssetLoadingScene extends Scene {
                 const settings = gameApplication ? gameApplication.getUserSettings() : {};
                 await audioService.configure(audioConfig, settings);
 
-                // Attach to event bus
                 const eventBus = this.services.optional<EventBus>('eventBus');
                 if (eventBus) {
                     audioService.attach(eventBus);
@@ -74,6 +68,17 @@ export class AssetLoadingScene extends Scene {
         }
 
         const sceneManager = this.services.resolve<SceneManager>('sceneManager');
+        if (isTestMode) {
+            sceneManager.change('main-menu').then(() => {
+                if (typeof window !== 'undefined') {
+                    console.info('AssetLoadingScene: main menu scene loaded');
+                }
+            }).catch(error => {
+                console.error('AssetLoadingScene: failed to load main menu', error);
+            });
+            return;
+        }
+
         await sceneManager.change('main-menu');
     }
 }

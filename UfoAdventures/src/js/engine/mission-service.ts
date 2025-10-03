@@ -44,7 +44,7 @@ export interface RunTelemetry {
     abilitiesUsed?: { [key: string]: number };
     livesLost?: number;
     playerDefeated?: boolean;
-    flags?: { [key: string]: any };
+    flags?: Record<string, unknown>;
 }
 
 export interface ObjectiveResult {

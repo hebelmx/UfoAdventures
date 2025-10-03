@@ -1,4 +1,5 @@
 import { Scene, SceneManager } from '../engine/scene-manager';
+import { setOverlayVisible } from '../ui/overlay-helpers';
 import { ServiceLocator } from '../engine/service-locator';
 
 interface UIHandler {
@@ -22,9 +23,7 @@ export class InventoryScene extends Scene {
     async onEnter(params: { mode?: string, inventory?: InventoryItem[] } = {}): Promise<void> {
         this._mode = params.mode || this._mode;
         this._overlay = document.getElementById('inventoryOverlay');
-        if (this._overlay) {
-            this._overlay.style.display = 'flex';
-        }
+        setOverlayVisible(this._overlay, true, '#inventoryCloseButton');
 
         this._renderInventory(params.inventory || []);
         this._bindButtons();
@@ -32,10 +31,8 @@ export class InventoryScene extends Scene {
 
     async onExit(): Promise<void> {
         this._unbindButtons();
-        if (this._overlay) {
-            this._overlay.style.display = 'none';
-            this._overlay = null;
-        }
+        setOverlayVisible(this._overlay, false);
+        this._overlay = null;
 
         await super.onExit();
     }

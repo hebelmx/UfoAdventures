@@ -246,7 +246,7 @@ export class GameplayRuntime implements CombatGameContext {
                 fill: 0xbfd6ff,
                 align: 'left' as const
             };
-            const text = new PIXI.Text('FPS: --', options);
+            const text = new PIXI.Text({ text: 'FPS: --', style: options });
             text.visible = this._performanceOverlayVisible;
             text.x = 10;
             text.y = 10;
@@ -405,8 +405,25 @@ export class GameplayRuntime implements CombatGameContext {
         const background = new PIXI.Sprite(texture);
         background.x = 0;
         background.y = 0;
-        background.width = this.app.renderer.width || this.app.screen.width;
-        background.height = this.app.renderer.height || this.app.screen.height;
+        const renderer = (this.app as { renderer?: { width?: number; height?: number } } | null)?.renderer;
+        if (renderer?.width) {
+            background.width = renderer.width;
+        }
+        if (renderer?.height) {
+            background.height = renderer.height;
+        }
+        if (!renderer?.width) {
+            const fallbackWidth = texture.width ?? texture.baseTexture?.width;
+            if (fallbackWidth) {
+                background.width = fallbackWidth;
+            }
+        }
+        if (!renderer?.height) {
+            const fallbackHeight = texture.height ?? texture.baseTexture?.height;
+            if (fallbackHeight) {
+                background.height = fallbackHeight;
+            }
+        }
         background.zIndex = -100;
         this.stage.addChildAt(background, 0);
         this.backgroundSprite = background;

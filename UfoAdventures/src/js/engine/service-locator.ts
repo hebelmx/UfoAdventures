@@ -7,7 +7,7 @@ export class ServiceLocator {
         }
 
         if (this._services.has(key)) {
-            throw new Error(Service "" is already registered.);
+            throw new Error(`Service "${key}" is already registered.`);
         }
 
         this._services.set(key, instance);
@@ -15,7 +15,7 @@ export class ServiceLocator {
 
     resolve<T>(key: string): T {
         if (!this._services.has(key)) {
-            throw new Error(Service "" is not registered.);
+            throw new Error(`Service "${key}" is not registered.`);
         }
 
         return this._services.get(key) as T;

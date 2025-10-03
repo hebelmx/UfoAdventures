@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    <div id="loadingScreen" class="loading-screen">
+    <div id="loadingScreen" class="loading-screen" role="status" aria-live="polite">
         <div class="loading-card">
             <h1 class="loading-title">UFO Adventures</h1>
             <p class="loading-text">Loading assets...</p>
@@ -15,12 +15,12 @@
         </div>
     </div>
 
-    <div id="sceneTransition" class="scene-transition"></div>
+    <div id="sceneTransition" class="scene-transition" aria-hidden="true"></div>
 
-    <div class="game-container">
+    <main class="game-container" role="main">
         <canvas id="gameCanvas" width="800" height="600" aria-label="Gameplay canvas"></canvas>
 
-        <div class="ui-overlay" aria-hidden="true">
+        <section class="ui-overlay" aria-hidden="true" aria-label="Heads-up display">
             <div class="ui-panel hud-status">
                 <div class="hud-row">
                     <span class="hud-label">Hull Integrity</span>
@@ -64,7 +64,7 @@
                 <h3>Damage Log</h3>
                 <div id="damageLog" class="damage-log" aria-live="polite"></div>
             </div>
-        </div>
+        </section>
 
         <div id="bossHealthBar" class="boss-health-bar" aria-hidden="true">
             <span class="boss-name">Boss Integrity</span>
@@ -72,7 +72,7 @@
         </div>
 
         <div id="gameMessages" class="game-messages" aria-live="assertive"></div>
-    </div>
+    </main>
 
     <aside class="controls-panel" aria-label="Control reference">
         <h3>Pilot Controls</h3>
@@ -84,16 +84,16 @@
         </ul>
     </aside>
 
-    <div id="mainMenuOverlay" class="overlay-screen" style="display: none;">
+    <div id="mainMenuOverlay" aria-hidden="true" class="overlay-screen" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="missionHeader" style="display: none;">
         <div class="overlay-card overlay-card--wide">
-            <div class="menu-nav">
+            <nav class="menu-nav" aria-label="Primary menu">
                 <button id="menuCampaignButton" class="menu-nav__button">Campaign</button>
                 <button id="menuArcadeButton" class="menu-nav__button">Arcade</button>
                 <button id="menuTrainingButton" class="menu-nav__button">Training</button>
                 <button id="menuOptionsButton" class="menu-nav__button">Options</button>
                 <button id="menuCreditsButton" class="menu-nav__button">Credits</button>
                 <button id="menuLeaderboardSceneButton" class="menu-nav__button">Leaderboards</button>
-            </div>
+            </nav>
 
             <h2 id="missionHeader" class="menu-heading">Loading Adriel''s Game - UFO Adventures...</h2>
             <div class="mission-grid">
@@ -113,12 +113,12 @@
         </div>
     </div>
 
-    <div id="pauseOverlay" class="overlay-screen" style="display: none;">
+    <div id="pauseOverlay" aria-hidden="true" class="overlay-screen" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="pauseOverlayTitle" style="display: none;">
         <div class="overlay-card">
-            <h2>Mission Paused</h2>
+            <h2 id="pauseOverlayTitle">Mission Paused</h2>
             <p>Take a breather, pilot. The invasion can wait a moment.</p>
             <div class="overlay-actions">
-                <button id="pauseResumeButton" class="overlay-button">Resume</button>
+                <button id="pauseResumeButton" data-autofocus="true" class="overlay-button">Resume</button>
                 <button id="pauseInventoryButton" class="overlay-button overlay-button--secondary">Inventory</button>
                 <button id="pauseEndButton" class="overlay-button overlay-button--secondary">Mission Complete</button>
                 <button id="pauseQuitButton" class="overlay-button overlay-button--danger">Abort to Menu</button>
@@ -126,23 +126,23 @@
         </div>
     </div>
 
-    <div id="inventoryOverlay" class="overlay-screen" style="display: none;">
+    <div id="inventoryOverlay" aria-hidden="true" class="overlay-screen" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="inventoryOverlayTitle" style="display: none;">
         <div class="overlay-card overlay-card--wide">
-            <h2>Inventory</h2>
+            <h2 id="inventoryOverlayTitle">Inventory</h2>
             <ul id="inventoryList" class="inventory-list"></ul>
             <div class="overlay-actions">
-                <button id="inventoryCloseButton" class="overlay-button">Return</button>
+                <button id="inventoryCloseButton" data-autofocus="true" class="overlay-button">Return</button>
             </div>
         </div>
     </div>
 
-    <div id="optionsOverlay" class="overlay-screen" style="display: none;">
+    <div id="optionsOverlay" aria-hidden="true" class="overlay-screen" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="optionsOverlayTitle" style="display: none;">
         <div class="overlay-card overlay-card--wide">
             <h2>Flight Deck Options</h2>
             <form id="optionsForm" class="options-form">
                 <div class="form-group">
                     <label for="optionsMusic">Music</label>
-                    <select id="optionsMusic">
+                    <select id="optionsMusic" data-autofocus="true">
                         <option value="on">On</option>
                         <option value="off">Off</option>
                     </select>
@@ -170,7 +170,7 @@
         </div>
     </div>
 
-    <div id="resultsOverlay" class="overlay-screen" style="display: none;">
+    <div id="resultsOverlay" aria-hidden="true" class="overlay-screen" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="resultsTitle" style="display: none;">
         <div class="overlay-card overlay-card--wide">
             <h2 id="resultsTitle">Mission Debrief</h2>
             <p id="resultsSummary" class="results-summary">Awaiting telemetry...</p>
@@ -187,7 +187,7 @@
             </section>
 
             <form id="resultsSubmissionForm" class="results-form">
-                <input id="resultsCallsign" name="callsign" type="text" placeholder="Callsign" maxlength="16" autocomplete="off" />
+                <input id="resultsCallsign" data-autofocus="true" name="callsign" type="text" placeholder="Callsign" maxlength="16" autocomplete="off" />
                 <button id="resultsSubmitButton" type="submit" class="overlay-button">Save Run</button>
             </form>
 
@@ -205,11 +205,11 @@
         </div>
     </div>
 
-    <div id="leaderboardOverlay" class="overlay-screen" style="display: none;">
+    <div id="leaderboardOverlay" aria-hidden="true" class="overlay-screen" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="leaderboardOverlayTitle" style="display: none;">
         <div class="overlay-card overlay-card--wide">
-            <h2>Global Leaderboards</h2>
+            <h2 id="leaderboardOverlayTitle">Global Leaderboards</h2>
             <label for="leaderboardMissionSelect" class="leaderboard-label">Mission</label>
-            <select id="leaderboardMissionSelect" class="leaderboard-select"></select>
+            <select id="leaderboardMissionSelect" data-autofocus="true" class="leaderboard-select"></select>
             <table id="leaderboardTable" class="results-table" aria-label="Leaderboard standings">
                 <thead><tr><th>#</th><th>Callsign</th><th>Score</th><th>Time</th></tr></thead>
                 <tbody></tbody>
@@ -220,36 +220,36 @@
         </div>
     </div>
 
-    <div id="creditsOverlay" class="overlay-screen" style="display: none;">
+    <div id="creditsOverlay" aria-hidden="true" class="overlay-screen" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="creditsOverlayTitle" style="display: none;">
         <div class="overlay-card">
-            <h2>Credits</h2>
+            <h2 id="creditsOverlayTitle">Credits</h2>
             <p>Concept & Direction: Adriel</p>
             <p>Code & Systems: UFO Adventures Team</p>
             <p>Art & FX: Creative League</p>
             <div class="overlay-actions">
-                <button id="creditsCloseButton" class="overlay-button">Back</button>
+                <button id="creditsCloseButton" data-autofocus="true" class="overlay-button">Back</button>
             </div>
         </div>
     </div>
 
-    <div id="arcadeOverlay" class="overlay-screen" style="display: none;">
+    <div id="arcadeOverlay" aria-hidden="true" class="overlay-screen" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="arcadeOverlayTitle" style="display: none;">
         <div class="overlay-card overlay-card--wide">
-            <h2>Arcade Gauntlet</h2>
+            <h2 id="arcadeOverlayTitle">Arcade Gauntlet</h2>
             <p>Survive endless waves and chase the scoreboard.</p>
             <div id="arcadeLeaderboardPreview" class="results-table"></div>
             <div class="overlay-actions">
-                <button id="arcadeStartButton" class="overlay-button">Launch Simulator</button>
+                <button id="arcadeStartButton" data-autofocus="true" class="overlay-button">Launch Simulator</button>
                 <button id="arcadeBackButton" class="overlay-button overlay-button--secondary">Back</button>
             </div>
         </div>
     </div>
 
-    <div id="trainingOverlay" class="overlay-screen" style="display: none;">
+    <div id="trainingOverlay" aria-hidden="true" class="overlay-screen" role="dialog" aria-modal="true" tabindex="-1" aria-labelledby="trainingOverlayTitle" style="display: none;">
         <div class="overlay-card overlay-card--wide">
-            <h2>Training Holodeck</h2>
+            <h2 id="trainingOverlayTitle">Training Holodeck</h2>
             <p>Practice maneuvers without risk. Perfect for rookies and veterans alike.</p>
             <div class="overlay-actions">
-                <button id="trainingStartButton" class="overlay-button">Begin Session</button>
+                <button id="trainingStartButton" data-autofocus="true" class="overlay-button">Begin Session</button>
                 <button id="trainingBackButton" class="overlay-button overlay-button--secondary">Return</button>
             </div>
         </div>

@@ -1,7 +1,9 @@
 import { Scene, SceneManager } from '../engine/scene-manager';
+import { setOverlayVisible } from '../ui/overlay-helpers';
 import { ServiceLocator } from '../engine/service-locator';
 import { ProgressionService } from '../engine/progression-service';
 import { RunSummary } from '../engine/mission-service';
+import { SceneTransitions } from '../ui/scene-transitions';
 
 interface UIHandler {
     element: HTMLElement;
@@ -13,7 +15,7 @@ export class ArcadeScene extends Scene {
     private readonly _handlers: UIHandler[] = [];
     private readonly _missionId = 'gauntlet-proving';
     private _progressionService: ProgressionService | null = null;
-    private _sceneTransitions: any | null = null;
+    private _sceneTransitions: SceneTransitions | null = null;
 
     constructor(services: ServiceLocator) {
         super('arcade', services);
@@ -21,23 +23,19 @@ export class ArcadeScene extends Scene {
 
     async onEnter(): Promise<void> {
         this._overlay = document.getElementById('arcadeOverlay');
-        if (this._overlay) {
-            this._overlay.style.display = 'flex';
-        }
+        setOverlayVisible(this._overlay, true, '#arcadeStartButton');
         this._progressionService = this.services.resolve<ProgressionService>('progressionService');
         if (this._progressionService) {
             await this._progressionService.ready();
         }
-        this._sceneTransitions = this.services.optional<any>('sceneTransitions');
+        this._sceneTransitions = this.services.optional<SceneTransitions>('sceneTransitions');
         this._renderPreview();
         this._bind();
     }
 
     async onExit(): Promise<void> {
         this._unbind();
-        if (this._overlay) {
-            this._overlay.style.display = 'none';
-        }
+        setOverlayVisible(this._overlay, false);
         this._overlay = null;
         this._progressionService = null;
         this._sceneTransitions = null;
@@ -94,7 +92,7 @@ export class ArcadeScene extends Scene {
             rankCell.textContent = String(index + 1);
             row.appendChild(rankCell);
             const callCell = document.createElement('td');
-            callCell.textContent = (run as any).callsign || 'Anon';
+            callCell.textContent = run.callsign ?? 'Anon';
             row.appendChild(callCell);
             const scoreCell = document.createElement('td');
             scoreCell.textContent = String(run.score ?? 0);

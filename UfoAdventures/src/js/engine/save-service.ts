@@ -101,11 +101,12 @@ export class SaveService {
             if (typeof window === 'undefined') {
                 return null;
             }
+            const indexedWindow = window as Window & { mozIndexedDB?: IDBFactory; webkitIndexedDB?: IDBFactory; msIndexedDB?: IDBFactory };
             return (
-                window.indexedDB ||
-                (window as any).mozIndexedDB ||
-                (window as any).webkitIndexedDB ||
-                (window as any).msIndexedDB ||
+                indexedWindow.indexedDB ||
+                indexedWindow.mozIndexedDB ||
+                indexedWindow.webkitIndexedDB ||
+                indexedWindow.msIndexedDB ||
                 null
             );
         } catch (error) {

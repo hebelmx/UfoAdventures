@@ -1,4 +1,5 @@
 import { Scene, SceneManager } from '../engine/scene-manager';
+import { setOverlayVisible } from '../ui/overlay-helpers';
 import { ServiceLocator } from '../engine/service-locator';
 import { MissionService, Mission } from '../engine/mission-service';
 import { ProgressionService } from '../engine/progression-service';
@@ -28,9 +29,7 @@ export class LeaderboardScene extends Scene {
         const table = document.getElementById('leaderboardTable');
         this._tableBody = table ? table.querySelector('tbody') : null;
 
-        if (this._overlay) {
-            this._overlay.style.display = 'flex';
-        }
+        setOverlayVisible(this._overlay, true, '#leaderboardMissionSelect');
 
         const missionService = this.services.resolve<MissionService>('missionService');
         this._progressionService = this.services.resolve<ProgressionService>('progressionService');
@@ -46,9 +45,7 @@ export class LeaderboardScene extends Scene {
 
     async onExit(): Promise<void> {
         this._unbind();
-        if (this._overlay) {
-            this._overlay.style.display = 'none';
-        }
+        setOverlayVisible(this._overlay, false);
         this._overlay = null;
         this._missionSelect = null;
         this._tableBody = null;
@@ -125,7 +122,7 @@ export class LeaderboardScene extends Scene {
             row.appendChild(rankCell);
 
             const callsignCell = document.createElement('td');
-            callsignCell.textContent = (run as any).callsign || 'Anon';
+            callsignCell.textContent = run.callsign ?? 'Anon';
             row.appendChild(callsignCell);
 
             const scoreCell = document.createElement('td');

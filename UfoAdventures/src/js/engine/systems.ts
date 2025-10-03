@@ -100,15 +100,11 @@ export class RenderSystem extends System {
 
     update(entities: Entity[], delta: number): void {
         entities.forEach(entity => {
-            if (!entity.hasComponent(Transform) || !entity.hasComponent(Sprite)) {
+            const components = getComponents(entity, Transform, Sprite);
+            if (!components) {
                 return;
             }
-
-            const transform = entity.getComponent(Transform);
-            const spriteComponent = entity.getComponent(Sprite);
-            if (!transform || !spriteComponent) {
-                return;
-            }
+            const [transform, spriteComponent] = components;
 
             const sprite = spriteComponent.sprite;
             sprite.x = transform.position.x;
@@ -829,10 +825,10 @@ export class AbilitySystem extends System {
                 try {
                     gotoAndPlay.call(animatedSprite, animation);
                 } catch (error) {
-                    (animatedSprite as unknown as { play?(arg?: any): void }).play?.(animation);
+                    (animatedSprite as unknown as { play?(arg?: unknown): void }).play?.(animation);
                 }
             } else {
-                (animatedSprite as unknown as { play?(arg?: any): void }).play?.(animation);
+                (animatedSprite as unknown as { play?(arg?: unknown): void }).play?.(animation);
             }
 
             if (typeof options.speed === 'number') {

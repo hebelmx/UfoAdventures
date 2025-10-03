@@ -24,9 +24,8 @@ export class Scene implements IScene {
         this.eventBus = services.optional<EventBus>('eventBus');
     }
 
-    // Lifecycle hooks optionally implemented by subclasses.
     async onEnter(_params?: unknown): Promise<void> {}
-    async onExit(): Promise<void> {
+    async onExit(_params?: unknown): Promise<void> {
         this._teardownSubscriptions();
     }
     async onSuspend(): Promise<void> {}
@@ -37,7 +36,7 @@ export class Scene implements IScene {
 
     protected subscribe<T>(event: string, handler: Handler<T>): () => void {
         if (!this.eventBus) {
-            console.warn(Scene  requested event subscription before EventBus registration.);
+            console.warn(`Scene ${this.name} requested event subscription before EventBus registration.`);
             return () => {};
         }
 
@@ -84,7 +83,7 @@ export class SceneManager {
         }
 
         if (this._scenes.has(name)) {
-            throw new Error(Scene  is already registered.);
+            throw new Error(`Scene ${name} is already registered.`);
         }
 
         this._scenes.set(name, scene);
@@ -122,7 +121,7 @@ export class SceneManager {
                 try {
                     await this._callIfFunction(entry.scene, 'onExit');
                 } catch (error) {
-                    console.error(SceneManager: failed to exit scene during clear: , error);
+                    console.error(`SceneManager: failed to exit scene during clear: ${entry.name}`, error);
                 }
             }
         }
@@ -152,7 +151,7 @@ export class SceneManager {
 
     _getScene(name: string): IScene {
         if (!this._scenes.has(name)) {
-            throw new Error(Scene  is not registered.);
+            throw new Error(`Scene ${name} is not registered.`);
         }
         return this._scenes.get(name)!;
     }

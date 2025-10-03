@@ -5,11 +5,14 @@ test.describe('UFO Adventures', () => {
     await page.addInitScript(() => { window.__E2E__ = true; });
     await page.goto('/index.html');
 
-    const status = await page.evaluate(() => ({
-      hasGameApp: typeof window.gameApp !== 'undefined',
-      hasGameApplicationClass: typeof GameApplication !== 'undefined',
-      hasSceneManager: window.gameApp?.sceneManager ? true : false
-    }));
+    const status = await page.evaluate(() => {
+      const app = window.gameApp ?? window.__devHandles?.gameApp;
+      return {
+        hasGameApp: typeof app !== 'undefined' && app !== null,
+        hasGameApplicationClass: typeof GameApplication !== 'undefined',
+        hasSceneManager: !!app?.getSceneManager?.()
+      };
+    });
     console.log(status);
   });
 });

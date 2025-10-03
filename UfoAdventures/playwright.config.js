@@ -14,7 +14,7 @@ module.exports = defineConfig({
     ignoreHTTPSErrors: true,
   },
   webServer: {
-    command: 'npx http-server src -p 5173 -c-1 --silent',
+    command: 'npm run dev -- --host 127.0.0.1 --port 5173 --strictPort --open false',
     url: 'http://127.0.0.1:5173/index.html',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000,

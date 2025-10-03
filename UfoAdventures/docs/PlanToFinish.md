@@ -165,6 +165,7 @@ public getSceneManager(): SceneManager | null {
 ### Deliverables
 - Updated scene files (`main-menu-scene.ts`, `gameplay-scene.ts`, `pause-scene.ts`, etc.) fully functional with the modular runtime.
 - Public helpers on `GameApplication` for tests and debugging.
+- Documented the E2E overlay/runtime expectations in  `docs/testing-notes.md`. 
 
 ### Quality Gates & Acceptance Criteria
 - No runtime warnings about missing DOM nodes during typical play.
@@ -312,6 +313,7 @@ it('persists progression runs via SaveService', async () => {
 - Work in focused branches per phase or sub-phase, using conventional commits (`feat(engine): ...`, `refactor(runtime): ...`).
 - Run manual smoke tests before opening PRs; reference acceptance criteria in descriptions.
 - Keep documentation up to date with each change so future onboarding is straightforward.
+
 
 
 

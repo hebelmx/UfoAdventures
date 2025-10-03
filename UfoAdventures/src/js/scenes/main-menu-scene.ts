@@ -5,6 +5,7 @@ import { ProgressionService } from '../engine/progression-service';
 import { AudioService } from '../engine/audio-service';
 import { RunSummary } from '../engine/mission-service';
 import type { SceneTransitions } from '../ui/scene-transitions';
+import { setOverlayVisible } from '../ui/overlay-helpers';
 
 interface MainMenuElements {
     header: HTMLElement | null;
@@ -54,6 +55,7 @@ export class MainMenuScene extends Scene {
     private _elements: MainMenuElements = createEmptyMainMenuElements();
     private readonly _cardHandlers: UIHandler[] = [];
     private readonly _uiHandlers: UIHandler[] = [];
+    private _missionKeydownHandler: ((event: KeyboardEvent) => void) | null = null;
     private _missionService: MissionService | null = null;
     private _progressionService: ProgressionService | null = null;
     private _sceneTransitions: SceneTransitions | null = null;
@@ -71,19 +73,28 @@ export class MainMenuScene extends Scene {
 
     private _setOverlayVisible(visible: boolean): void {
         const overlay = this._ensureOverlay();
-        if (overlay) {
-            overlay.style.display = visible ? 'flex' : 'none';
+        setOverlayVisible(overlay, visible);
+        if (visible) {
+            this._focusSelectedMission();
         }
     }
 
 
     async onEnter(): Promise<void> {
+        if (typeof window !== 'undefined' && window.__E2E__) {
+            console.info('MainMenuScene: onEnter invoked');
+        }
+
         const loadingScreen = document.getElementById('loadingScreen');
         if (loadingScreen) {
             loadingScreen.style.display = 'none';
         }
 
         this._setOverlayVisible(true);
+
+        if (typeof window !== 'undefined' && window.__E2E__) {
+            console.info('MainMenuScene: overlay activated for E2E');
+        }
 
         const audioService = this.services.optional<AudioService>('audioService');
         if (audioService) {
@@ -138,11 +149,13 @@ export class MainMenuScene extends Scene {
         this._selectedMissionId = defaultMission ? defaultMission.id : null;
 
         this._renderMissionList();
+        this._focusSelectedMission();
         this._renderPreview();
         this._bindPrimaryButtons();
     }
 
     async onExit(): Promise<void> {
+        this._teardownMissionNavigation();
         this._teardownMissionCards();
         this._teardownUIHandlers();
         this._missions = [];
@@ -213,6 +226,26 @@ export class MainMenuScene extends Scene {
         }
     }
 
+    private _teardownMissionNavigation(): void {
+        const list = this._elements.list;
+        if (list && this._missionKeydownHandler) {
+            list.removeEventListener('keydown', this._missionKeydownHandler);
+        }
+
+        if (list) {
+            list.removeAttribute('role');
+            const cards = list.querySelectorAll<HTMLButtonElement>('.mission-card');
+            cards.forEach(card => {
+                card.tabIndex = -1;
+                card.setAttribute('aria-selected', 'false');
+                card.setAttribute('aria-pressed', 'false');
+                card.removeAttribute('aria-current');
+            });
+        }
+
+        this._missionKeydownHandler = null;
+    }
+
     private _teardownMissionCards(): void {
         while (this._cardHandlers.length) {
             const { element, handler } = this._cardHandlers.pop()!;
@@ -244,12 +277,18 @@ export class MainMenuScene extends Scene {
         this._missions.forEach(mission => {
             const button = document.createElement('button');
             button.type = 'button';
-            button.className = 'mission-card' + (mission.id === this._selectedMissionId ? ' mission-card--active' : '');
+            const isSelected = mission.id === this._selectedMissionId;
+            button.className = 'mission-card' + (isSelected ? ' mission-card--active' : '');
+            button.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+            button.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+            button.setAttribute('role', 'option');
+            button.tabIndex = isSelected ? 0 : -1;
+            button.dataset.missionId = mission.id;
 
             const name = document.createElement('h4');
             name.textContent = mission.name;
             const description = document.createElement('p');
-            description.textContent = (mission as any).description || 'No briefing available yet.';
+            description.textContent = mission.description ?? 'No briefing available yet.';
 
             button.appendChild(name);
             button.appendChild(description);
@@ -257,6 +296,7 @@ export class MainMenuScene extends Scene {
             const handler = () => {
                 this._selectedMissionId = mission.id;
                 this._renderMissionList();
+                this._focusSelectedMission();
                 this._renderPreview();
             };
 
@@ -264,6 +304,106 @@ export class MainMenuScene extends Scene {
             listEl.appendChild(button);
             this._cardHandlers.push({ element: button, handler });
         });
+    }
+
+    private _focusSelectedMission(): void {
+        const list = this._elements.list;
+        if (!list) {
+            return;
+        }
+
+        const cards = Array.from(list.querySelectorAll<HTMLButtonElement>('.mission-card'));
+        if (!cards.length) {
+            return;
+        }
+
+        if (!this._selectedMissionId && cards[0]?.dataset.missionId) {
+            this._selectedMissionId = cards[0].dataset.missionId ?? null;
+        }
+
+        let selectedIndex = this._selectedMissionId
+            ? cards.findIndex(card => card.dataset.missionId === this._selectedMissionId)
+            : 0;
+
+        if (selectedIndex < 0) {
+            selectedIndex = 0;
+            const fallbackId = cards[0]?.dataset.missionId;
+            if (fallbackId) {
+                this._selectedMissionId = fallbackId;
+            }
+        }
+
+        list.setAttribute('role', 'listbox');
+
+        let selectedCard: HTMLButtonElement | null = null;
+        cards.forEach((card, index) => {
+            const isSelected = index === selectedIndex;
+            card.tabIndex = isSelected ? 0 : -1;
+            card.setAttribute('aria-selected', isSelected ? 'true' : 'false');
+            card.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
+            if (isSelected) {
+                card.setAttribute('aria-current', 'true');
+                selectedCard = card;
+            } else {
+                card.removeAttribute('aria-current');
+            }
+        });
+
+        if (selectedCard && typeof selectedCard.focus === 'function') {
+            selectedCard.focus({ preventScroll: true });
+        }
+
+        if (!this._missionKeydownHandler) {
+            this._missionKeydownHandler = (event: KeyboardEvent) => {
+                if (this._sceneTransitions?.isActive()) {
+                    return;
+                }
+
+                const target = (event.target as HTMLElement | null)?.closest<HTMLButtonElement>('.mission-card');
+                if (!target) {
+                    return;
+                }
+
+                const buttons = Array.from(list.querySelectorAll<HTMLButtonElement>('.mission-card'));
+                if (!buttons.length) {
+                    return;
+                }
+
+                const currentIndex = buttons.indexOf(target);
+                if (currentIndex === -1) {
+                    return;
+                }
+
+                const key = event.key;
+                const lowerKey = key.length === 1 ? key.toLowerCase() : key;
+
+                const move = (delta: number) => {
+                    event.preventDefault();
+                    const nextIndex = (currentIndex + delta + buttons.length) % buttons.length;
+                    const nextCard = buttons[nextIndex];
+                    if (nextCard) {
+                        nextCard.click();
+                    }
+                };
+
+                if (key === 'ArrowDown' || key === 'ArrowRight' || lowerKey === 's' || lowerKey === 'd') {
+                    move(1);
+                    return;
+                }
+
+                if (key === 'ArrowUp' || key === 'ArrowLeft' || lowerKey === 'w' || lowerKey === 'a') {
+                    move(-1);
+                    return;
+                }
+
+                if (key === 'Enter') {
+                    event.preventDefault();
+                    target.click();
+                }
+            };
+
+            list.addEventListener('keydown', this._missionKeydownHandler);
+        }
     }
 
     private _bindNavigation(): void {
@@ -292,13 +432,23 @@ export class MainMenuScene extends Scene {
             this._selectedMissionId = this._missions[0].id;
         }
         this._renderMissionList();
+        this._focusSelectedMission();
         this._renderPreview();
     }
 
     private _renderPreview(): void {
         const mission = this._getSelectedMission();
+        const launchButton = this._elements.launchButton;
         if (!mission) {
+            if (launchButton) {
+                launchButton.disabled = true;
+                launchButton.setAttribute('aria-disabled', 'true');
+            }
             return;
+        }
+        if (launchButton) {
+            launchButton.disabled = false;
+            launchButton.removeAttribute('aria-disabled');
         }
 
         if (this._elements.title) {

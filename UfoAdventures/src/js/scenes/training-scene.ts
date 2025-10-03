@@ -1,5 +1,7 @@
 import { Scene, SceneManager } from '../engine/scene-manager';
+import { setOverlayVisible } from '../ui/overlay-helpers';
 import { ServiceLocator } from '../engine/service-locator';
+import { SceneTransitions } from '../ui/scene-transitions';
 
 interface UIHandler {
     element: HTMLElement;
@@ -8,7 +10,7 @@ interface UIHandler {
 
 export class TrainingScene extends Scene {
     private _overlay: HTMLElement | null = null;
-    private _sceneTransitions: any | null = null;
+    private _sceneTransitions: SceneTransitions | null = null;
     private readonly _handlers: UIHandler[] = [];
     private readonly _missionId = 'training-sandbox';
 
@@ -18,18 +20,14 @@ export class TrainingScene extends Scene {
 
     async onEnter(): Promise<void> {
         this._overlay = document.getElementById('trainingOverlay');
-        if (this._overlay) {
-            this._overlay.style.display = 'flex';
-        }
-        this._sceneTransitions = this.services.optional<any>('sceneTransitions');
+        setOverlayVisible(this._overlay, true, '#trainingStartButton');
+        this._sceneTransitions = this.services.optional<SceneTransitions>('sceneTransitions');
         this._bind();
     }
 
     async onExit(): Promise<void> {
         this._unbind();
-        if (this._overlay) {
-            this._overlay.style.display = 'none';
-        }
+        setOverlayVisible(this._overlay, false);
         this._overlay = null;
         this._sceneTransitions = null;
         await super.onExit();
