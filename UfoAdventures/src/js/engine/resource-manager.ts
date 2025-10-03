@@ -177,7 +177,7 @@ export class ResourceManager {
 
             data = {
                 frames: {},
-                animations: manifestAnimations || this._deriveAnimationsFromFrames(null),
+                animations: manifestAnimations || this._deriveAnimationsFromFrames(),
                 meta: {
                     image: src,
                     scale: 1,

@@ -349,9 +349,8 @@ export class MainMenuScene extends Scene {
             }
         });
 
-        if (selectedCard && typeof selectedCard.focus === 'function') {
-            selectedCard.focus({ preventScroll: true });
-        }
+        const focusTarget = selectedCard as HTMLButtonElement | null;
+        focusTarget?.focus({ preventScroll: true });
 
         if (!this._missionKeydownHandler) {
             this._missionKeydownHandler = (event: KeyboardEvent) => {

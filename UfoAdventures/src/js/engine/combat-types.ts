@@ -12,12 +12,18 @@ export interface EffectSpawnOptions {
     alpha?: number;
     fade?: number;
     animation?: string;
+    atlasAlias?: string | null;
+    animationSpeed?: number;
+    loop?: boolean;
 }
 
 export interface EffectDescriptor {
-    atlas: string;
+    atlas?: string;
+    atlasAlias?: string;
     animation?: string;
+    sequence?: string;
     animationSpeed?: number;
+    speed?: number;
     loop?: boolean;
 }
 
@@ -164,6 +170,7 @@ export interface BehaviorTreeActionStep extends BehaviorTreeBaseNode {
     tint?: number;
     scale?: number | Vector2Like;
     alpha?: number;
+    telegraphEffect?: EffectDescriptor | string | null;
     telegrapheffect?: EffectDescriptor | string | null;
     telegraphDuration?: number;
     telegraphTint?: number;
@@ -187,6 +194,7 @@ export interface BossPhaseDefinition {
     fireRate?: number;
     behaviorTreeId?: string;
     weaponId?: string;
+    telegraphEffect?: EffectDescriptor | string | null;
     telegrapheffect?: EffectDescriptor | string | null;
     telegraphDuration?: number;
     telegraphTint?: number;
@@ -208,7 +216,8 @@ export interface BossConfig {
 }
 
 export interface BossTelegraphOptions {
-    message?: string | null;\n    effect?: EffectDescriptor | string | null;
+    message?: string | null;
+    effect?: EffectDescriptor | string | null;
     duration?: number;
     tint?: number;
     scale?: number | Vector2Like;
