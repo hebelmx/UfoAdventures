@@ -18,6 +18,10 @@
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ │
 │  │ ConfigSvc   │ │ ResourceMgr │ │ SceneMgr    │ │ AudioSvc    │ │
 │  └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘ │
+
+### UISvc Overview
+- `UiService` (`src/js/engine/ui-service.ts`) wraps the legacy DOM helpers from `src/js/ui.ts`, exposing high-level methods (health, combo, boss HUD, damage log, overlay messaging) through the ServiceLocator so gameplay systems and scenes stay decoupled from direct DOM manipulation.
+- Systems (`AbilitySystem`, `CollisionSystem`, `BossAISystem`, `UISystem`, etc.) resolve the service at runtime, allowing future UI swaps without code changes.
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ ┌─────────────┐ │
 │  │ InputSvc    │ │ EventBus    │ │ SaveSvc     │ │ UISvc       │ │
 │  └─────────────┘ └─────────────┘ └─────────────┘ └─────────────┘ │

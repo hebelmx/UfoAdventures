@@ -39,6 +39,8 @@ export class ResourceManager {
         let completed = 0;
         const total = this._manifest.length;
 
+        const degraded: string[] = [];
+
         for (const asset of this._manifest) {
             const aliasSource = asset.alias ?? asset.id ?? asset.name ?? '';
             const srcSource = asset.src ?? asset.url ?? '';
@@ -70,16 +72,21 @@ export class ResourceManager {
                 } else {
                     await PIXI.Assets.load({ alias, src });
                 }
-
-                this._loaded.add(alias);
-                completed += 1;
-                if (typeof onProgress === 'function') {
-                    onProgress(completed / total, alias);
-                }
             } catch (error) {
                 console.error('ResourceManager: failed to load asset', alias, error);
-                throw error;
+                degraded.push(alias);
+                await this._registerPlaceholderAsset(alias, asset);
             }
+
+            this._loaded.add(alias);
+            completed += 1;
+            if (typeof onProgress === 'function') {
+                onProgress(completed / total, alias);
+            }
+        }
+
+        if (degraded.length) {
+            console.warn('ResourceManager: substituted placeholder assets for:', degraded.join(', '));
         }
     }
 
@@ -216,7 +223,10 @@ export class ResourceManager {
         PIXI.Assets.cache.set(alias, spritesheet);
 
         Object.entries(spritesheet.textures).forEach(([name, tex]) => {
-            PIXI.Assets.cache.set(`${alias}:${name}`, tex);
+            const cacheKey = `${alias}:${name}`;
+            if (!PIXI.Assets.cache.has(cacheKey)) {
+                PIXI.Assets.cache.set(cacheKey, tex);
+            }
         });
     }
 
@@ -251,6 +261,17 @@ export class ResourceManager {
         this._spritesheets.set(alias, spritesheet);
         PIXI.Assets.cache.set(alias, spritesheet);
         PIXI.Assets.cache.set(`${alias}:${frameName}`, PIXI.Texture.WHITE);
+    }
+
+    private async _registerPlaceholderAsset(alias: string, asset: AssetManifestEntry): Promise<void> {
+        if (asset.type === 'spritesheet') {
+            await this._createPlaceholderSpritesheet(alias, asset);
+            return;
+        }
+
+        if (!PIXI.Assets.cache.has(alias)) {
+            PIXI.Assets.cache.set(alias, PIXI.Texture.WHITE);
+        }
     }
 
     private _normalizeAnimationMap(value: unknown): Record<string, string[]> | null {
