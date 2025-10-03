@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js';
 import { Entity } from './engine/core';
 import { SystemManager, type SystemDiagnostics } from './engine/system-manager';
 import { EntityManager } from './engine/entity-manager';
-import { PerformanceProfiler, type PerformanceSummary } from './engine/performance-profiler';
+import { PerformanceProfiler, type PerformanceSummary, type FrameMetrics } from './engine/performance-profiler';
 import { Transform, Sprite, Motion, Enemy, BehaviorTreeComponent, EnemyBehavior, Weapon, Bullet, EnemyBullet, Collider, Health, PlayerAbilities, Boss, BossPhase, getComponentOrNull, Vector2Like } from './engine/components';
 import { Player } from './entities/player';
 import {
@@ -37,6 +37,7 @@ import type {
     ProjectileSpawnPayload,
     RuntimeEntity
 } from './engine/combat-types';
+import { UiService } from './engine/ui-service';
 
 interface PerformanceStats {
     frameCount: number;
@@ -548,17 +549,24 @@ export class GameplayRuntime implements CombatGameContext {
             eventBus = null;
         }
 
+        let uiService: UiService | null = null;
+        try {
+            uiService = this.services.resolve<UiService>('uiService');
+        } catch (error) {
+            uiService = null;
+        }
+
         this._systemManager.register(new PlayerInputSystem(inputService));
-        this._systemManager.register(new BehaviorTreeSystem(this, this.services));
-        this._systemManager.register(new AbilitySystem(this, eventBus, inputService));
+        this._systemManager.register(new BehaviorTreeSystem(this, this.services, uiService));
+        this._systemManager.register(new AbilitySystem(this, eventBus, inputService, uiService));
         this._systemManager.register(new EnemyBehaviorSystem(this));
         this._systemManager.register(new MovementSystem());
         this._systemManager.register(new EffectLifetimeSystem(this));
         this._systemManager.register(new ShootingSystem(this, this.services, eventBus));
-        const collisionSystem = new CollisionSystem(this, eventBus);
+        const collisionSystem = new CollisionSystem(this, eventBus, uiService);
         this._systemManager.register(collisionSystem);
         this._collisionSystem = collisionSystem;
-        this._systemManager.register(new UISystem(this));
+        this._systemManager.register(new UISystem(this, uiService));
         this._systemManager.register(new BoundaryCleanupSystem(this));
         this._systemManager.register(new RenderSystem(this.app));
         this._systemManager.register(new CleanupSystem(this));
@@ -614,7 +622,8 @@ export class GameplayRuntime implements CombatGameContext {
 
         this._registerEntity(boss);
 
-        this._systemManager.register(new BossAISystem(this));
+        const uiService = this.services.optional<UiService>('uiService');
+        this._systemManager.register(new BossAISystem(this, uiService));
         this._systemManager.register(new BossShootingSystem(this));
     }
 

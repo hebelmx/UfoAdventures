@@ -61,15 +61,7 @@ import {
     getComponents
 } from './components';
 import { Player } from '../entities/player';
-import {
-    showMessage,
-    updateAbilityCooldown,
-    updateComboDisplay,
-    updateHealthDisplay,
-    updateLivesDisplay,
-    updateBossHealthDisplay,
-    AbilityName
-} from '../ui';
+import { UiService, type AbilityName } from './ui-service';
 
 type BehaviorTreeStepDefinition = BehaviorTreeActionStep | BehaviorTreeWaitStep;
 
@@ -163,8 +155,9 @@ export class BehaviorTreeSystem extends System {
     private readonly behaviorTreeService: BehaviorTreeService | null;
     private readonly weaponService: WeaponService | null;
     private readonly eventBus: EventBus | null;
+    private readonly uiService: UiService | null;
 
-    constructor(game: BehaviorTreeGameContext, services: ServiceLocator) {
+    constructor(game: BehaviorTreeGameContext, services: ServiceLocator, uiService: UiService | null = null) {
         super();
         this.game = game;
         this.services = services;
@@ -172,6 +165,7 @@ export class BehaviorTreeSystem extends System {
         this.behaviorTreeService = this._resolveService<BehaviorTreeService>('behaviorTreeService');
         this.weaponService = this._resolveService<WeaponService>('weaponService');
         this.eventBus = this._resolveService<EventBus>('eventBus');
+        this.uiService = uiService;
     }
 
     update(entities: Entity[], delta: number): void {
@@ -429,7 +423,7 @@ export class BehaviorTreeSystem extends System {
 
     private _handleTelegraph(entity: RuntimeEntity, step: BehaviorTreeActionStep): void {
         if (typeof step.message === 'string') {
-            showMessage(step.message, '#ffcc66');
+            this.uiService?.showMessage(step.message, '#ffcc66');
         }
 
         this.eventBus?.emit('boss:telegraph', { ...step });
@@ -626,14 +620,21 @@ export class AbilitySystem extends System {
     private readonly game: AbilityGameContext;
     private readonly eventBus: EventBus | null;
     private readonly inputService: InputService | null;
+    private readonly uiService: UiService | null;
     private readonly _handlers: Array<() => void> = [];
     private _revertTimers: Map<Entity, ReturnType<typeof setTimeout>> = new Map();
 
-    constructor(game: AbilityGameContext, eventBus: EventBus | null, inputService: InputService | null) {
+    constructor(
+        game: AbilityGameContext,
+        eventBus: EventBus | null,
+        inputService: InputService | null,
+        uiService: UiService | null = null
+    ) {
         super();
         this.game = game;
         this.eventBus = eventBus ?? null;
         this.inputService = inputService ?? null;
+        this.uiService = uiService ?? null;
         this._bindInput();
     }
 
@@ -690,8 +691,8 @@ export class AbilitySystem extends System {
             this._executeTeleport(player, abilities, teleportState);
         }
 
-        updateAbilityCooldown('comboBreaker', comboState);
-        updateAbilityCooldown('teleport', teleportState);
+        this.uiService?.updateAbilityCooldown('comboBreaker', comboState ?? null);
+        this.uiService?.updateAbilityCooldown('teleport', teleportState ?? null);
     }
 
     private _bindInput(): void {
@@ -725,7 +726,7 @@ export class AbilitySystem extends System {
 
         if ((state.timer ?? 0) > 0) {
             const label = name === 'teleport' ? 'Teleport ready in ' : 'Combo breaker ready in ';
-            showMessage?.(`${label}${state.timer.toFixed(1)}s`, '#99a0ff');
+            this.uiService?.showMessage(`${label}${state.timer.toFixed(1)}s`, '#99a0ff');
             return;
         }
 
@@ -758,8 +759,8 @@ export class AbilitySystem extends System {
         }
 
         this._playPlayerAnimation(player, 'comboBreaker', { revertAfter: 600 });
-        updateComboDisplay?.(0);
-        showMessage?.('Combo breaker unleashed!', '#ffaa33');
+        this.uiService?.updateCombo(0);
+        this.uiService?.showMessage('Combo breaker unleashed!', '#ffaa33');
         this.eventBus?.emit('ability:combo-breaker', { player });
     }
 
@@ -813,7 +814,7 @@ export class AbilitySystem extends System {
             loop: false
         });
 
-        showMessage?.('Teleport!', '#66ccff');
+        this.uiService?.showMessage('Teleport!', '#66ccff');
         this.eventBus?.emit('ability:teleport', { player, direction: normalized });
     }
 
@@ -1363,11 +1364,13 @@ export class CollisionSystem extends System {
     private readonly eventBus: EventBus | null;
     private _playerDefeated = false;
     private readonly _defeatedBosses = new WeakSet<Entity>();
+    private readonly uiService: UiService | null;
 
-    constructor(game: CombatGameContext, eventBus: EventBus | null) {
+    constructor(game: CombatGameContext, eventBus: EventBus | null, uiService: UiService | null = null) {
         super();
         this.game = game;
         this.eventBus = eventBus ?? null;
+        this.uiService = uiService ?? null;
     }
 
     update(entities: Entity[], _delta: number): void {
@@ -1456,14 +1459,14 @@ export class CollisionSystem extends System {
             this._defeatedBosses.add(boss);
             boss.isRemoved = true;
 
-            showMessage?.('Boss defeated!', '#66ff88');
+            this.uiService?.showMessage('Boss defeated!', '#66ff88');
 
-        this.eventBus?.emit<GameResultsRequest>('game:request-results', {
-            outcome: 'victory',
-            reason: 'boss-defeated',
-            mode: this.game.mode ?? 'adventure',
-            options: this.game.sceneOptions ?? {}
-        });
+            this.eventBus?.emit<GameResultsRequest>('game:request-results', {
+                outcome: 'victory',
+                reason: 'boss-defeated',
+                mode: this.game.mode ?? 'adventure',
+                options: this.game.sceneOptions ?? {}
+            });
         }
     }
 
@@ -1492,9 +1495,9 @@ export class CollisionSystem extends System {
 
         if (shieldResult.absorbed > 0) {
             if (shieldResult.broke) {
-                showMessage?.('Shield shattered!', '#ff8080');
+                this.uiService?.showMessage('Shield shattered!', '#ff8080');
             } else {
-                showMessage?.(`Shield absorbed ${shieldResult.absorbed} damage.`, '#88e0ff');
+                this.uiService?.showMessage(`Shield absorbed ${shieldResult.absorbed} damage.`, '#88e0ff');
             }
 
         this.eventBus?.emit<ShieldHitEvent>('ability:shield-hit', {
@@ -1510,7 +1513,7 @@ export class CollisionSystem extends System {
 
         health.health = Math.max(0, health.health - damage);
         this._emitDamage(playerEntity, null, damage, health, source);
-        showMessage?.('Hit! Shields dropping.', '#ff6666');
+        this.uiService?.showMessage('Hit! Shields dropping.', '#ff6666');
 
         if (health.health > 0) {
             return;
@@ -1531,7 +1534,7 @@ export class CollisionSystem extends System {
             }
 
             const remainingLives = playerStats.lives ?? 0;
-            showMessage?.(`Life lost! ${remainingLives} remaining.`, '#ffbb55');
+            this.uiService?.showMessage(`Life lost! ${remainingLives} remaining.`, '#ffbb55');
             return;
         }
 
@@ -1620,10 +1623,12 @@ export class CollisionSystem extends System {
 
 export class UISystem extends System {
     private readonly game: RuntimeGameContext;
+    private readonly uiService: UiService | null;
 
-    constructor(game: RuntimeGameContext) {
+    constructor(game: RuntimeGameContext, uiService: UiService | null = null) {
         super();
         this.game = game;
+        this.uiService = uiService;
     }
 
     update(entities: Entity[], delta: number): void {
@@ -1633,27 +1638,24 @@ export class UISystem extends System {
             if (components) {
                 const [playerComponent, health] = components;
                 const maxHealth = typeof health.max === 'number' ? health.max : 100;
-                updateHealthDisplay(health.health, maxHealth);
+                this.uiService?.updateHealth(health.health, maxHealth);
 
                 const stats = playerComponent as unknown as { combo?: number; lives?: number };
-                updateComboDisplay(stats.combo ?? 0);
-                updateLivesDisplay(stats.lives ?? 0);
+                this.uiService?.updateCombo(stats.combo ?? 0);
+                this.uiService?.updateLives(stats.lives ?? 0);
             }
         }
 
         const bossEntity = entities.find(entity => entity.hasComponent(Boss));
-        const bossBar = typeof document !== 'undefined' ? document.getElementById('bossHealthBar') : null;
         if (bossEntity) {
             const bossHealth = getComponentOrNull(bossEntity, Health);
             if (bossHealth) {
                 const max = typeof bossHealth.max === 'number' ? bossHealth.max : 500;
-                updateBossHealthDisplay(bossHealth.health, max);
-                if (bossBar) {
-                    bossBar.style.display = 'block';
-                }
+                this.uiService?.updateBossHealth(bossHealth.health, max);
+                this.uiService?.setBossHealthVisible(true);
             }
-        } else if (bossBar) {
-            bossBar.style.display = 'none';
+        } else {
+            this.uiService?.setBossHealthVisible(false);
         }
     }
 }
@@ -1662,11 +1664,13 @@ export class UISystem extends System {
 export class BossAISystem extends System {
     private readonly game: CombatGameContext;
     private readonly eventBus: EventBus | null;
+    private readonly uiService: UiService | null;
 
-    constructor(game: CombatGameContext) {
+    constructor(game: CombatGameContext, uiService: UiService | null = null) {
         super();
         this.game = game;
         this.eventBus = this._resolveEventBus(game.services);
+        this.uiService = uiService ?? null;
     }
 
     update(entities: Entity[], delta: number): void {
@@ -1698,7 +1702,7 @@ export class BossAISystem extends System {
                 currentPhase = phaseComponent.getCurrent() as BossPhaseData | null;
 
                 if (changedPhase?.message) {
-                    showMessage?.(changedPhase.message, '#66ccff');
+                    this.uiService?.showMessage(changedPhase.message, '#66ccff');
                 }
 
                 if (changedPhase) {
@@ -1806,7 +1810,7 @@ export class BossAISystem extends System {
 
     private _handleTelegraph(entity: BossRuntimeEntity, telegraph: BossTelegraphOptions): void {
         if (telegraph.message) {
-            showMessage?.(telegraph.message, '#ffcc66');
+            this.uiService?.showMessage(telegraph.message, '#ffcc66');
         }
 
         this.eventBus?.emit('boss:telegraph', {

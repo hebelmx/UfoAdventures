@@ -33,9 +33,11 @@ export class ResultsScene extends Scene {
     private _mission: Mission | null = null;
     private _summary: RunSummary | null = null;
     private _leaderboardSaved = false;
+    private readonly _uiService: UiService | null;
 
     constructor(services: ServiceLocator) {
         super('results', services);
+        this._uiService = services.optional<UiService>('uiService');
     }
 
     async onEnter(params: ResultsSceneParams = {}): Promise<void> {
@@ -358,14 +360,10 @@ export class ResultsScene extends Scene {
                 input.value = normalizedCallsign;
             }
             this._renderLeaderboard();
-            if (typeof showMessage === 'function') {
-                showMessage('Run saved to leaderboard!', '#6bffb8');
-            }
+            this._uiService?.showMessage('Run saved to leaderboard!', '#6bffb8');
         } catch (error) {
             console.error('ResultsScene: failed to record run', error);
-            if (typeof showMessage === 'function') {
-                showMessage('Unable to save run. Check console for details.', '#ff8686');
-            }
+            this._uiService?.showMessage('Unable to save run. Check console for details.', '#ff8686');
         }
     }
 

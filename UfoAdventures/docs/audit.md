@@ -10,7 +10,7 @@
 - ✅ Core services (event bus, config, resource, scene, input, save, audio, mission, behavior trees, weapons) are registered on boot (`src/js/game-application.ts:150`).
 - ⚠️ `GameApplication` drives the PIXI ticker with a fixed accumulator but does not capture per-system timings or expose the `performanceMetrics.systemTimes` map described in the spec (`src/js/game-application.ts:325`).
 - ❌ No dedicated `SystemManager`/`EntityManager`; `GameplayRuntime` manages raw arrays and pushes systems directly (`src/js/gameplay-runtime.ts:237`, `src/js/gameplay-runtime.ts:447`).
-- ❌ The spec’s `UISvc` is absent; UI updates rely on standalone DOM helpers without service registration (`src/js/ui.ts:1`).
+- ✅ `UiService` centralises HUD updates and is registered via the service locator; legacy helpers now flow through the service (`src/js/engine/ui-service.ts`, `src/js/gameplay-runtime.ts`).
 
 ### 2. Improved Scene Management (§2)
 - ✅ Scenes for bootstrap, asset loading, main menu, gameplay, pause, inventory, results, options, credits, leaderboard, arcade, and training are registered (`src/js/game-application.ts:154`-`src/js/game-application.ts:165`).

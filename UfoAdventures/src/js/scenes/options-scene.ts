@@ -5,7 +5,7 @@ import { SaveService } from '../engine/save-service';
 import { GameApplication } from '../game-application';
 
 
-import { showMessage } from '../ui';
+import { UiService } from '../engine/ui-service';
 
 interface UIHandler {
     element: HTMLElement;
@@ -32,9 +32,11 @@ export class OptionsScene extends Scene {
     private _form: HTMLFormElement | null = null;
     private readonly _storageKey = 'ufoadventures:options';
     private readonly _handlers: UIHandler[] = [];
+    private readonly _uiService: UiService | null;
 
     constructor(services: ServiceLocator) {
         super('options', services);
+        this._uiService = services.optional<UiService>('uiService');
     }
 
     async onEnter(): Promise<void> {
@@ -71,15 +73,11 @@ export class OptionsScene extends Scene {
                 event.preventDefault();
                 try {
                     await this._persistValues();
-                    if (typeof showMessage === 'function') {
-                        showMessage('Options saved.', '#6bffb8');
-                    }
+                    this._uiService?.showMessage('Options saved.', '#6bffb8');
                     this._close();
                 } catch (error) {
                     console.error('OptionsScene: failed to persist values', error);
-                    if (typeof showMessage === 'function') {
-                        showMessage('Unable to save options. See console for details.', '#ff8686');
-                    }
+                    this._uiService?.showMessage('Unable to save options. See console for details.', '#ff8686');
                 }
             };
             this._form.addEventListener('submit', submitHandler);

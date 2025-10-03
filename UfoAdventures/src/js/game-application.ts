@@ -11,6 +11,7 @@ import { MissionService } from './engine/mission-service';
 import { BehaviorTreeService } from './engine/behavior-tree-service';
 import { WeaponService } from './engine/weapon-service';
 import { ProgressionService } from './engine/progression-service';
+import { UiService } from './engine/ui-service';
 import { SceneTransitions } from './ui/scene-transitions';
 import { BootstrapScene } from './scenes/bootstrap-scene';
 import { AssetLoadingScene } from './scenes/asset-loading-scene';
@@ -118,6 +119,9 @@ export class GameApplication {
 
         const weaponService = new WeaponService();
         this.services.register('weaponService', weaponService);
+
+        const uiService = new UiService();
+        this.services.register('uiService', uiService);
 
         // Load configuration and apply to runtime services
         const config = await configService.load<GameConfiguration>();

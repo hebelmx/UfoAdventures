@@ -50,25 +50,10 @@ vi.mock('pixi.js', () => {
   };
 });
 
-vi.mock('../../src/js/ui', () => ({
-  initializeUI: vi.fn(),
-  updateHealthDisplay: vi.fn(),
-  flashHealthBar: vi.fn(),
-  updateBossHealthDisplay: vi.fn(),
-  flashBossHealthBar: vi.fn(),
-  updateComboDisplay: vi.fn(),
-  updateLivesDisplay: vi.fn(),
-  addDamageLogEntry: vi.fn(),
-  updateAbilityCooldown: vi.fn(),
-  setHudMode: vi.fn(),
-  showMessage: vi.fn()
-}));
-
 import { Entity } from '../../src/js/engine/core';
 import { Transform, Motion, PlayerAbilities } from '../../src/js/engine/components';
 import { Player } from '../../src/js/entities/player';
 import { AbilitySystem } from '../../src/js/engine/systems';
-import { updateAbilityCooldown } from '../../src/js/ui';
 
 const createGameStub = () => {
   const screen = { width: 800, height: 600 };
@@ -85,6 +70,7 @@ describe('AbilitySystem integration basics', () => {
   let eventBus;
   let inputService;
   let abilitySystem;
+  let uiService;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -95,7 +81,11 @@ describe('AbilitySystem integration basics', () => {
       getAxisValue: vi.fn(() => 0),
       isActionActive: vi.fn(() => false)
     };
-    abilitySystem = new AbilitySystem(game, eventBus, inputService);
+    uiService = {
+      updateAbilityCooldown: vi.fn(),
+      showMessage: vi.fn()
+    };
+    abilitySystem = new AbilitySystem(game, eventBus, inputService, uiService);
   });
 
   it('initialises PlayerAbilities cooldown defaults', () => {
@@ -127,8 +117,9 @@ describe('AbilitySystem integration basics', () => {
     expect(abilityState.timer).toBeCloseTo(abilityState.cooldown, 5);
     expect(abilityState.queued).toBe(false);
 
-    const teleportUpdate = updateAbilityCooldown.mock.calls.find(([name]) => name === 'teleport');
+    const teleportUpdate = uiService.updateAbilityCooldown.mock.calls.find(([name]) => name === 'teleport');
     expect(teleportUpdate).toBeTruthy();
     expect(teleportUpdate[1].timer).toBeGreaterThan(0);
+    expect(uiService.showMessage).toHaveBeenCalledWith('Teleport!', '#66ccff');
   });
 });

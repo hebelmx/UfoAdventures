@@ -115,22 +115,24 @@
 ### Story 1.4: Register a UI Service for HUD and Overlay Control
 **Narrative:** As UI engineers, we need a service to orchestrate HUD state per the architecture (`UISvc`) so scenes access UI via the locator.
 
+**Status:** In progress — `UiService` is registered and scenes/systems now depend on it; documentation/manual sign-off still pending.
+
 **Acceptance Criteria**
 - Given the ticker runs, when frames exceed the fixed timestep, then a MAX_FRAME_SKIP guard prevents more than five updates per render.
 - Given an interpolation factor is required, when render callbacks run, then systems receive interpolation leveraging accumulator state.
 - Given performance overlay is open, when frames render, then metrics (FPS, frame time, per-system data) show live values derived from `PerformanceProfiler`.
 
 **Definition of Done**
-- [ ] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
-- [ ] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
-- [ ] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
-- [ ] Vitest suite passes (`npm run test:unit`).
+- [x] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
+- [x] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
+- [x] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
+- [x] Vitest suite passes (`npm run test:unit`).
 - [ ] Manual sanity check: throttle browser to 4× CPU slowdown, verify skip guard triggers without runtime stall.
 
-- [ ] `UiService` created and registered during boot.
-- [ ] Existing `src/js/ui.ts` refactored into service method(s).
-- [ ] Scene classes updated to depend on service rather than direct imports.
-- [ ] Unit tests for service API (happy-dom) ensure DOM updates fire.
+- [x] `UiService` created and registered during boot.
+- [x] Existing `src/js/ui.ts` refactored into service method(s).
+- [x] Scene classes updated to depend on service rather than direct imports.
+- [x] Unit tests for service API (happy-dom) ensure DOM updates fire.
 - [ ] Documentation snippet added to README or docs describing usage.
 
 ## Epic 2: Scene Flow & States

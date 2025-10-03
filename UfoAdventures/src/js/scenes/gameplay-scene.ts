@@ -11,8 +11,7 @@ import type { RunSummary } from '../engine/mission-service';
 import { GameplayRuntime, RuntimeStartOptions } from '../gameplay-runtime';
 import { Player } from '../entities/player';
 import { Boss, Enemy } from '../engine/components';
-import { flashHealthBar, flashBossHealthBar, addDamageLogEntry } from '../ui';
-import type { DamageLogEntry } from '../ui';
+import { UiService, type DamageLogEntry } from '../engine/ui-service';
 
 interface GameplayEnterParams {
     mode?: string;
@@ -27,9 +26,11 @@ export class GameplayScene extends Scene {
     private readonly _inputBindings: (() => void)[] = [];
     private _activeOptions: BehaviorSceneOptions | null = null;
     private _missionId: string | null = null;
+    private readonly _uiService: UiService | null;
 
     constructor(services: ServiceLocator) {
         super('gameplay', services);
+        this._uiService = services.optional<UiService>('uiService');
     }
 
     async onEnter(params: GameplayEnterParams = {}): Promise<void> {
@@ -245,31 +246,25 @@ export class GameplayScene extends Scene {
             if (targetEntity.hasComponent(Player)) {
                 entryType = 'player';
                 label = 'Player';
-                if (typeof flashHealthBar === 'function') {
-                    flashHealthBar();
-                }
+                this._uiService?.flashPlayerHealth();
             } else if (targetEntity.hasComponent(Boss)) {
                 entryType = 'boss';
                 label = 'Boss';
-                if (typeof flashBossHealthBar === 'function') {
-                    flashBossHealthBar();
-                }
+                this._uiService?.flashBossHealth();
             } else if (targetEntity.hasComponent(Enemy)) {
                 entryType = 'enemy';
                 label = 'Enemy';
             }
         }
 
-        if (typeof addDamageLogEntry === 'function') {
-            const entry: DamageLogEntry = {
-                target: label,
-                amount,
-                remainingHealth: remaining,
-                source: damageSource ?? undefined,
-                type: entryType as DamageLogEntry['type']
-            };
-            addDamageLogEntry(entry);
-        }
+        const entry: DamageLogEntry = {
+            target: label,
+            amount,
+            remainingHealth: remaining,
+            source: damageSource ?? undefined,
+            type: entryType as DamageLogEntry['type']
+        };
+        this._uiService?.addDamageLogEntry(entry);
     }
 
     private _handleResultsRequest(payload?: GameResultsRequest): void {
