@@ -82,6 +82,7 @@
 ### Story 1.3.3: Instrument Loop Metrics with Performance Profiler
 **Narrative:** As a diagnostics engineer, I need per-frame metrics recorded so QA can verify timing budgets and frame skips in the overlay.
 **Context & Constraints:** Wrap update and render segments with `PerformanceProfiler` spans, expose frame data through `GameplayRuntime.getPerformanceSummary()`, and surface it in the dev HUD.
+**Status:** In progress — profiler wiring and overlay updates merged; manual HUD validation still outstanding.
 
 **Acceptance Criteria**
 - Given `_onTick` executes, when a frame completes, then the profiler records update duration, render duration, and frame skip count.
@@ -89,9 +90,9 @@
 - Given tooling requests metrics, when `getPerformanceSummary()` is called after a frame, then it returns the latest profiler sample.
 
 **Definition of Done**
-- [ ] `PerformanceProfiler` instrumentation wraps both update and render paths in `GameApplication`/`GameplayRuntime`.
-- [ ] Dev overlay panels render frame time, update count, interpolation, and per-system timings.
-- [ ] Automated coverage validates profiler buffers and summary accessors.
+- [x] `PerformanceProfiler` instrumentation wraps both update and render paths in `GameApplication`/`GameplayRuntime`.
+- [x] Dev overlay panels render frame time, update count, interpolation, and per-system timings.
+- [x] Automated coverage validates profiler buffers and summary accessors.
 - [ ] Manual smoke with overlay enabled shows live data and no console warnings.
 - [ ] docs/audit.md entry on missing metrics marked resolved with implementation notes.
 

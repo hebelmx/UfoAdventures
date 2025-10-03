@@ -17,6 +17,14 @@ describe('GameApplication fixed-step guard', () => {
 
         (gameApp as any)._sceneManager = { fixedUpdate, update, render };
 
+        const runtimeStub = {
+            setFrameSkipCount: vi.fn(),
+            finalizeFrame: vi.fn()
+        };
+
+        const services = (gameApp as any).services;
+        services.replace('gameplayRuntime', runtimeStub);
+
         const ticker = {
             deltaMS: 0,
             add: vi.fn(),
@@ -44,6 +52,10 @@ describe('GameApplication fixed-step guard', () => {
         expect((gameApp as any)._tickInterpolation).toBeCloseTo(extraSteps % 1, 6);
         expect(render).toHaveBeenCalledTimes(1);
         expect(render.mock.calls[0][0]).toBeCloseTo(extraSteps % 1, 6);
+        expect(runtimeStub.setFrameSkipCount).toHaveBeenCalledWith(maxSkip);
+        expect(runtimeStub.finalizeFrame).toHaveBeenCalledTimes(1);
+        expect(runtimeStub.finalizeFrame.mock.calls[0][0]).toBeCloseTo(deltaSeconds * 1000, 6);
+        expect(runtimeStub.finalizeFrame.mock.calls[0][1]).toBeCloseTo(extraSteps % 1, 6);
     });
 
     it('resets accumulator when ticker pauses and resumes', () => {

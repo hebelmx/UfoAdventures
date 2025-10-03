@@ -136,9 +136,14 @@ export class GameplayRuntime implements CombatGameContext {
             return;
         }
 
+        this._profiler.markStart('frame:update');
         this._frameInterpolation = interpolation;
-        this._systemManager.update(this.entities, delta);
-        this._systemDiagnostics = this._systemManager.getDiagnosticsSnapshot();
+        try {
+            this._systemManager.update(this.entities, delta);
+            this._systemDiagnostics = this._systemManager.getDiagnosticsSnapshot();
+        } finally {
+            this._profiler.markEnd('frame:update');
+        }
 
         this._updatePerformanceOverlay(delta);
     }
@@ -146,7 +151,16 @@ export class GameplayRuntime implements CombatGameContext {
 
     render(interpolation: number): void {
         this._frameInterpolation = interpolation;
-        this._systemManager.render(this.entities, interpolation);
+        if (!this._isRunning || this._paused) {
+            return;
+        }
+
+        this._profiler.markStart('frame:render');
+        try {
+            this._systemManager.render(this.entities, interpolation);
+        } finally {
+            this._profiler.markEnd('frame:render');
+        }
     }
 
     setFrameSkipCount(count: number): void {
@@ -157,11 +171,36 @@ export class GameplayRuntime implements CombatGameContext {
         const clampedDuration = Number.isFinite(frameDurationMs) && frameDurationMs >= 0 ? frameDurationMs : 0;
         const fps = clampedDuration > 0 ? 1000 / clampedDuration : undefined;
 
+        let activeBullets = 0;
+        let enemyBullets = 0;
+        let activeEffects = 0;
+
+        for (const entity of this.entities) {
+            const poolId = (entity as any).poolId;
+            if (poolId === 'bullet') {
+                activeBullets += 1;
+            } else if (poolId === 'enemyBullet') {
+                enemyBullets += 1;
+            } else if (poolId === 'effect') {
+                activeEffects += 1;
+            }
+        }
+
+        const collisionDiagnostics = this._collisionSystem && typeof this._collisionSystem.getDiagnostics === 'function'
+            ? this._collisionSystem.getDiagnostics()
+            : null;
+
         this._profiler.recordFrame({
             frameMs: clampedDuration,
             fps,
             frameSkips: this._lastFrameSkips,
-            interpolation
+            interpolation,
+            entities: this.entities.length,
+            bullets: activeBullets,
+            enemyBullets,
+            effects: activeEffects,
+            gridCells: collisionDiagnostics?.cells,
+            gridEntities: collisionDiagnostics?.entities
         });
     }
 
@@ -381,6 +420,7 @@ export class GameplayRuntime implements CombatGameContext {
 
         const lines = [
             `FPS: ${fpsDisplay} (frame ${frameDisplay}ms)`,
+            `Frame Skips: ${this._lastFrameSkips}`,
             `Interpolation: ${this._frameInterpolation.toFixed(2)}`,
             `Entities: ${this.entities.length}`,
             `Player Bullets A:${activeBullets} | Pool:${bulletPool ? bulletPool.size() : 0}`,
@@ -396,6 +436,31 @@ export class GameplayRuntime implements CombatGameContext {
             lines.push(`Enemies ${enemySummaries.join(' ')}`);
         } else {
             lines.push('Enemies none');
+        }
+
+        const summary = this._profiler.getSummary();
+        const updateStats = summary.measurements['frame:update'];
+        const renderStats = summary.measurements['frame:render'];
+
+        if (updateStats) {
+            lines.push(`Update avg:${updateStats.averageMs.toFixed(2)}ms max:${updateStats.maxMs.toFixed(2)}ms`);
+        }
+
+        if (renderStats) {
+            lines.push(`Render avg:${renderStats.averageMs.toFixed(2)}ms max:${renderStats.maxMs.toFixed(2)}ms`);
+        }
+
+        const systemMetrics = Object.entries(summary.measurements)
+            .filter(([key]) => key.startsWith('system:'))
+            .sort(([, a], [, b]) => (b.averageMs ?? 0) - (a.averageMs ?? 0))
+            .slice(0, 3);
+
+        if (systemMetrics.length) {
+            lines.push('Systems:');
+            for (const [key, stats] of systemMetrics) {
+                const name = key.replace('system:', '');
+                lines.push(`  ${name}: ${stats.averageMs.toFixed(2)}ms (max ${stats.maxMs.toFixed(2)}ms)`);
+            }
         }
 
         this._performanceText.text = lines.join('\\n');

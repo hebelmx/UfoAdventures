@@ -19,8 +19,8 @@
 - ❌ Victory/defeat/result states collapse into a single results overlay rather than distinct scenes listed in the design (`src/js/scenes/results-scene.ts:26`).
 
 ### 3. Enhanced Game Loop with Performance Monitoring (§3)
-- ✅ `_onTick` enforces the documented `MAX_FRAME_SKIP` guard and forwards interpolation to the render pipeline (`src/js/game-application.ts`, `src/js/gameplay-runtime.ts`).
-- ❌ `PerformanceProfiler` is implemented yet unused anywhere in the runtime (`src/js/engine/performance-profiler.ts:33`).
+- ✅ `_onTick` enforces the documented `MAX_FRAME_SKIP` guard, forwards interpolation, and now records frame/update/render metrics through `PerformanceProfiler` (`src/js/game-application.ts`, `src/js/gameplay-runtime.ts`).
+- ✅ `PerformanceProfiler` instrumentation wraps update/render paths and surfaces metrics in the HUD overlay (`src/js/engine/system-manager.ts`, `src/js/gameplay-runtime.ts`).
 
 ### 4. Enhanced Component System (§4)
 - ✅ Core components (`Transform`, `Sprite`, `Motion`, `Weapon`, `PlayerAbilities`, `Boss`, `Enemy`, `Health`) exist and match the high-level ECS approach (`src/js/engine/components.ts:60`, `src/js/engine/components.ts:187`, `src/js/engine/components.ts:249`).
