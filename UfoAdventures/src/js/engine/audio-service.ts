@@ -67,10 +67,18 @@ export class AudioService {
         this._currentMusic = null;
         const music = Array.isArray(config.music) ? config.music : [];
         const sfx = Array.isArray(config.sfx) ? config.sfx : [];
-        const loaders: Promise<void>[] = []; 
+        const loaders: Promise<void>[] = [];
         music.forEach(def => loaders.push(this._loadTrack(def, 'music')));
         sfx.forEach(def => loaders.push(this._loadTrack(def, 'sfx')));
-        await Promise.all(loaders);
+        const results = await Promise.allSettled(loaders);
+        const failures = results
+            .map((result, index) => ({ result, index }))
+            .filter(entry => entry.result.status === 'rejected')
+            .map(entry => ([...music, ...sfx][entry.index]?.alias ?? 'unknown'));
+
+        if (failures.length) {
+            console.warn('AudioService: degraded tracks (fallback to muted stubs):', failures.join(', '));
+        }
         this.applySettings(settings);
     }
 
@@ -280,12 +288,19 @@ export class AudioService {
                     audio.removeEventListener('canplaythrough', onReady);
                     audio.removeEventListener('error', onError);
                 };
+                const timeout = window.setTimeout(() => {
+                    cleanup();
+                    console.warn('AudioService: timeout waiting for track readiness', definition.alias);
+                    resolve(audio);
+                }, 1500);
                 const onReady = () => {
                     cleanup();
+                    window.clearTimeout(timeout);
                     resolve(audio);
                 };
                 const onError = (event: Event | string) => {
                     cleanup();
+                    window.clearTimeout(timeout);
                     reject(new Error(`Audio failed to load: ${typeof event === 'string' ? event : audio.src}`));
                 };
                 audio.addEventListener('canplaythrough', onReady, { once: true });
