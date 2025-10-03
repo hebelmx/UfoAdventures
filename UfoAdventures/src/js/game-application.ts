@@ -354,6 +354,7 @@ export class GameApplication {
         this._tickInterpolation = this._accumulator / this._fixedDelta;
 
         this._sceneManager.update(deltaSeconds);
+        this._sceneManager.render(this._tickInterpolation);
     }
 
     private _resetAccumulator(): void {

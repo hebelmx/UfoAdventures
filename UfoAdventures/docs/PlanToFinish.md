@@ -65,6 +65,7 @@
 ### Story 1.3.2: Introduce Render Interpolation Pipeline
 **Narrative:** As a gameplay engineer, I need runtime render callbacks to receive interpolation factors so animations stay smooth during catch-up frames.
 **Context & Constraints:** Extend `GameplayRuntime` update/render signatures to accept interpolation and propagate it to renderable systems per the interpolation pseudocode in docs/UfoGameDesign_Architecture.md.
+**Status:** In progress — runtime now forwards interpolation; manual validation and HUD surfacing still pending.
 
 **Acceptance Criteria**
 - Given `_onTick` finishes fixed-step updates, when it calls the render pipeline, then it calculates interpolation as accumulator divided by the fixed timestep.
@@ -72,9 +73,9 @@
 - Given interpolation is monitored, when the dev overlay is open, then the reported interpolation stays within the `[0,1)` range.
 
 **Definition of Done**
-- [ ] `GameApplication._onTick` computes interpolation and forwards it to `GameplayRuntime.render`.
-- [ ] `GameplayRuntime` passes interpolation to renderable systems and preserves existing update order.
-- [ ] Tests cover interpolation bounds and propagation to at least one render system.
+- [x] `GameApplication._onTick` computes interpolation and forwards it to `GameplayRuntime.render`.
+- [x] `GameplayRuntime` passes interpolation to renderable systems and preserves existing update order.
+- [x] Tests cover interpolation bounds and propagation to at least one render system.
 - [ ] Manual throttle run shows smoother motion without stepping artifacts.
 - [ ] docs/audit.md notes for interpolation updated or cleared.
 

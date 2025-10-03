@@ -94,6 +94,14 @@ export class GameplayScene extends Scene {
         this.runtime.update(normalized);
     }
 
+    render(interpolation: number): void {
+        if (!this.runtime) {
+            return;
+        }
+
+        this.runtime.render(interpolation);
+    }
+
     async onExit(): Promise<void> {
         this._releaseInputCommands();
         if (this.runtime) {

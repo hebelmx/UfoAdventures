@@ -13,8 +13,9 @@ describe('GameApplication fixed-step guard', () => {
         const gameApp = new GameApplication();
         const fixedUpdate = vi.fn();
         const update = vi.fn();
+        const render = vi.fn();
 
-        (gameApp as any)._sceneManager = { fixedUpdate, update };
+        (gameApp as any)._sceneManager = { fixedUpdate, update, render };
 
         const ticker = {
             deltaMS: 0,
@@ -41,6 +42,8 @@ describe('GameApplication fixed-step guard', () => {
         expect(update.mock.calls[0][0]).toBeCloseTo(deltaSeconds, 6);
         expect((gameApp as any)._accumulator).toBeCloseTo(fractionalRemainder, 6);
         expect((gameApp as any)._tickInterpolation).toBeCloseTo(extraSteps % 1, 6);
+        expect(render).toHaveBeenCalledTimes(1);
+        expect(render.mock.calls[0][0]).toBeCloseTo(extraSteps % 1, 6);
     });
 
     it('resets accumulator when ticker pauses and resumes', () => {
@@ -83,7 +86,7 @@ describe('GameApplication fixed-step guard', () => {
         };
 
         (gameApp as any).pixiApp = { ticker };
-        (gameApp as any)._sceneManager = { fixedUpdate: vi.fn(), update: vi.fn() };
+        (gameApp as any)._sceneManager = { fixedUpdate: vi.fn(), update: vi.fn(), render: vi.fn() };
         (gameApp as any)._startTicker();
 
         (gameApp as any)._accumulator = 0.2;

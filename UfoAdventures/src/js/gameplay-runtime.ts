@@ -146,6 +146,7 @@ export class GameplayRuntime implements CombatGameContext {
 
     render(interpolation: number): void {
         this._frameInterpolation = interpolation;
+        this._systemManager.render(this.entities, interpolation);
     }
 
     setFrameSkipCount(count: number): void {
