@@ -153,6 +153,18 @@ export class GameplayRuntime implements CombatGameContext {
         this._lastFrameSkips = count;
     }
 
+    finalizeFrame(frameDurationMs: number, interpolation: number): void {
+        const clampedDuration = Number.isFinite(frameDurationMs) && frameDurationMs >= 0 ? frameDurationMs : 0;
+        const fps = clampedDuration > 0 ? 1000 / clampedDuration : undefined;
+
+        this._profiler.recordFrame({
+            frameMs: clampedDuration,
+            fps,
+            frameSkips: this._lastFrameSkips,
+            interpolation
+        });
+    }
+
     getPerformanceSummary(): PerformanceSummary {
         return this._profiler.getSummary();
     }

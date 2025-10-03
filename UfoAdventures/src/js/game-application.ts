@@ -25,6 +25,7 @@ import { LeaderboardScene } from './scenes/leaderboard-scene';
 import { ArcadeScene } from './scenes/arcade-scene';
 import { TrainingScene } from './scenes/training-scene';
 import type { GameConfiguration, ApplicationScreenConfig } from './engine/game-configuration';
+import type { GameplayRuntime } from './gameplay-runtime';
 
 export class GameApplication {
     private static readonly MAX_FRAME_SKIP = 5;
@@ -340,6 +341,8 @@ export class GameApplication {
 
         this._accumulator += deltaSeconds;
 
+        const gameplayRuntime = this.services.optional<GameplayRuntime>('gameplayRuntime');
+
         let stepsExecuted = 0;
         while (this._accumulator >= this._fixedDelta && stepsExecuted < GameApplication.MAX_FRAME_SKIP) {
             this._sceneManager.fixedUpdate(this._fixedDelta);
@@ -353,8 +356,16 @@ export class GameApplication {
 
         this._tickInterpolation = this._accumulator / this._fixedDelta;
 
+        if (gameplayRuntime) {
+            gameplayRuntime.setFrameSkipCount(stepsExecuted);
+        }
+
         this._sceneManager.update(deltaSeconds);
         this._sceneManager.render(this._tickInterpolation);
+
+        if (gameplayRuntime) {
+            gameplayRuntime.finalizeFrame(deltaSeconds * 1000, this._tickInterpolation);
+        }
     }
 
     private _resetAccumulator(): void {
