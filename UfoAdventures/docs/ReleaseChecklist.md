@@ -1,43 +1,34 @@
 # UFO Adventures Release Checklist
 
-## Environment Prerequisites
-- Node.js 20.19+ (`nvm use 20` if using nvm; the project was verified with v20.19.5).
-- Browsers for Playwright: `npx playwright install`.
-- Host packages for Playwright (Chromium/WebKit/Firefox). On Debian/Ubuntu run `sudo npx playwright install-deps` or install `libnspr4 libnss3 libgbm1 libasound2t64` equivalents.
+## Pre-Flight
+- Review `docs/PlanToFinish.md` for outstanding cross-phase dependencies.
+- Confirm `package.json` version bump and changelog entries are prepared.
+- Verify environment variables/secrets for deployment target are in place.
 
-## Automated Verification
-1. Static analysis
-   ```bash
-   npx tsc --noEmit
-   ```
-2. Production build
-   ```bash
-   npm run build
-   ```
-3. Unit regression (runtime pooling)
-   ```bash
-   npx vitest run tests/unit/pooling.spec.ts
-   ```
-4. End-to-end smoke suite (requires Playwright deps)
-   ```bash
-   npx playwright test
-   ```
-   > If the run fails with missing system libraries, install the dependencies listed above and rerun.
+## Test Matrix
+- `npm run test:unit` (vitest) and review coverage report in `coverage/index.html`.
+- `npm run test:e2e` (Playwright) across Chromium + WebKit.
+- Manual browser smoke on Chrome, Firefox, and Edge at 1920x1080 + 1280x720.
+- Accessibility spot checks: keyboard-only navigation, high-contrast mode, screen-reader labels for HUD buttons.
 
-## Manual Smoke Tests
-- Launch dev server (`npm run dev`) and verify:
-  - Main menu mission cards render descriptions, rewards, and leaderboard data.
-  - Starting a mission transitions to gameplay; WASD/Space firing, O shield, P stasis behave.
-  - Pause menu (Escape) resumes/end mission buttons work and return to results.
-  - Results screen shows mission summary, allows retry and leaderboard submission.
-- Open options and inventory overlays from the main menu/pause menu, confirm close buttons restore the previous scene.
-- Execute `src/test_asset_loading.html` and `src/test_pixi.html` to ensure CDN assets still load.
+## Content & Audio Validation
+- Serve via `npm run dev` and play through Operation First Contact and Tarak boss modes.
+- Confirm cyborg drone/sentinel waves, boss telegraphs, and ability VFX play with correct atlases.
+- Run `src/test_asset_loading.html` and `src/test_pixi.html` to ensure no missing textures.
+- Audit audio toggles: flip music/SFX in options menu, ensure immediate effect; verify all runtime cues fire (combo breaker, teleport, boss phase, results).
 
-## Runtime Observability
-- `window.gameApp` and `window.gameplayRuntime` are available in dev/Playwright for debugging (`gameApp.getSceneManager()`, `gameplayRuntime.getActiveCounts()`).
-- Use `runtime.getAbilitySnapshot()` during tests to assert shield/stasis states.
+## Performance & Telemetry
+- Enable performance overlay (`F6`) during peak combat (boss phase gamma) and capture FPS >55.
+- Record load times (first paint <3s on target hardware) and GPU memory usage after asset consolidation.
+- Validate persistence: complete a run, reload, confirm `ProgressionService` shows recorded summary.
 
-## Reporting
-- Attach the latest `npm run build` output and test results to the release notes.
-- Document any skipped tests (e.g., Playwright blocked by missing system deps) and mitigation steps.
+## Build & Packaging
+- `npm run build` and archive the `dist/` folder with commit SHA in filename.
+- Spot-check production build locally via `python -m http.server 5173` -> `http://localhost:5173/dist/`.
+- Upload build artefact to staging CDN or release bucket; update integrity hashes if CDN caching is used.
 
+## Documentation & Sign-Off
+- Update `docs/changelog.md` (or project log) with highlights, known issues, and testing summary.
+- Attach gameplay footage (GIF/video) for QA evidence in release notes.
+- Collect sign-off from engineering, art, audio, and QA leads.
+- Tag release in git and draft store/portal submission package.

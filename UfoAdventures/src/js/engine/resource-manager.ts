@@ -154,6 +154,19 @@ export class ResourceManager {
             }
         }
 
+        const manifestAnimations = this._normalizeAnimationMap(asset.animations);
+
+        if (data) {
+            if (manifestAnimations) {
+                const existing = typeof data.animations === 'object' && data.animations !== null ? data.animations : {};
+                data.animations = { ...existing, ...manifestAnimations };
+            }
+
+            if (!this._hasAnimationFrames(data.animations)) {
+                data.animations = this._deriveAnimationsFromFrames(data.frames);
+            }
+        }
+
         if (!data) {
             const width = asset.width ?? texture.width ?? texture.baseTexture?.width ?? 0;
             const height = asset.height ?? texture.height ?? texture.baseTexture?.height ?? 0;
@@ -164,7 +177,7 @@ export class ResourceManager {
 
             data = {
                 frames: {},
-                animations: asset.animations || {},
+                animations: manifestAnimations || this._deriveAnimationsFromFrames(null),
                 meta: {
                     image: src,
                     scale: 1,
@@ -190,9 +203,9 @@ export class ResourceManager {
                 };
             });
 
-            if (!Object.keys(data.animations).length) {
+            if (!this._hasAnimationFrames(data.animations)) {
                 const defaultFrameName = frames[0].name;
-                data.animations.idle = [defaultFrameName];
+                data.animations = { idle: [defaultFrameName] };
             }
         }
 
@@ -210,16 +223,10 @@ export class ResourceManager {
     private async _createPlaceholderSpritesheet(alias: string, asset: AssetManifestEntry = {} as AssetManifestEntry): Promise<void> {
         const frameName = `${alias}__frame__`;
         const baseTexture = PIXI.Texture.WHITE.baseTexture;
-        const animations: { [key: string]: string[] } = {};
-        const configured = asset.animations && typeof asset.animations === 'object' ? Object.keys(asset.animations) : [];
-
-        if (configured.length) {
-            configured.forEach((key) => {
-                animations[key] = [frameName];
-            });
-        } else {
-            animations.idle = [frameName];
-        }
+        const manifestAnimations = this._normalizeAnimationMap(asset.animations);
+        const animations = manifestAnimations && Object.keys(manifestAnimations).length
+            ? manifestAnimations
+            : { idle: [frameName] };
 
         const data = {
             frames: {
@@ -245,6 +252,69 @@ export class ResourceManager {
         PIXI.Assets.cache.set(alias, spritesheet);
         PIXI.Assets.cache.set(`${alias}:${frameName}`, PIXI.Texture.WHITE);
     }
+
+    private _normalizeAnimationMap(value: unknown): Record<string, string[]> | null {
+        if (!value || typeof value !== 'object') {
+            return null;
+        }
+
+        const result: Record<string, string[]> = {};
+        Object.entries(value as Record<string, unknown>).forEach(([name, frames]) => {
+            if (!frames) {
+                return;
+            }
+            if (Array.isArray(frames)) {
+                const normalized = frames.filter(frame => typeof frame === 'string');
+                if (normalized.length) {
+                    result[name] = normalized;
+                }
+                return;
+            }
+
+            if (typeof frames === 'string') {
+                result[name] = [frames];
+            }
+        });
+
+        return Object.keys(result).length ? result : null;
+    }
+
+    private _hasAnimationFrames(animations: Record<string, unknown> | null | undefined): boolean {
+        if (!animations || typeof animations !== 'object') {
+            return false;
+        }
+
+        return Object.values(animations).some(frames => Array.isArray(frames) && frames.length > 0);
+    }
+
+    private _deriveAnimationsFromFrames(frames?: Record<string, unknown>): Record<string, string[]> {
+        if (!frames || typeof frames !== 'object') {
+            return {};
+        }
+
+        const frameNames = Object.keys(frames);
+        if (!frameNames.length) {
+            return {};
+        }
+
+        const grouped: Record<string, string[]> = {};
+        frameNames.forEach(name => {
+            const key = name.split(/[\/:-]/, 1)[0] || 'idle';
+            if (!grouped[key]) {
+                grouped[key] = [];
+            }
+            grouped[key].push(name);
+        });
+
+        Object.keys(grouped).forEach(key => {
+            grouped[key] = grouped[key]
+                .slice()
+                .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+        });
+
+        return Object.keys(grouped).length ? grouped : {};
+    }
+
 }
 
 

@@ -561,9 +561,7 @@ export class GameplayRuntime implements CombatGameContext {
         if (resourceManager && atlasAlias) {
             const spritesheet = resourceManager.getSpritesheet(atlasAlias);
             if (spritesheet) {
-                const animations = spritesheet.animations ?? {};
-                const animationName = animation in animations ? animation : 'idle';
-                const frames = animations[animationName] ?? animations.idle ?? [];
+                const frames = this._resolveAnimationFrames(spritesheet, animation ?? 'idle');
                 if (frames.length) {
                     const animated = new PIXI.AnimatedSprite(frames);
                     animated.animationSpeed = speed ?? 0.1;
@@ -596,6 +594,33 @@ export class GameplayRuntime implements CombatGameContext {
         }
 
         return displayObject;
+    }
+
+    private _resolveAnimationFrames(spritesheet: PIXI.Spritesheet, animation: string): PIXI.Texture[] {
+        const animations = spritesheet.animations ?? {};
+        if (animations && animations[animation] && animations[animation].length) {
+            return animations[animation].slice();
+        }
+
+        if (animations && animations.idle && animations.idle.length) {
+            return animations.idle.slice();
+        }
+
+        const textures = spritesheet.textures ?? {};
+        const textureNames = Object.keys(textures);
+        if (!textureNames.length) {
+            return [];
+        }
+
+        const normalizedName = animation?.toLowerCase() ?? 'idle';
+        const prefixed = textureNames.filter(name => {
+            const lower = name.toLowerCase();
+            return lower.startsWith(`${normalizedName}-`) || lower.startsWith(`${normalizedName}/`);
+        });
+
+        const selected = prefixed.length ? prefixed : textureNames;
+        const ordered = selected.slice().sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+        return ordered.map(name => textures[name]).filter((texture): texture is PIXI.Texture => !!texture);
     }
 
     _createBulletEntity(): RuntimeEntity {
@@ -763,12 +788,12 @@ export class GameplayRuntime implements CombatGameContext {
         const effect = new Entity() as RuntimeEntity;
         effect.poolId = 'effect';
         effect.addComponent(new Transform({ x: 0, y: 0 }));
-        const sprite = new PIXI.Sprite(PIXI.Texture.WHITE);
-        sprite.width = 16;
-        sprite.height = 16;
-        sprite.alpha = 0.7;
-        sprite.anchor.set(0.5);
-        effect.addComponent(new Sprite(sprite));
+        const animated = new PIXI.AnimatedSprite([]);
+        animated.visible = false;
+        animated.loop = false;
+        animated.animationSpeed = 0.18;
+        animated.anchor.set(0.5);
+        effect.addComponent(new Sprite(animated));
         return effect;
     }
 
@@ -780,11 +805,30 @@ export class GameplayRuntime implements CombatGameContext {
             transform.position.x = 0;
             transform.position.y = 0;
         }
+        const spriteComponent = getComponentOrNull(entity, Sprite);
+        const sprite = spriteComponent?.sprite;
+        if (sprite) {
+            sprite.visible = false;
+            sprite.alpha = 0;
+            if (sprite instanceof PIXI.AnimatedSprite) {
+                sprite.stop();
+                if (typeof sprite.gotoAndStop === 'function') {
+                    try {
+                        sprite.gotoAndStop(0);
+                    } catch (error) {
+                        // ignore
+                    }
+                }
+            }
+        }
+        (entity as any)._atlasAlias = null;
+        (entity as any)._atlasAnimation = null;
     }
 
     _activateEffectEntity(entity: RuntimeEntity, params: PoolParamRecord = {}): void {
         const transform = getComponentOrNull(entity, Transform);
-        const sprite = getComponentOrNull(entity, Sprite)?.sprite;
+        const spriteComponent = getComponentOrNull(entity, Sprite);
+        const sprite = spriteComponent?.sprite;
         const options = params as Partial<EffectSpawnOptions>;
 
         if (transform) {
@@ -797,28 +841,57 @@ export class GameplayRuntime implements CombatGameContext {
             const targetAlpha = typeof options.alpha === 'number' ? options.alpha : sprite.alpha || 0.9;
             sprite.alpha = targetAlpha;
             if (typeof options.tint === 'number') {
-                sprite.tint = options.tint;
+                (sprite as PIXI.Sprite).tint = options.tint;
             }
-            if (options.scale && sprite.scale) {
+            if (options.scale) {
                 if (typeof options.scale === 'number') {
-                    sprite.scale.set(options.scale);
-                } else if (typeof options.scale === 'object') {
+                    if (sprite.scale && typeof sprite.scale.set === 'function') {
+                        sprite.scale.set(options.scale);
+                    } else if (sprite.scale) {
+                        sprite.scale.x = options.scale;
+                        sprite.scale.y = options.scale;
+                    }
+                } else if (typeof options.scale === 'object' && sprite.scale) {
                     sprite.scale.x = options.scale.x ?? sprite.scale.x;
                     sprite.scale.y = options.scale.y ?? sprite.scale.y;
                 }
             }
-            if (sprite instanceof PIXI.AnimatedSprite && options.animation) {
-                const animatedSprite = sprite as PIXI.AnimatedSprite;
-                const gotoAndPlay = (animatedSprite as unknown as { gotoAndPlay?(sequence: string): void }).gotoAndPlay;
-                if (typeof gotoAndPlay === 'function') {
-                    try {
-                        gotoAndPlay.call(animatedSprite, options.animation);
-                    } catch (error) {
-                        animatedSprite.play();
+
+            if (sprite instanceof PIXI.AnimatedSprite) {
+                const resourceManager = this._getResourceManager();
+                const alias = options.atlasAlias ?? ((entity as any)._atlasAlias as string | null) ?? null;
+                const animation = options.animation ?? ((entity as any)._atlasAnimation as string | null) ?? null;
+                const shouldReload = !!options.atlasAlias && options.atlasAlias !== (entity as any)._atlasAlias;
+                const shouldReanimate = shouldReload || (animation && animation !== (entity as any)._atlasAnimation);
+
+                if (resourceManager && alias && (shouldReload || sprite.textures.length === 0)) {
+                    const spritesheet = resourceManager.getSpritesheet(alias);
+                    if (spritesheet) {
+                        const frames = this._resolveAnimationFrames(spritesheet, animation ?? 'idle');
+                        if (frames.length) {
+                            sprite.textures = frames;
+                            sprite.gotoAndPlay(0);
+                        }
                     }
-                } else {
-                    animatedSprite.play();
                 }
+
+                if (typeof options.animationSpeed === 'number') {
+                    sprite.animationSpeed = options.animationSpeed;
+                }
+
+                sprite.loop = options.loop ?? false;
+                if (shouldReanimate && typeof sprite.gotoAndPlay === 'function') {
+                    try {
+                        sprite.gotoAndPlay(0);
+                    } catch (error) {
+                        sprite.play();
+                    }
+                } else if (!sprite.playing) {
+                    sprite.play();
+                }
+
+                (entity as any)._atlasAlias = alias;
+                (entity as any)._atlasAnimation = animation;
             }
         }
 
@@ -890,7 +963,10 @@ export class GameplayRuntime implements CombatGameContext {
             scale: options.scale,
             alpha: options.alpha,
             fade: options.fade,
-            animation: options.animation
+            atlasAlias: options.atlasAlias,
+            animation: options.animation,
+            animationSpeed: options.animationSpeed,
+            loop: options.loop
         };
         const effect = pool.acquire(normalized as unknown as PoolParamRecord);
         if (!effect) {

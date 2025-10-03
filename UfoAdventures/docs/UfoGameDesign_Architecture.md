@@ -361,6 +361,8 @@ class ShieldSpell implements ISpell {
 **Scene Overview**
 The UFO enters a futuristic arena with metallic platforms and neon-lit edges, facing the modular Pet Cyborg boss - a segmented robotic creature with detachable limbs that fight independently.
 
+> Phase 4 update: the live configuration now seeds this encounter with two cyborg-flavoured enemy templates (`cyborg-drone`, `cyborg-sentinel`) and refreshed Tarak boss phases (`boss-phase-tarak-alpha/beta/gamma`). The manifest alias `cyborg-atlas` drives the drone and sentinel animations, while new behaviour trees (`cyborg-drone-formation`, `cyborg-splitter`) steer their movement, weapon cadence, and summon loops from `game-config.json`. Supporting weapon IDs (`enemy-lancer`, `enemy-pulse`, `enemy-drone-burst`, `boss-burst`) have been added to `WeaponService` to keep projectile profiles explicit.
+
 ```typescript
 interface ICyborgLimb extends IComponent {
   limbType: LimbType;

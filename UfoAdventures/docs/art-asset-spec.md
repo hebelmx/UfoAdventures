@@ -65,15 +65,15 @@ src/images/Sprites/
 
 - Include beam/eye-laser frames if provided in concept sketches.
 
-### 3.3 Pet Cyborg (`cyborg-atlas`) � NEW
+### 3.3 Pet Cyborg (`cyborg-atlas`)
 | Key            | Frames | Description                               |
 |----------------|--------|-------------------------------------------|
 | `idle`         | >=6    | Robotic twitch                            |
-| `spawn`        | >=4    | Duplicate/replication animation           |
-| `crawl`        | >=6    | Ground movement (per design sheet)        |
-| `attack`       | >=6    | Projectile/wave attack                    |
-| `death`        | >=8    | Explosion with debris                     |
+| `strafe`       | >=6    | Lateral hover/advance loop                |
+| `hit`          | >=4    | Damage reaction                           |
+| `death`        | >=6    | Explosion with debris                     |
 
+- Runtime now consumes `cyborg-atlas.json` for both drone and sentinel variants; keep the consolidated atlas trimmed so the animation lists (`idle/`, `strafe/`, `hit/`, `death/`) stay in sync with `src/config/game-config.json`.
 - Frame size: 256x256; neon accents to stand out from background.
 
 ## 4. Boss Tarak (`tarak-atlas`)
@@ -147,24 +147,24 @@ Once the assets are ready, we can update `game-config.json` animation pointers, 
 This section reflects what currently exists under `images/` (source art) and `src/images/` (runtime client). It is intended to guide exporting atlases and updating the manifest.
 
 - Player
-  - Found: `src/images/Sprites/Hero/idle_01.png`, `src/images/Sprites/Hero/idle_01.svg`
-  - Status: single frame present; no `player-atlas.png|json` yet
-  - Action: export `player-atlas` (PNG+JSON) with `idle`, `thrust`, `comboBreaker`, `teleport` keys
+  - Found: `src/images/Sprites/Hero/player-atlas-*.png|json` (idle, thrust, teleport, comboBreaker) plus legacy single frames
+  - Status: runtime manifest maps the individual atlases; exports remain oversized (8192×8192) and should be trimmed/merged when final art lands
+  - Action: re-export a consolidated `player-atlas` (PNG+JSON) covering idle, thrust, comboBreaker, teleport sequences with reasonable canvas bounds
 
 - Blade Scout
-  - Found: `src/images/Sprites/Enemies/Blade/idle_01.png|svg`, plus multiple raw cutouts in `images/Sprites/*Blade*_bkremoved.png`
-  - Status: single frame present; no `blade-atlas.png|json` yet
-  - Action: compile Blade frames into `blade-atlas` with `idle`, `strafe`, `hit`, `death`
+  - Found: `src/images/Sprites/Enemies/Blade/blade-atlas-*.png|json` (idle/strafe/hit/death) alongside source cutouts in `images/Sprites/*Blade*_bkremoved.png`
+  - Status: manifest references `blade-atlas` and `blade-atlas-strafe`; trims still required to shrink texture footprint
+  - Action: regenerate a single trimmed `blade-atlas` with idle, strafe, hit, death groups
 
 - Amidogus Fighter
-  - Found: `src/images/Sprites/Enemies/Amidogus/idle_01.png|svg`, `src/images/Sprites/02_Amidogus.png`, raw cutouts in `images/Sprites/*Amidogus*_bkremoved.png`
-  - Status: single frame + concept exports; no `amidogus-atlas.png|json`
-  - Action: compile Amidogus frames into `amidogus-atlas` with `idle`, `dive`, `attack`, `hit`, `death`
+  - Found: `src/images/Sprites/Enemies/Amidogus/amidogus-atlas-*.png|json` plus supporting concepts in `images/Sprites/*Amidogus*_bkremoved.png`
+  - Status: idle/strafe/hit/death atlases load today; a trimmed unified `amidogus-atlas` is still pending for the dashing/dive sets
+  - Action: export a consolidated `amidogus-atlas` with idle, dive, attack, hit, death keys
 
 - Pet Cyborg (cyborg)
-  - Found: raw sources in `images/Sprites/output_Droide*.png`, `images/Sprites/Pet0*.png`
-  - Status: no runtime sprites in `src/images/Sprites/Enemies/Cyborg/` and no `cyborg-atlas`
-  - Action: export `cyborg-atlas` with `idle`, `spawn`, `crawl`, `attack`, `death`
+  - Found: runtime atlases `src/images/Sprites/Enemies/Cyborg/cyborg-atlas*.png|json` plus consolidated `cyborg-atlas.json`
+  - Status: manifest alias `cyborg-atlas` is active for the new drone/sentinel templates; verify spawn/crawl attacks once additional frames arrive
+  - Action: keep the consolidated atlas trimmed and extend it with spawn/crawl/attack variants as concept art is finalised
 
 - Boss Tarak
   - Found: `src/images/Sprites/1_Tarak.png`, concept/cutouts in `images/Sprites/*Tarak*_bkremoved.png`
@@ -180,11 +180,12 @@ This section reflects what currently exists under `images/` (source art) and `sr
   - Status: static textures OK; not part of an atlas
 
 - VFX
-  - Found: none yet
-  - Action: create `vfx-atlas` with keys in section 5 when assets are ready
+  - Found: `src/images/Sprites/VFX/vfx-atlas-*.png|json` covering teleport, boss-summon, comboBreaker, bullet-impact, beam attack sequences
+  - Status: individual atlases are wired into the manifest; consider merging into a single trimmed `vfx-atlas` once timing is approved
+  - Action: consolidate and trim the VFX atlas set, keeping animation names aligned with `game-config.json`
 
 ## 9. Gap Checklist & Required Exports
-For each atlas below, deliver `.png` + `.json` (TexturePacker/PIXI format) under `src/images/Sprites/<Category>/` with lowercase, hyphenated frame names:
+For each atlas below, keep delivering trimmed `.png` + `.json` (TexturePacker/PIXI format) under `src/images/Sprites/<Category>/` with lowercase, hyphenated frame names. The aliases already live in `src/config/game-config.json`, so retain the filenames when re-exporting final art:
 
 - `player-atlas` → `src/images/Sprites/Hero/player-atlas.png|json`
 - `blade-atlas` → `src/images/Sprites/Enemies/Blade/blade-atlas.png|json`

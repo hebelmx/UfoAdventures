@@ -1,0 +1,825 @@
+{
+  "frames": {
+    "teleport-04": {
+      "frame": {
+        "x": 0,
+        "y": 0,
+        "w": 1177,
+        "h": 1177
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 2,
+        "y": 2,
+        "w": 1177,
+        "h": 1177
+      },
+      "sourceSize": {
+        "w": 1181,
+        "h": 1181
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "teleport-03": {
+      "frame": {
+        "x": 1179,
+        "y": 0,
+        "w": 1174,
+        "h": 1174
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 3,
+        "y": 3,
+        "w": 1174,
+        "h": 1174
+      },
+      "sourceSize": {
+        "w": 1180,
+        "h": 1180
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "teleport-05": {
+      "frame": {
+        "x": 2355,
+        "y": 0,
+        "w": 1174,
+        "h": 1174
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 3,
+        "y": 3,
+        "w": 1174,
+        "h": 1174
+      },
+      "sourceSize": {
+        "w": 1180,
+        "h": 1180
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "thrust-01": {
+      "frame": {
+        "x": 0,
+        "y": 1179,
+        "w": 1126,
+        "h": 1127
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 2,
+        "w": 1126,
+        "h": 1127
+      },
+      "sourceSize": {
+        "w": 1133,
+        "h": 1132
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "comboBreaker-06": {
+      "frame": {
+        "x": 1128,
+        "y": 1179,
+        "w": 1105,
+        "h": 1105
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 2,
+        "y": 2,
+        "w": 1105,
+        "h": 1105
+      },
+      "sourceSize": {
+        "w": 1109,
+        "h": 1109
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "thrust-02": {
+      "frame": {
+        "x": 2235,
+        "y": 1179,
+        "w": 1102,
+        "h": 1102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 1,
+        "y": 3,
+        "w": 1102,
+        "h": 1102
+      },
+      "sourceSize": {
+        "w": 1108,
+        "h": 1107
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "thrust-08": {
+      "frame": {
+        "x": 0,
+        "y": 2308,
+        "w": 1102,
+        "h": 1102
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 5,
+        "y": 3,
+        "w": 1102,
+        "h": 1102
+      },
+      "sourceSize": {
+        "w": 1108,
+        "h": 1107
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "comboBreaker-05": {
+      "frame": {
+        "x": 1104,
+        "y": 2308,
+        "w": 1093,
+        "h": 1093
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 2,
+        "y": 2,
+        "w": 1093,
+        "h": 1093
+      },
+      "sourceSize": {
+        "w": 1097,
+        "h": 1097
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "comboBreaker-07": {
+      "frame": {
+        "x": 2199,
+        "y": 2308,
+        "w": 1093,
+        "h": 1093
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 2,
+        "y": 2,
+        "w": 1093,
+        "h": 1093
+      },
+      "sourceSize": {
+        "w": 1097,
+        "h": 1097
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "thrust-03": {
+      "frame": {
+        "x": 0,
+        "y": 3412,
+        "w": 1077,
+        "h": 1077
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 1,
+        "y": 5,
+        "w": 1077,
+        "h": 1077
+      },
+      "sourceSize": {
+        "w": 1083,
+        "h": 1084
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "thrust-07": {
+      "frame": {
+        "x": 1079,
+        "y": 3412,
+        "w": 1077,
+        "h": 1077
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 4,
+        "y": 5,
+        "w": 1077,
+        "h": 1077
+      },
+      "sourceSize": {
+        "w": 1083,
+        "h": 1084
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "teleport-02": {
+      "frame": {
+        "x": 2158,
+        "y": 3412,
+        "w": 1071,
+        "h": 1071
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 45,
+        "y": 45,
+        "w": 1071,
+        "h": 1071
+      },
+      "sourceSize": {
+        "w": 1162,
+        "h": 1162
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "teleport-06": {
+      "frame": {
+        "x": 0,
+        "y": 4491,
+        "w": 1071,
+        "h": 1071
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 45,
+        "y": 45,
+        "w": 1071,
+        "h": 1071
+      },
+      "sourceSize": {
+        "w": 1162,
+        "h": 1162
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "comboBreaker-04": {
+      "frame": {
+        "x": 1073,
+        "y": 4491,
+        "w": 1059,
+        "h": 1059
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 2,
+        "y": 2,
+        "w": 1059,
+        "h": 1059
+      },
+      "sourceSize": {
+        "w": 1063,
+        "h": 1063
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "comboBreaker-08": {
+      "frame": {
+        "x": 2134,
+        "y": 4491,
+        "w": 1059,
+        "h": 1059
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 2,
+        "y": 2,
+        "w": 1059,
+        "h": 1059
+      },
+      "sourceSize": {
+        "w": 1063,
+        "h": 1063
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "thrust-04": {
+      "frame": {
+        "x": 0,
+        "y": 5564,
+        "w": 1052,
+        "h": 1052
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 2,
+        "y": 5,
+        "w": 1052,
+        "h": 1052
+      },
+      "sourceSize": {
+        "w": 1056,
+        "h": 1058
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "thrust-06": {
+      "frame": {
+        "x": 1054,
+        "y": 5564,
+        "w": 1052,
+        "h": 1052
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 2,
+        "y": 5,
+        "w": 1052,
+        "h": 1052
+      },
+      "sourceSize": {
+        "w": 1056,
+        "h": 1058
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "idle-05": {
+      "frame": {
+        "x": 2108,
+        "y": 5564,
+        "w": 1044,
+        "h": 1044
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 4,
+        "y": 10,
+        "w": 1044,
+        "h": 1044
+      },
+      "sourceSize": {
+        "w": 1052,
+        "h": 1056
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "idle-04": {
+      "frame": {
+        "x": 0,
+        "y": 6618,
+        "w": 1038,
+        "h": 1038
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 4,
+        "y": 8,
+        "w": 1038,
+        "h": 1038
+      },
+      "sourceSize": {
+        "w": 1046,
+        "h": 1049
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "idle-06": {
+      "frame": {
+        "x": 1040,
+        "y": 6618,
+        "w": 1038,
+        "h": 1038
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 4,
+        "y": 8,
+        "w": 1038,
+        "h": 1038
+      },
+      "sourceSize": {
+        "w": 1046,
+        "h": 1049
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "teleport-01": {
+      "frame": {
+        "x": 2080,
+        "y": 6618,
+        "w": 1032,
+        "h": 1032
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 94,
+        "y": 94,
+        "w": 1032,
+        "h": 1032
+      },
+      "sourceSize": {
+        "w": 1220,
+        "h": 1220
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "idle-03": {
+      "frame": {
+        "x": 0,
+        "y": 7658,
+        "w": 1024,
+        "h": 1024
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 4,
+        "y": 7,
+        "w": 1024,
+        "h": 1024
+      },
+      "sourceSize": {
+        "w": 1032,
+        "h": 1034
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "idle-07": {
+      "frame": {
+        "x": 1026,
+        "y": 7658,
+        "w": 1024,
+        "h": 1024
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 4,
+        "y": 7,
+        "w": 1024,
+        "h": 1024
+      },
+      "sourceSize": {
+        "w": 1032,
+        "h": 1034
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "thrust-05": {
+      "frame": {
+        "x": 2052,
+        "y": 7658,
+        "w": 1024,
+        "h": 1024
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 2,
+        "y": 6,
+        "w": 1024,
+        "h": 1024
+      },
+      "sourceSize": {
+        "w": 1028,
+        "h": 1031
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "comboBreaker-03": {
+      "frame": {
+        "x": 3078,
+        "y": 7658,
+        "w": 1018,
+        "h": 1018
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 5,
+        "y": 5,
+        "w": 1018,
+        "h": 1018
+      },
+      "sourceSize": {
+        "w": 1028,
+        "h": 1028
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "comboBreaker-09": {
+      "frame": {
+        "x": 0,
+        "y": 8684,
+        "w": 1018,
+        "h": 1018
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 5,
+        "y": 5,
+        "w": 1018,
+        "h": 1018
+      },
+      "sourceSize": {
+        "w": 1028,
+        "h": 1028
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "idle-02": {
+      "frame": {
+        "x": 1020,
+        "y": 8684,
+        "w": 1009,
+        "h": 1009
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 12,
+        "w": 1009,
+        "h": 1009
+      },
+      "sourceSize": {
+        "w": 1032,
+        "h": 1033
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "idle-08": {
+      "frame": {
+        "x": 2031,
+        "y": 8684,
+        "w": 1009,
+        "h": 1009
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 11,
+        "y": 12,
+        "w": 1009,
+        "h": 1009
+      },
+      "sourceSize": {
+        "w": 1032,
+        "h": 1033
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "idle-01": {
+      "frame": {
+        "x": 3042,
+        "y": 8684,
+        "w": 1003,
+        "h": 1003
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 13,
+        "y": 14,
+        "w": 1003,
+        "h": 1003
+      },
+      "sourceSize": {
+        "w": 1033,
+        "h": 1032
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "comboBreaker-02": {
+      "frame": {
+        "x": 0,
+        "y": 9704,
+        "w": 985,
+        "h": 985
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 21,
+        "y": 21,
+        "w": 985,
+        "h": 985
+      },
+      "sourceSize": {
+        "w": 1028,
+        "h": 1028
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "comboBreaker-10": {
+      "frame": {
+        "x": 987,
+        "y": 9704,
+        "w": 985,
+        "h": 985
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 21,
+        "y": 21,
+        "w": 985,
+        "h": 985
+      },
+      "sourceSize": {
+        "w": 1028,
+        "h": 1028
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "comboBreaker-01": {
+      "frame": {
+        "x": 1974,
+        "y": 9704,
+        "w": 972,
+        "h": 972
+      },
+      "rotated": false,
+      "trimmed": true,
+      "spriteSourceSize": {
+        "x": 28,
+        "y": 28,
+        "w": 972,
+        "h": 972
+      },
+      "sourceSize": {
+        "w": 1028,
+        "h": 1028
+      },
+      "anchor": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    }
+  },
+  "animations": {
+    "idle": [
+      "idle-01",
+      "idle-02",
+      "idle-03",
+      "idle-04",
+      "idle-05",
+      "idle-06",
+      "idle-07",
+      "idle-08"
+    ],
+    "thrust": [
+      "thrust-01",
+      "thrust-02",
+      "thrust-03",
+      "thrust-04",
+      "thrust-05",
+      "thrust-06",
+      "thrust-07",
+      "thrust-08"
+    ],
+    "teleport": [
+      "teleport-01",
+      "teleport-02",
+      "teleport-03",
+      "teleport-04",
+      "teleport-05",
+      "teleport-06"
+    ],
+    "comboBreaker": [
+      "comboBreaker-01",
+      "comboBreaker-02",
+      "comboBreaker-03",
+      "comboBreaker-04",
+      "comboBreaker-05",
+      "comboBreaker-06",
+      "comboBreaker-07",
+      "comboBreaker-08",
+      "comboBreaker-09",
+      "comboBreaker-10"
+    ]
+  },
+  "meta": {
+    "app": "atlas-repacker",
+    "version": "1.0",
+    "image": "player-atlas.png",
+    "size": {
+      "w": 4096,
+      "h": 16384
+    },
+    "scale": 1,
+    "alias": "player-atlas"
+  }
+}

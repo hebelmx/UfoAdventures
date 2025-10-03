@@ -12,18 +12,50 @@
       "src": "images/Sprites/Hero/idle_01.svg"
     },
     {
-      "alias": "vfx-atlas-beam_attack",
-      "src": "images/Sprites/VFX/vfx-atlas-beam_attack.png",
-      "json": "images/Sprites/VFX/vfx-atlas-beam_attack.json",
+      "alias": "player-atlas",
+      "src": "images/Sprites/Hero/player-atlas.png",
+      "json": "images/Sprites/Hero/player-atlas.json",
       "type": "spritesheet",
       "animations": {
-        "beam_attack": [
-          "beam_attack-01",
-          "beam_attack-02",
-          "beam_attack-03",
-          "beam_attack-04",
-          "beam_attack-05",
-          "beam_attack-06"
+        "idle": [
+          "idle-01",
+          "idle-02",
+          "idle-03",
+          "idle-04",
+          "idle-05",
+          "idle-06",
+          "idle-07",
+          "idle-08"
+        ],
+        "thrust": [
+          "thrust-01",
+          "thrust-02",
+          "thrust-03",
+          "thrust-04",
+          "thrust-05",
+          "thrust-06",
+          "thrust-07",
+          "thrust-08"
+        ],
+        "teleport": [
+          "teleport-01",
+          "teleport-02",
+          "teleport-03",
+          "teleport-04",
+          "teleport-05",
+          "teleport-06"
+        ],
+        "comboBreaker": [
+          "comboBreaker-01",
+          "comboBreaker-02",
+          "comboBreaker-03",
+          "comboBreaker-04",
+          "comboBreaker-05",
+          "comboBreaker-06",
+          "comboBreaker-07",
+          "comboBreaker-08",
+          "comboBreaker-09",
+          "comboBreaker-10"
         ]
       }
     },
@@ -58,100 +90,6 @@
       }
     },
     {
-      "alias": "vfx-atlas-teleport-trail",
-      "src": "images/Sprites/VFX/vfx-atlas-teleport-trail.png",
-      "json": "images/Sprites/VFX/vfx-atlas-teleport-trail.json",
-      "type": "spritesheet",
-      "animations": {
-        "teleport-trail": [
-          "teleport-trail-01",
-          "teleport-trail-02",
-          "teleport-trail-03",
-          "teleport-trail-04",
-          "teleport-trail-05",
-          "teleport-trail-06",
-          "teleport-trail-07",
-          "teleport-trail-08",
-          "teleport-trail-09",
-          "teleport-trail-10",
-          "teleport-trail-11",
-          "teleport-trail-12"
-        ]
-      }
-    },
-    {
-      "alias": "vfx-atlas-teleport-arrive",
-      "src": "images/Sprites/VFX/vfx-atlas-teleport-arrive.png",
-      "json": "images/Sprites/VFX/vfx-atlas-teleport-arrive.json",
-      "type": "spritesheet",
-      "animations": {
-        "teleport-arrive": [
-          "teleport-arrive-01",
-          "teleport-arrive-02",
-          "teleport-arrive-03",
-          "teleport-arrive-04",
-          "teleport-arrive-05",
-          "teleport-arrive-06",
-          "teleport-arrive-07",
-          "teleport-arrive-08"
-        ]
-      }
-    },
-    {
-      "alias": "vfx-atlas-comboBreaker",
-      "src": "images/Sprites/VFX/vfx-atlas-comboBreaker.png",
-      "json": "images/Sprites/VFX/vfx-atlas-comboBreaker.json",
-      "type": "spritesheet",
-      "animations": {
-        "comboBreaker": [
-          "comboBreaker-01",
-          "comboBreaker-02",
-          "comboBreaker-03",
-          "comboBreaker-04",
-          "comboBreaker-05",
-          "comboBreaker-06",
-          "comboBreaker-07",
-          "comboBreaker-08",
-          "comboBreaker-09",
-          "comboBreaker-10"
-        ]
-      }
-    },
-    {
-      "alias": "vfx-atlas-bullet-impact",
-      "src": "images/Sprites/VFX/vfx-atlas-bullet-impact.png",
-      "json": "images/Sprites/VFX/vfx-atlas-bullet-impact.json",
-      "type": "spritesheet",
-      "animations": {
-        "bullet-impact": [
-          "bullet-impact-01",
-          "bullet-impact-02",
-          "bullet-impact-03",
-          "bullet-impact-04",
-          "bullet-impact-05",
-          "bullet-impact-06"
-        ]
-      }
-    },
-    {
-      "alias": "vfx-atlas-boss-summon",
-      "src": "images/Sprites/VFX/vfx-atlas-boss-summon.png",
-      "json": "images/Sprites/VFX/vfx-atlas-boss-summon.json",
-      "type": "spritesheet",
-      "animations": {
-        "boss-summon": [
-          "boss-summon-01",
-          "boss-summon-02",
-          "boss-summon-03",
-          "boss-summon-04",
-          "boss-summon-05",
-          "boss-summon-06",
-          "boss-summon-07",
-          "boss-summon-08"
-        ]
-      }
-    },
-    {
       "alias": "tarak-atlas-idle",
       "src": "images/Sprites/Boss/tarak-atlas-idle.png",
       "json": "images/Sprites/Boss/tarak-atlas-idle.json",
@@ -182,40 +120,8 @@
       }
     },
     {
-      "alias": "player-atlas",
-      "src": "images/Sprites/Hero/player-atlas-idle.png",
-      "json": "images/Sprites/Hero/player-atlas-idle.json",
-      "type": "spritesheet",
-      "animations": {
-        "idle": [
-          "idle-01",
-          "idle-02",
-          "idle-03",
-          "idle-04",
-          "idle-05",
-          "idle-06",
-          "idle-07",
-          "idle-08"
-        ]
-      }
-    },
-    {
       "alias": "amidogus",
       "src": "images/Sprites/Enemies/Amidogus/idle_01.svg"
-    },
-    {
-      "alias": "amidogus-atlas",
-      "src": "images/Sprites/Enemies/Amidogus/amidogus-atlas-idle.png",
-      "json": "images/Sprites/Enemies/Amidogus/amidogus-atlas-idle.json",
-      "type": "spritesheet",
-      "animations": {
-        "idle": [
-          "idle-01",
-          "idle-02",
-          "idle-03",
-          "idle-04"
-        ]
-      }
     },
     {
       "alias": "blade",
@@ -223,8 +129,8 @@
     },
     {
       "alias": "blade-atlas",
-      "src": "images/Sprites/Enemies/Blade/blade-atlas-idle.png",
-      "json": "images/Sprites/Enemies/Blade/blade-atlas-idle.json",
+      "src": "images/Sprites/Enemies/Blade/blade-atlas.png",
+      "json": "images/Sprites/Enemies/Blade/blade-atlas.json",
       "type": "spritesheet",
       "animations": {
         "idle": [
@@ -232,69 +138,7 @@
           "idle-02",
           "idle-03",
           "idle-04"
-        ]
-      }
-    },
-    {
-      "alias": "player-atlas-thrust",
-      "src": "images/Sprites/Hero/player-atlas-thrust.png",
-      "json": "images/Sprites/Hero/player-atlas-thrust.json",
-      "type": "spritesheet",
-      "animations": {
-        "thrust": [
-          "thrust-01",
-          "thrust-02",
-          "thrust-03",
-          "thrust-04",
-          "thrust-05",
-          "thrust-06",
-          "thrust-07",
-          "thrust-08"
-        ]
-      }
-    },
-    {
-      "alias": "player-atlas-comboBreaker",
-      "src": "images/Sprites/Hero/player-atlas-comboBreaker.png",
-      "json": "images/Sprites/Hero/player-atlas-comboBreaker.json",
-      "type": "spritesheet",
-      "animations": {
-        "comboBreaker": [
-          "combo-01",
-          "combo-02",
-          "combo-03",
-          "combo-04",
-          "combo-05",
-          "combo-06",
-          "combo-07",
-          "combo-08",
-          "combo-09",
-          "combo-10"
-        ]
-      }
-    },
-    {
-      "alias": "player-atlas-teleport",
-      "src": "images/Sprites/Hero/player-atlas-teleport.png",
-      "json": "images/Sprites/Hero/player-atlas-teleport.json",
-      "type": "spritesheet",
-      "animations": {
-        "teleport": [
-          "teleport-01",
-          "teleport-02",
-          "teleport-03",
-          "teleport-04",
-          "teleport-05",
-          "teleport-06"
-        ]
-      }
-    },
-    {
-      "alias": "blade-atlas-strafe",
-      "src": "images/Sprites/Enemies/Blade/blade-atlas-strafe.png",
-      "json": "images/Sprites/Enemies/Blade/blade-atlas-strafe.json",
-      "type": "spritesheet",
-      "animations": {
+        ],
         "strafe": [
           "strafe-01",
           "strafe-02",
@@ -302,29 +146,13 @@
           "strafe-04",
           "strafe-05",
           "strafe-06"
-        ]
-      }
-    },
-    {
-      "alias": "blade-atlas-hit",
-      "src": "images/Sprites/Enemies/Blade/blade-atlas-hit.png",
-      "json": "images/Sprites/Enemies/Blade/blade-atlas-hit.json",
-      "type": "spritesheet",
-      "animations": {
+        ],
         "hit": [
           "hit-01",
           "hit-02",
           "hit-03",
           "hit-04"
-        ]
-      }
-    },
-    {
-      "alias": "blade-atlas-death",
-      "src": "images/Sprites/Enemies/Blade/blade-atlas-death.png",
-      "json": "images/Sprites/Enemies/Blade/blade-atlas-death.json",
-      "type": "spritesheet",
-      "animations": {
+        ],
         "death": [
           "death-01",
           "death-02",
@@ -336,55 +164,9 @@
       }
     },
     {
-      "alias": "amidogus-atlas-strafe",
-      "src": "images/Sprites/Enemies/Amidogus/amidogus-atlas-strafe.png",
-      "json": "images/Sprites/Enemies/Amidogus/amidogus-atlas-strafe.json",
-      "type": "spritesheet",
-      "animations": {
-        "strafe": [
-          "strafe-01",
-          "strafe-02",
-          "strafe-03",
-          "strafe-04",
-          "strafe-05",
-          "strafe-06"
-        ]
-      }
-    },
-    {
-      "alias": "amidogus-atlas-hit",
-      "src": "images/Sprites/Enemies/Amidogus/amidogus-atlas-hit.png",
-      "json": "images/Sprites/Enemies/Amidogus/amidogus-atlas-hit.json",
-      "type": "spritesheet",
-      "animations": {
-        "hit": [
-          "hit-01",
-          "hit-02",
-          "hit-03",
-          "hit-04"
-        ]
-      }
-    },
-    {
-      "alias": "amidogus-atlas-death",
-      "src": "images/Sprites/Enemies/Amidogus/amidogus-atlas-death.png",
-      "json": "images/Sprites/Enemies/Amidogus/amidogus-atlas-death.json",
-      "type": "spritesheet",
-      "animations": {
-        "death": [
-          "death-01",
-          "death-02",
-          "death-03",
-          "death-04",
-          "death-05",
-          "death-06"
-        ]
-      }
-    },
-    {
-      "alias": "cyborg-atlas-idle",
-      "src": "images/Sprites/Enemies/Cyborg/cyborg-atlas-idle.png",
-      "json": "images/Sprites/Enemies/Cyborg/cyborg-atlas-idle.json",
+      "alias": "amidogus-atlas",
+      "src": "images/Sprites/Enemies/Amidogus/amidogus-atlas.png",
+      "json": "images/Sprites/Enemies/Amidogus/amidogus-atlas.json",
       "type": "spritesheet",
       "animations": {
         "idle": [
@@ -392,15 +174,7 @@
           "idle-02",
           "idle-03",
           "idle-04"
-        ]
-      }
-    },
-    {
-      "alias": "cyborg-atlas-strafe",
-      "src": "images/Sprites/Enemies/Cyborg/cyborg-atlas-strafe.png",
-      "json": "images/Sprites/Enemies/Cyborg/cyborg-atlas-strafe.json",
-      "type": "spritesheet",
-      "animations": {
+        ],
         "strafe": [
           "strafe-01",
           "strafe-02",
@@ -408,29 +182,13 @@
           "strafe-04",
           "strafe-05",
           "strafe-06"
-        ]
-      }
-    },
-    {
-      "alias": "cyborg-atlas-hit",
-      "src": "images/Sprites/Enemies/Cyborg/cyborg-atlas-hit.png",
-      "json": "images/Sprites/Enemies/Cyborg/cyborg-atlas-hit.json",
-      "type": "spritesheet",
-      "animations": {
+        ],
         "hit": [
           "hit-01",
           "hit-02",
           "hit-03",
           "hit-04"
-        ]
-      }
-    },
-    {
-      "alias": "cyborg-atlas-death",
-      "src": "images/Sprites/Enemies/Cyborg/cyborg-atlas-death.png",
-      "json": "images/Sprites/Enemies/Cyborg/cyborg-atlas-death.json",
-      "type": "spritesheet",
-      "animations": {
+        ],
         "death": [
           "death-01",
           "death-02",
@@ -462,8 +220,114 @@
       }
     },
     {
+      "alias": "vfx-atlas",
+      "src": "images/Sprites/VFX/vfx-atlas.png",
+      "json": "images/Sprites/VFX/vfx-atlas.json",
+      "type": "spritesheet",
+      "animations": {
+        "beam-attack": [
+          "beam_attack-01",
+          "beam_attack-02",
+          "beam_attack-03",
+          "beam_attack-04",
+          "beam_attack-05",
+          "beam_attack-06"
+        ],
+        "boss-summon": [
+          "boss-summon-01",
+          "boss-summon-02",
+          "boss-summon-03",
+          "boss-summon-04",
+          "boss-summon-05",
+          "boss-summon-06",
+          "boss-summon-07",
+          "boss-summon-08"
+        ],
+        "bullet-impact": [
+          "bullet-impact-01",
+          "bullet-impact-02",
+          "bullet-impact-03",
+          "bullet-impact-04",
+          "bullet-impact-05",
+          "bullet-impact-06"
+        ],
+        "comboBreaker": [
+          "comboBreaker-01",
+          "comboBreaker-02",
+          "comboBreaker-03",
+          "comboBreaker-04",
+          "comboBreaker-05",
+          "comboBreaker-06",
+          "comboBreaker-07",
+          "comboBreaker-08",
+          "comboBreaker-09",
+          "comboBreaker-10"
+        ],
+        "teleport-arrive": [
+          "teleport-arrive-01",
+          "teleport-arrive-02",
+          "teleport-arrive-03",
+          "teleport-arrive-04",
+          "teleport-arrive-05",
+          "teleport-arrive-06",
+          "teleport-arrive-07",
+          "teleport-arrive-08"
+        ],
+        "teleport-trail": [
+          "teleport-trail-01",
+          "teleport-trail-02",
+          "teleport-trail-03",
+          "teleport-trail-04",
+          "teleport-trail-05",
+          "teleport-trail-06",
+          "teleport-trail-07",
+          "teleport-trail-08",
+          "teleport-trail-09",
+          "teleport-trail-10",
+          "teleport-trail-11",
+          "teleport-trail-12"
+        ]
+      }
+    },
+    {
       "alias": "background",
       "src": "images/Backgrounds/space_01.svg"
+    },
+    {
+      "alias": "cyborg-atlas",
+      "src": "images/Sprites/Enemies/Cyborg/cyborg-atlas.png",
+      "json": "images/Sprites/Enemies/Cyborg/cyborg-atlas.json",
+      "type": "spritesheet",
+      "animations": {
+        "idle": [
+          "idle/idle-01",
+          "idle/idle-02",
+          "idle/idle-03",
+          "idle/idle-04"
+        ],
+        "strafe": [
+          "strafe/strafe-01",
+          "strafe/strafe-02",
+          "strafe/strafe-03",
+          "strafe/strafe-04",
+          "strafe/strafe-05",
+          "strafe/strafe-06"
+        ],
+        "hit": [
+          "hit/hit-01",
+          "hit/hit-02",
+          "hit/hit-03",
+          "hit/hit-04"
+        ],
+        "death": [
+          "death/death-01",
+          "death/death-02",
+          "death/death-03",
+          "death/death-04",
+          "death/death-05",
+          "death/death-06"
+        ]
+      }
     }
   ],
   "modes": {
@@ -483,16 +347,34 @@
         "mode": "adventure",
         "description": "Repel Tarak's scout vanguard and hold the approach lane until reinforcements arrive.",
         "objectives": [
-          { "id": "clear-wave", "type": "eliminate", "target": "enemy", "count": 35, "label": "Destroy 35 invaders" },
-          { "id": "defeat-boss", "type": "defeatBoss", "label": "Eliminate Tarak" },
-          { "id": "time-check", "type": "timeUnder", "seconds": 210, "label": "Complete in under 3:30" }
+          {
+            "id": "clear-wave",
+            "type": "eliminate",
+            "target": "enemy",
+            "count": 35,
+            "label": "Destroy 35 invaders"
+          },
+          {
+            "id": "defeat-boss",
+            "type": "defeatBoss",
+            "label": "Eliminate Tarak"
+          },
+          {
+            "id": "time-check",
+            "type": "timeUnder",
+            "seconds": 210,
+            "label": "Complete in under 3:30"
+          }
         ],
         "scoring": {
           "baseScore": 1000,
           "enemyKill": 40,
           "bossBonus": 800,
           "objectiveBonus": 300,
-          "timeBonus": { "threshold": 210, "perSecond": 6 },
+          "timeBonus": {
+            "threshold": 210,
+            "perSecond": 6
+          },
           "hitPenalty": 12
         },
         "rewards": {
@@ -506,15 +388,27 @@
         "mode": "boss",
         "description": "Face Tarak head-on in his lair and survive the full phase cycle.",
         "objectives": [
-          { "id": "defeat-boss", "type": "defeatBoss", "label": "Break Tarak's defenses" },
-          { "id": "minimal-damage", "type": "damageUnder", "amount": 80, "label": "Take less than 80 damage" }
+          {
+            "id": "defeat-boss",
+            "type": "defeatBoss",
+            "label": "Break Tarak's defenses"
+          },
+          {
+            "id": "minimal-damage",
+            "type": "damageUnder",
+            "amount": 80,
+            "label": "Take less than 80 damage"
+          }
         ],
         "scoring": {
           "baseScore": 1500,
           "enemyKill": 0,
           "bossBonus": 1200,
           "objectiveBonus": 400,
-          "timeBonus": { "threshold": 180, "perSecond": 8 },
+          "timeBonus": {
+            "threshold": 180,
+            "perSecond": 8
+          },
           "hitPenalty": 18
         },
         "rewards": {
@@ -528,14 +422,28 @@
         "mode": "arcade",
         "description": "Stress-test your loadout in the simulator and chase a personal best.",
         "objectives": [
-          { "id": "eliminate", "type": "eliminate", "target": "enemy", "count": 50, "label": "Destroy 50 hostiles" },
-          { "id": "time-survive", "type": "survive", "seconds": 120, "label": "Survive for 2 minutes" }
+          {
+            "id": "eliminate",
+            "type": "eliminate",
+            "target": "enemy",
+            "count": 50,
+            "label": "Destroy 50 hostiles"
+          },
+          {
+            "id": "time-survive",
+            "type": "survive",
+            "seconds": 120,
+            "label": "Survive for 2 minutes"
+          }
         ],
         "scoring": {
           "baseScore": 800,
           "enemyKill": 25,
           "objectiveBonus": 200,
-          "timeBonus": { "threshold": 120, "perSecond": 4 },
+          "timeBonus": {
+            "threshold": 120,
+            "perSecond": 4
+          },
           "hitPenalty": 8
         },
         "rewards": {
@@ -549,13 +457,21 @@
         "mode": "training",
         "description": "Practice movement and abilities against low-threat drones without fear of defeat.",
         "objectives": [
-          { "id": "practice", "type": "survive", "seconds": 180, "label": "Survive for 3 minutes" }
+          {
+            "id": "practice",
+            "type": "survive",
+            "seconds": 180,
+            "label": "Survive for 3 minutes"
+          }
         ],
         "scoring": {
           "baseScore": 0,
           "enemyKill": 15,
           "objectiveBonus": 100,
-          "timeBonus": { "threshold": 180, "perSecond": 2 },
+          "timeBonus": {
+            "threshold": 180,
+            "perSecond": 2
+          },
           "hitPenalty": 0
         },
         "rewards": {
@@ -569,31 +485,139 @@
     "player-blaster": {
       "cooldown": 0.35,
       "projectiles": [
-        { "dx": 0, "dy": -12, "tint": 16777032, "type": "player" }
+        {
+          "dx": 0,
+          "dy": -12,
+          "tint": 16777032,
+          "type": "player"
+        }
       ]
     },
     "player-shockwave": {
       "cooldown": 8,
       "burst": 1,
       "projectiles": [
-        { "dx": -6, "dy": -10, "tint": 6750207, "type": "player" },
-        { "dx": 0, "dy": -11, "tint": 6750207, "type": "player" },
-        { "dx": 6, "dy": -10, "tint": 6750207, "type": "player" }
+        {
+          "dx": -6,
+          "dy": -10,
+          "tint": 6750207,
+          "type": "player"
+        },
+        {
+          "dx": 0,
+          "dy": -11,
+          "tint": 6750207,
+          "type": "player"
+        },
+        {
+          "dx": 6,
+          "dy": -10,
+          "tint": 6750207,
+          "type": "player"
+        }
       ],
       "spread": true
     },
     "enemy-dart": {
-      "cooldown": 1.4,
+      "cooldown": 1.3,
       "projectiles": [
-        { "dx": 0, "dy": 5.6, "tint": 16733525, "type": "enemy" }
+        {
+          "dx": 0,
+          "dy": 5.6,
+          "tint": 16746649,
+          "type": "enemy",
+          "damage": 12
+        }
       ]
     },
     "enemy-fan": {
-      "cooldown": 1.9,
+      "cooldown": 1.8,
       "projectiles": [
-        { "dx": -1.5, "dy": 5.8, "tint": 16724787, "type": "enemy" },
-        { "dx": 0, "dy": 6.2, "tint": 16751392, "type": "enemy" },
-        { "dx": 1.5, "dy": 5.8, "tint": 16724787, "type": "enemy" }
+        {
+          "dx": -1.6,
+          "dy": 5.9,
+          "tint": 16750950,
+          "type": "enemy",
+          "damage": 10
+        },
+        {
+          "dx": 0,
+          "dy": 6.3,
+          "tint": 16759671,
+          "type": "enemy",
+          "damage": 10
+        },
+        {
+          "dx": 1.6,
+          "dy": 5.9,
+          "tint": 16750950,
+          "type": "enemy",
+          "damage": 10
+        }
+      ]
+    },
+    "enemy-lancer": {
+      "cooldown": 1.45,
+      "projectiles": [
+        {
+          "dx": -1.4,
+          "dy": 6.4,
+          "tint": 16742246,
+          "type": "enemy",
+          "damage": 14
+        },
+        {
+          "dx": 1.4,
+          "dy": 6.4,
+          "tint": 16742246,
+          "type": "enemy",
+          "damage": 14
+        }
+      ]
+    },
+    "enemy-pulse": {
+      "cooldown": 1.25,
+      "projectiles": [
+        {
+          "dx": -0.8,
+          "dy": 6.0,
+          "tint": 16755353,
+          "type": "enemy",
+          "damage": 11
+        },
+        {
+          "dx": 0.8,
+          "dy": 6.0,
+          "tint": 16755353,
+          "type": "enemy",
+          "damage": 11
+        }
+      ]
+    },
+    "enemy-drone-burst": {
+      "cooldown": 1.6,
+      "projectiles": [
+        {
+          "dx": -2.2,
+          "dy": 6.3,
+          "tint": 16764040,
+          "type": "enemy",
+          "damage": 13
+        },
+        {
+          "dx": 0,
+          "dy": 6.6,
+          "tint": 16770696,
+          "type": "enemy",
+          "damage": 13
+        },
+        {
+          "dx": 2.2,
+          "dy": 6.3,
+          "tint": 16764040,
+          "type": "enemy",
+          "damage": 13
+        }
       ]
     },
     "boss-beam": {
@@ -604,6 +628,32 @@
         "damage": 30,
         "tint": 16761095
       }
+    },
+    "boss-burst": {
+      "cooldown": 0.95,
+      "projectiles": [
+        {
+          "dx": -3.0,
+          "dy": 7.2,
+          "tint": 16752752,
+          "type": "enemy",
+          "damage": 16
+        },
+        {
+          "dx": 0,
+          "dy": 7.6,
+          "tint": 16760944,
+          "type": "enemy",
+          "damage": 16
+        },
+        {
+          "dx": 3.0,
+          "dy": 7.2,
+          "tint": 16752752,
+          "type": "enemy",
+          "damage": 16
+        }
+      ]
     }
   },
   "behaviorTrees": {
@@ -611,36 +661,253 @@
       "type": "sequence",
       "loop": true,
       "children": [
-        { "type": "action", "name": "setOscillation", "duration": 2.2, "amplitude": 90, "frequency": 1.3, "speedY": 2.4 },
-        { "type": "action", "name": "fireWeapon", "duration": 0.5, "weaponId": "enemy-dart" },
-        { "type": "wait", "duration": 0.4 }
+        {
+          "type": "action",
+          "name": "setOscillation",
+          "duration": 1.6,
+          "amplitude": 70,
+          "frequency": 1.25,
+          "speedY": 2.0
+        },
+        {
+          "type": "action",
+          "name": "fireWeapon",
+          "duration": 0.6,
+          "weaponId": "enemy-dart"
+        },
+        {
+          "type": "wait",
+          "duration": 0.5
+        }
       ]
     },
     "fighter-assault": {
       "type": "sequence",
       "loop": true,
       "children": [
-        { "type": "action", "name": "setSwoop", "duration": 1.2, "diveSpeed": 4.2, "climbSpeed": -3.0, "vertical": 1.6 },
-        { "type": "action", "name": "fireWeapon", "duration": 0.6, "weaponId": "enemy-dart" },
-        { "type": "wait", "duration": 0.6 }
+        {
+          "type": "action",
+          "name": "setSwoop",
+          "duration": 1.1,
+          "diveSpeed": 4.4,
+          "climbSpeed": -3.0,
+          "vertical": 1.8,
+          "horizontalDrift": 1.2
+        },
+        {
+          "type": "action",
+          "name": "fireWeapon",
+          "duration": 0.75,
+          "weaponId": "enemy-lancer"
+        },
+        {
+          "type": "wait",
+          "duration": 0.65
+        }
       ]
     },
     "strafer-barrage": {
       "type": "sequence",
       "loop": true,
       "children": [
-        { "type": "action", "name": "strafe", "duration": 1.0, "speed": 3.1 },
-        { "type": "action", "name": "fireWeapon", "duration": 0.8, "weaponId": "enemy-fan" },
-        { "type": "wait", "duration": 0.5 }
+        {
+          "type": "action",
+          "name": "strafe",
+          "duration": 1.0,
+          "speed": 3.2,
+          "vertical": 2.1
+        },
+        {
+          "type": "action",
+          "name": "fireWeapon",
+          "duration": 0.9,
+          "weaponId": "enemy-fan"
+        },
+        {
+          "type": "wait",
+          "duration": 0.6
+        }
       ]
     },
-    "boss-phase-beam": {
+    "cyborg-drone-formation": {
       "type": "sequence",
       "loop": true,
       "children": [
-        { "type": "action", "name": "telegraph", "duration": 0.8, "effect": "beam_attack", "message": "Tarak prepares a beam!" },
-        { "type": "action", "name": "fireWeapon", "duration": 1.0, "weaponId": "boss-beam" },
-        { "type": "wait", "duration": 1.2 }
+        {
+          "type": "action",
+          "name": "strafe",
+          "duration": 1.2,
+          "speed": 2.8,
+          "vertical": 1.6
+        },
+        {
+          "type": "action",
+          "name": "fireWeapon",
+          "duration": 0.8,
+          "weaponId": "enemy-pulse"
+        },
+        {
+          "type": "wait",
+          "duration": 0.7
+        }
+      ]
+    },
+    "cyborg-splitter": {
+      "type": "sequence",
+      "loop": true,
+      "children": [
+        {
+          "type": "action",
+          "name": "setOscillation",
+          "duration": 1.3,
+          "amplitude": 80,
+          "frequency": 1.05,
+          "speedY": 1.7
+        },
+        {
+          "type": "action",
+          "name": "summon",
+          "duration": 0.2,
+          "targets": [
+            {
+              "template": "cyborg-drone",
+              "count": 1,
+              "radius": 90,
+              "angleOffset": 0.4
+            }
+          ]
+        },
+        {
+          "type": "action",
+          "name": "fireWeapon",
+          "duration": 0.95,
+          "weaponId": "enemy-drone-burst"
+        },
+        {
+          "type": "wait",
+          "duration": 1.1
+        }
+      ]
+    },
+    "boss-phase-tarak-alpha": {
+      "type": "sequence",
+      "loop": true,
+      "children": [
+        {
+          "type": "action",
+          "name": "telegraph",
+          "duration": 0.7,
+          "effect": {
+            "atlas": "vfx-atlas",
+            "animation": "boss-summon"
+          },
+          "message": "Tarak channels a beam!"
+        },
+        {
+          "type": "action",
+          "name": "fireWeapon",
+          "duration": 1.1,
+          "weaponId": "boss-beam"
+        },
+        {
+          "type": "wait",
+          "duration": 1.3
+        }
+      ]
+    },
+    "boss-phase-tarak-beta": {
+      "type": "sequence",
+      "loop": true,
+      "children": [
+        {
+          "type": "action",
+          "name": "telegraph",
+          "duration": 0.6,
+          "effect": {
+            "atlas": "vfx-atlas",
+            "animation": "beam-attack"
+          },
+          "message": "Tarak signals reinforcements!"
+        },
+        {
+          "type": "action",
+          "name": "summon",
+          "duration": 0.25,
+          "targets": [
+            {
+              "template": "fighter",
+              "count": 2,
+              "radius": 160,
+              "angleOffset": 0.15
+            },
+            {
+              "template": "cyborg-drone",
+              "count": 2,
+              "radius": 190,
+              "angleOffset": 0.55
+            }
+          ]
+        },
+        {
+          "type": "action",
+          "name": "fireWeapon",
+          "duration": 0.9,
+          "weaponId": "boss-burst"
+        },
+        {
+          "type": "wait",
+          "duration": 1.1
+        }
+      ]
+    },
+    "boss-phase-tarak-gamma": {
+      "type": "sequence",
+      "loop": true,
+      "children": [
+        {
+          "type": "action",
+          "name": "telegraph",
+          "duration": 0.5,
+          "effect": {
+            "atlas": "vfx-atlas",
+            "animation": "comboBreaker"
+          },
+          "message": "Tarak enters overdrive!"
+        },
+        {
+          "type": "action",
+          "name": "setOscillation",
+          "duration": 1.0,
+          "amplitude": 120,
+          "frequency": 1.4,
+          "speedY": 1.1
+        },
+        {
+          "type": "action",
+          "name": "summon",
+          "duration": 0.2,
+          "targets": [
+            {
+              "template": "cyborg-sentinel",
+              "count": 1,
+              "radius": 0,
+              "offset": {
+                "x": 0,
+                "y": 40
+              }
+            }
+          ]
+        },
+        {
+          "type": "action",
+          "name": "fireWeapon",
+          "duration": 0.8,
+          "weaponId": "boss-beam"
+        },
+        {
+          "type": "wait",
+          "duration": 1.2
+        }
       ]
     }
   },
@@ -722,46 +989,98 @@
   "enemies": {
     "templates": [
       {
-        "pattern": "sine",
-        "frequency": 1.4,
-        "texture": "blade",
+        "id": "scout",
         "spritesheet": {
           "alias": "blade-atlas",
-          "animation": "idle"
+          "animation": "idle",
+          "speed": 0.18
         },
-        "id": "scout",
-        "verticalSpeed": 2.2,
-        "amplitude": 90,
+        "spriteWidth": 72,
+        "spriteHeight": 72,
+        "colliderRadius": 18,
+        "health": 40,
+        "pattern": "sine",
+        "verticalSpeed": 1.9,
+        "amplitude": 60,
+        "frequency": 1.2,
         "weaponId": "enemy-dart",
+        "fireRate": 1.5,
         "behaviorTreeId": "scout-loop"
       },
       {
-        "pattern": "swoop",
-        "texture": "amidogus",
+        "id": "fighter",
         "spritesheet": {
           "alias": "amidogus-atlas",
-          "animation": "idle"
+          "animation": "idle",
+          "speed": 0.2
         },
-        "id": "fighter",
+        "spriteWidth": 96,
+        "spriteHeight": 96,
+        "colliderRadius": 22,
+        "health": 65,
+        "pattern": "swoop",
+        "verticalSpeed": 2.2,
+        "diveSpeed": 4.6,
         "climbSpeed": -3.2,
-        "verticalSpeed": 1.8,
-        "horizontalDrift": 1.5,
-        "diveSpeed": 4.5,
-        "weaponId": "enemy-dart",
+        "horizontalDrift": 1.6,
+        "weaponId": "enemy-lancer",
+        "fireRate": 1.4,
         "behaviorTreeId": "fighter-assault"
       },
       {
-        "horizontalSpeed": 3.2,
-        "texture": "blade",
+        "id": "strafer",
         "spritesheet": {
           "alias": "blade-atlas",
-          "animation": "idle"
+          "animation": "strafe",
+          "speed": 0.22
         },
+        "spriteWidth": 76,
+        "spriteHeight": 76,
+        "colliderRadius": 20,
+        "health": 55,
         "pattern": "strafe",
-        "id": "strafer",
-        "verticalSpeed": 2.6,
+        "horizontalSpeed": 3.1,
+        "verticalSpeed": 2.4,
         "weaponId": "enemy-fan",
+        "fireRate": 1.8,
         "behaviorTreeId": "strafer-barrage"
+      },
+      {
+        "id": "cyborg-drone",
+        "spritesheet": {
+          "alias": "cyborg-atlas",
+          "animation": "strafe",
+          "speed": 0.26
+        },
+        "spriteWidth": 104,
+        "spriteHeight": 104,
+        "colliderRadius": 24,
+        "health": 80,
+        "pattern": "strafe",
+        "horizontalSpeed": 2.6,
+        "verticalSpeed": 2.1,
+        "weaponId": "enemy-pulse",
+        "fireRate": 1.25,
+        "behaviorTreeId": "cyborg-drone-formation"
+      },
+      {
+        "id": "cyborg-sentinel",
+        "spritesheet": {
+          "alias": "cyborg-atlas",
+          "animation": "idle",
+          "speed": 0.18
+        },
+        "spriteWidth": 124,
+        "spriteHeight": 124,
+        "colliderRadius": 28,
+        "health": 140,
+        "pattern": "sine",
+        "verticalSpeed": 1.6,
+        "amplitude": 70,
+        "frequency": 1.05,
+        "weaponId": "enemy-drone-burst",
+        "fireRate": 1.6,
+        "behaviorTreeId": "cyborg-splitter"
       }
     ],
     "waves": [
@@ -769,83 +1088,124 @@
         "delay": 0,
         "spawns": [
           {
-            "spread": 0.7,
-            "altitude": -60,
             "template": "scout",
-            "count": 4
-          }
-        ]
-      },
-      {
-        "delay": 6,
-        "spawns": [
-          {
-            "spread": 0.4,
-            "altitude": -70,
-            "template": "fighter",
-            "count": 2
+            "count": 4,
+            "spread": 0.6,
+            "altitude": -60
           },
           {
-            "spread": 0.6,
-            "altitude": -50,
-            "template": "scout",
-            "offset": 0.2,
-            "count": 3
+            "template": "cyborg-drone",
+            "count": 2,
+            "spread": 0.3,
+            "offset": 0.55,
+            "altitude": -80
           }
         ]
       },
       {
-        "delay": 12,
+        "delay": 7,
         "spawns": [
           {
-            "spread": 0.8,
-            "altitude": -40,
             "template": "strafer",
-            "count": 3
+            "count": 3,
+            "spread": 0.65,
+            "altitude": -50
+          },
+          {
+            "template": "scout",
+            "count": 3,
+            "spread": 0.4,
+            "offset": 0.35,
+            "altitude": -70
           }
         ]
       },
       {
-        "delay": 18,
+        "delay": 14,
         "spawns": [
           {
-            "spread": 0.5,
-            "altitude": -60,
             "template": "fighter",
-            "count": 3
+            "count": 3,
+            "spread": 0.55,
+            "altitude": -75
+          },
+          {
+            "template": "cyborg-drone",
+            "count": 3,
+            "spread": 0.35,
+            "offset": 0.5,
+            "altitude": -65
+          }
+        ]
+      },
+      {
+        "delay": 21,
+        "spawns": [
+          {
+            "template": "cyborg-sentinel",
+            "count": 1,
+            "positions": [
+              0.45
+            ],
+            "altitude": -90
+          },
+          {
+            "template": "strafer",
+            "count": 2,
+            "spread": 0.4,
+            "offset": 0.25,
+            "altitude": -60
           }
         ]
       }
     ]
   },
   "boss": {
+    "behaviorTreeId": "boss-phase-tarak-alpha",
+    "weaponId": "boss-beam",
     "phases": [
       {
         "pattern": "spread",
         "message": "Tarak enters the battle!",
         "horizontalSpeed": 2.0,
-        "verticalDrift": 0.2,
-        "fireRate": 1.2,
-        "behaviorTreeId": "boss-phase-beam",
-        "telegraphEffect": "boss-summon",
-        "summon": [
-          { "template": "scout", "count": 2, "spread": 0.4, "altitude": -40 }
-        ],
-        "vulnerabilityWindow": 0.8,
+        "verticalDrift": 0.25,
+        "fireRate": 1.05,
+        "behaviorTreeId": "boss-phase-tarak-alpha",
+        "weaponId": "boss-beam",
+        "telegraphEffect": {
+          "atlas": "vfx-atlas",
+          "animation": "boss-summon"
+        },
+        "vulnerabilityWindow": 0.85,
         "threshold": 1.0
       },
       {
         "pattern": "burst",
         "message": "Tarak grows furious!",
-        "horizontalSpeed": 2.8,
-        "verticalDrift": 0.0,
-        "fireRate": 0.85,
-        "behaviorTreeId": "boss-phase-beam",
-        "telegraphEffect": "beam_attack",
+        "horizontalSpeed": 2.7,
+        "verticalDrift": 0.05,
+        "fireRate": 0.9,
+        "behaviorTreeId": "boss-phase-tarak-beta",
+        "weaponId": "boss-burst",
+        "telegraphEffect": {
+          "atlas": "vfx-atlas",
+          "animation": "beam-attack"
+        },
         "summon": [
-          { "template": "fighter", "count": 2, "spread": 0.5, "altitude": -60 }
+          {
+            "template": "fighter",
+            "count": 2,
+            "spread": 0.5,
+            "altitude": -70
+          },
+          {
+            "template": "cyborg-drone",
+            "count": 2,
+            "spread": 0.35,
+            "altitude": -85
+          }
         ],
-        "vulnerabilityWindow": 1.2,
+        "vulnerabilityWindow": 1.1,
         "threshold": 0.6
       },
       {
@@ -853,16 +1213,24 @@
         "message": "Tarak unleashes chaos!",
         "horizontalSpeed": 3.2,
         "verticalDrift": -0.1,
-        "fireRate": 0.55,
-        "behaviorTreeId": "boss-phase-beam",
-        "telegraphEffect": "beam_attack",
+        "fireRate": 0.75,
+        "behaviorTreeId": "boss-phase-tarak-gamma",
+        "weaponId": "boss-beam",
+        "telegraphEffect": {
+          "atlas": "vfx-atlas",
+          "animation": "comboBreaker"
+        },
         "summon": [
-          { "template": "strafer", "count": 2, "spread": 0.6, "altitude": -80 }
+          {
+            "template": "cyborg-sentinel",
+            "count": 1,
+            "spread": 0.2,
+            "altitude": -95
+          }
         ],
-        "vulnerabilityWindow": 1.6,
+        "vulnerabilityWindow": 1.4,
         "threshold": 0.3
       }
     ]
   }
 }
-

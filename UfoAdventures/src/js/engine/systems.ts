@@ -24,6 +24,7 @@ import type {
     BossTelegraphOptions,
     CombatGameContext,
     EffectSpawnOptions,
+    EffectDescriptor,
     EnemySpawnContext,
     EnemySpawnTemplate,
     EnemySpawningConfig,
@@ -749,7 +750,10 @@ export class AbilitySystem extends System {
                 lifeTime: 0.4,
                 fade: 1.2,
                 scale: 1.2,
-                animation: 'comboBreaker'
+                atlasAlias: 'vfx-atlas',
+                animation: 'comboBreaker',
+                animationSpeed: 0.18,
+                loop: false
             });
         }
 
@@ -791,7 +795,10 @@ export class AbilitySystem extends System {
             lifeTime: 0.25,
             fade: 1.5,
             scale: 0.9,
-            animation: 'teleport-trail'
+            atlasAlias: 'vfx-atlas',
+            animation: 'teleport-trail',
+            animationSpeed: 0.24,
+            loop: false
         });
         this.game.spawnEffect?.({
             position: { x: transform.position.x, y: transform.position.y },
@@ -800,7 +807,10 @@ export class AbilitySystem extends System {
             lifeTime: 0.3,
             fade: 1.8,
             scale: 1.0,
-            animation: 'teleport-arrive'
+            atlasAlias: 'vfx-atlas',
+            animation: 'teleport-arrive',
+            animationSpeed: 0.2,
+            loop: false
         });
 
         showMessage?.('Teleport!', '#66ccff');
@@ -1823,6 +1833,48 @@ export class BossAISystem extends System {
         this.game.spawnEffect(effectOptions);
     }
 
+    private _resolveEffectDescriptor(effect: EffectDescriptor | string | null | undefined): Partial<EffectSpawnOptions> {
+        if (!effect) {
+            return {};
+        }
+
+        if (typeof effect === 'string') {
+            const trimmed = effect.trim();
+            if (!trimmed) {
+                return {};
+            }
+            if (trimmed.startsWith('vfx-atlas-')) {
+                const animation = trimmed.replace('vfx-atlas-', '').replace(/_/g, '-');
+                return { atlasAlias: 'vfx-atlas', animation };
+            }
+            return { atlasAlias: trimmed };
+        }
+
+        if (typeof effect === 'object') {
+            const descriptor = effect as EffectDescriptor & { atlasAlias?: string; atlas?: string; sequence?: string; speed?: number };
+            const atlas = descriptor.atlasAlias ?? descriptor.atlas ?? null;
+            const animation = descriptor.animation ?? descriptor.sequence ?? null;
+            const animationSpeed = descriptor.animationSpeed ?? descriptor.speed ?? undefined;
+            const loop = descriptor.loop;
+            const result: Partial<EffectSpawnOptions> = {};
+            if (atlas) {
+                result.atlasAlias = atlas;
+            }
+            if (animation) {
+                result.animation = animation;
+            }
+            if (typeof animationSpeed === 'number' && Number.isFinite(animationSpeed)) {
+                result.animationSpeed = animationSpeed;
+            }
+            if (typeof loop === 'boolean') {
+                result.loop = loop;
+            }
+            return result;
+        }
+
+        return {};
+    }
+
     private _normalizeSummonTargets(targets?: BehaviorSummonTarget[]): BehaviorSummonTargetConfig[] {
         if (!Array.isArray(targets)) {
             return [];
@@ -2071,6 +2123,20 @@ export class CleanupSystem extends System {
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

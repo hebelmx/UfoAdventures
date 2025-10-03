@@ -14,6 +14,13 @@ export interface EffectSpawnOptions {
     animation?: string;
 }
 
+export interface EffectDescriptor {
+    atlas: string;
+    animation?: string;
+    animationSpeed?: number;
+    loop?: boolean;
+}
+
 export type RuntimeEntity = Entity & {
     poolId?: string;
     lifeTime?: number;
@@ -139,7 +146,7 @@ export interface BehaviorTreeActionStep extends BehaviorTreeBaseNode {
     duration?: number;
     weaponId?: string;
     message?: string;
-    effect?: unknown;
+    effect?: EffectDescriptor | string | null;
     summon?: BehaviorSummonTarget[];
     targets?: BehaviorSummonTarget[];
     offset?: Partial<Vector2Like>;
@@ -157,7 +164,7 @@ export interface BehaviorTreeActionStep extends BehaviorTreeBaseNode {
     tint?: number;
     scale?: number | Vector2Like;
     alpha?: number;
-    telegraphEffect?: unknown;
+    telegrapheffect?: EffectDescriptor | string | null;
     telegraphDuration?: number;
     telegraphTint?: number;
     telegraphScale?: number | Vector2Like;
@@ -180,7 +187,7 @@ export interface BossPhaseDefinition {
     fireRate?: number;
     behaviorTreeId?: string;
     weaponId?: string;
-    telegraphEffect?: unknown;
+    telegrapheffect?: EffectDescriptor | string | null;
     telegraphDuration?: number;
     telegraphTint?: number;
     telegraphScale?: number | Vector2Like;
@@ -201,8 +208,7 @@ export interface BossConfig {
 }
 
 export interface BossTelegraphOptions {
-    message?: string | null;
-    effect?: unknown;
+    message?: string | null;\n    effect?: EffectDescriptor | string | null;
     duration?: number;
     tint?: number;
     scale?: number | Vector2Like;
@@ -270,3 +276,4 @@ export interface BehaviorTreeGameContext extends RuntimeGameContext {
 export interface CombatGameContext extends BehaviorTreeGameContext {
     spawnProjectile(options: ProjectileSpawnPayload): Entity | null;
 }
+
