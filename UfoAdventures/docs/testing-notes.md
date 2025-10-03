@@ -11,3 +11,9 @@
 ## Runtime Helpers
 - `GameplayRuntime.getAbilitySnapshot()` and `getActiveCounts()` are exposed to Playwright for assertions. They return `null` until the runtime is fully ready, so always wait on the helper before making assertions.
 - Background textures default to a 1×1 placeholder when the manifest supplies stubs (test mode). In normal runs assets supply real sizes via the loaded texture source.
+
+## Loop Regression Checklist (Manual)
+- Serve the client (`python -m http.server 5173` → `http://localhost:5173/src/`) and open DevTools CPU throttling at 4×. Confirm the gameplay stays responsive and the overlay’s `Frame Skips` line never exceeds `5` per frame.
+- Toggle the performance overlay (`togglePerformanceOverlay`, default `F6`) and verify the new metrics — frame time, skip count, update/render averages, and top system timings — update every frame without console warnings.
+- Pause and resume (game menu or focus change) while the overlay is visible; ensure accumulator resets cleanly and profiler values continue updating after resume.
+- Document the run in release notes (FPS, frame skip observations) or flag issues in `docs/testing-notes.md` before sign-off.

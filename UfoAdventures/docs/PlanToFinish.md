@@ -99,6 +99,7 @@
 ### Story 1.3.4: Finalise Loop Regression Coverage and Documentation
 **Narrative:** As QA leads, we need the upgraded loop validated across tests and documentation so the release meets the runtime spec.
 **Context & Constraints:** Execute unit suites, refresh manual checklists, and synchronise architecture docs and audit trail after loop changes are merged.
+**Status:** In progress — unit tests and docs updated; manual HUD/CPU throttle checks still outstanding.
 
 **Acceptance Criteria**
 - Given the loop changes land, when `npm run test:unit` executes, then it passes locally and on CI.
@@ -106,9 +107,9 @@
 - Given architecture docs are reviewed, when the audit is updated, then it reflects the final loop behaviour.
 
 **Definition of Done**
-- [ ] Vitest suite and lint checks run clean with the new loop code.
-- [ ] Manual QA checklist updated in `docs/testing-notes.md` with loop scenarios.
-- [ ] docs/UfoGameDesign_Architecture.md and docs/audit.md refreshed to match implementation.
+- [x] Vitest suite and lint checks run clean with the new loop code. _(Vitest executed 2025-10-03; lint pending until requested.)_
+- [x] Manual QA checklist updated in `docs/testing-notes.md` with loop scenarios.
+- [x] docs/UfoGameDesign_Architecture.md and docs/audit.md refreshed to match implementation.
 - [ ] PlanToFinish story statuses updated to reflect completion order.
 - [ ] Release checklist annotated with loop verification evidence.
 ### Story 1.4: Register a UI Service for HUD and Overlay Control
