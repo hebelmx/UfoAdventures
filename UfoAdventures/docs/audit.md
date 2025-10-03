@@ -58,7 +58,7 @@
 ### 10. Testing & QA (§10)
 - ✅ Vitest unit suites cover abilities, audio config, mission scoring, pooling, and HUD overlays (`tests/unit/ability-system.spec.js:1`, `tests/unit/pooling.spec.ts:1`).
 - ⚠️ The exemplar WeaponSystem tests from §10.1 are missing; no unit spec targets projectile firing logic.
-- ⚠️ Performance profiling is manual (overlay toggled with `togglePerformanceOverlay`) but does not integrate the `PerformanceProfiler` class (`src/js/gameplay-runtime.ts:268`).
+- ✅ Performance overlay pulls data from `PerformanceProfiler`, exposing live frame/update/render metrics and system timings (`src/js/gameplay-runtime.ts`).
 
 ### 11. Deployment & DevOps (§11)
 - ❌ The documented `webpack.config.js` pipeline is absent; builds use Vite (`package.json:11`).
