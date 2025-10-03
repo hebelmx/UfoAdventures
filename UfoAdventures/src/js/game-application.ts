@@ -27,16 +27,21 @@ import { TrainingScene } from './scenes/training-scene';
 import type { GameConfiguration, ApplicationScreenConfig } from './engine/game-configuration';
 
 export class GameApplication {
+    private static readonly MAX_FRAME_SKIP = 5;
+    private static readonly MAX_DELTA_SECONDS = 0.25;
+
     private readonly canvas: HTMLCanvasElement;
     private readonly services: ServiceLocator = new ServiceLocator();
     private userSettings: AudioSettings & { difficulty: string };
     private pixiApp: PIXI.Application | null = null;
     private _sceneManager: SceneManager | null = null;
     private _sceneTransitions: SceneTransitions | null = null;
+    private _tickInterpolation = 0;
     private _ticker: PIXI.Ticker | null = null;
     private readonly _tickHandler: () => void;
     private _fixedDelta = 1 / 60;
     private _accumulator = 0;
+    private readonly _lifecycleDisposers: Array<() => void> = [];
 
     constructor() {
         this.canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
@@ -219,6 +224,9 @@ export class GameApplication {
                 this.pixiApp.ticker.remove(this._tickHandler, this);
             }
 
+            this._unbindLifecycleHandlers();
+            this._resetAccumulator();
+
             const sceneManager = this.services.optional<SceneManager>('sceneManager');
             if (sceneManager) {
                 await sceneManager.clear();
@@ -250,7 +258,6 @@ export class GameApplication {
             this._ticker = null;
             this._sceneManager = null;
             this._sceneTransitions = null;
-            this._accumulator = 0;
 
             this.services.reset();
         } catch (error) {
@@ -315,10 +322,11 @@ export class GameApplication {
             return;
         }
         this._fixedDelta = 1 / 60;
-        this._accumulator = 0;
+        this._resetAccumulator();
         this._ticker = this.pixiApp.ticker;
         if (this._ticker) {
             this._ticker.add(this._tickHandler, this);
+            this._bindLifecycleHandlers();
         }
     }
 
@@ -328,16 +336,78 @@ export class GameApplication {
         }
 
         const ticker = this.pixiApp.ticker;
-        const deltaSeconds = ticker ? Math.min(ticker.deltaMS / 1000, 0.25) : this._fixedDelta;
+        const deltaSeconds = ticker ? Math.min(ticker.deltaMS / 1000, GameApplication.MAX_DELTA_SECONDS) : this._fixedDelta;
 
         this._accumulator += deltaSeconds;
 
-        while (this._accumulator >= this._fixedDelta) {
+        let stepsExecuted = 0;
+        while (this._accumulator >= this._fixedDelta && stepsExecuted < GameApplication.MAX_FRAME_SKIP) {
             this._sceneManager.fixedUpdate(this._fixedDelta);
             this._accumulator -= this._fixedDelta;
+            stepsExecuted += 1;
         }
 
+        if (this._accumulator >= this._fixedDelta) {
+            this._accumulator = this._accumulator % this._fixedDelta;
+        }
+
+        this._tickInterpolation = this._accumulator / this._fixedDelta;
+
         this._sceneManager.update(deltaSeconds);
+    }
+
+    private _resetAccumulator(): void {
+        this._accumulator = 0;
+        this._tickInterpolation = 0;
+    }
+
+    private _bindLifecycleHandlers(): void {
+        this._unbindLifecycleHandlers();
+
+        if (typeof window === 'undefined' || typeof document === 'undefined') {
+            return;
+        }
+
+        const reset = () => this._resetAccumulator();
+
+        const visibilityHandler = () => reset();
+        document.addEventListener('visibilitychange', visibilityHandler);
+        this._lifecycleDisposers.push(() => document.removeEventListener('visibilitychange', visibilityHandler));
+
+        const blurHandler = () => reset();
+        window.addEventListener('blur', blurHandler);
+        this._lifecycleDisposers.push(() => window.removeEventListener('blur', blurHandler));
+
+        const focusHandler = () => reset();
+        window.addEventListener('focus', focusHandler);
+        this._lifecycleDisposers.push(() => window.removeEventListener('focus', focusHandler));
+    }
+
+    private _unbindLifecycleHandlers(): void {
+        while (this._lifecycleDisposers.length) {
+            const dispose = this._lifecycleDisposers.pop();
+            try {
+                dispose?.();
+            } catch (error) {
+                console.warn('GameApplication: failed to unbind lifecycle handler', error);
+            }
+        }
+    }
+
+    public pauseTicker(): void {
+        if (!this._ticker) {
+            return;
+        }
+        this._ticker.stop();
+        this._resetAccumulator();
+    }
+
+    public resumeTicker(): void {
+        if (!this._ticker) {
+            return;
+        }
+        this._resetAccumulator();
+        this._ticker.start();
     }
 
     private _normalizeColor(value?: number | string): number {

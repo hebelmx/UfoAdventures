@@ -1,5 +1,8 @@
 import * as PIXI from 'pixi.js';
-import { Entity, System } from './engine/core';
+import { Entity } from './engine/core';
+import { SystemManager, type SystemDiagnostics } from './engine/system-manager';
+import { EntityManager } from './engine/entity-manager';
+import { PerformanceProfiler, type PerformanceSummary } from './engine/performance-profiler';
 import { Transform, Sprite, Motion, Enemy, BehaviorTreeComponent, EnemyBehavior, Weapon, Bullet, EnemyBullet, Collider, Health, PlayerAbilities, Boss, BossPhase, getComponentOrNull, Vector2Like } from './engine/components';
 import { Player } from './entities/player';
 import {
@@ -65,12 +68,17 @@ export class GameplayRuntime implements CombatGameContext {
     public readonly app: PIXI.Application;
     public readonly services: ServiceLocator;
     public readonly stage: PIXI.Container;
-
     public entities: RuntimeEntity[] = [];
-    public systems: System[] = [];
+    private readonly _entityManager: EntityManager;
+    private readonly _systemManager: SystemManager;
+    private readonly _profiler = new PerformanceProfiler();
+    private _frameInterpolation = 0;
+    private _lastFrameSkips = 0;
+    private _systemDiagnostics: SystemDiagnostics[] = [];
     public mode = 'adventure';
     public sceneOptions: BehaviorSceneOptions = {};
     public backgroundSprite: PIXI.Sprite | null = null;
+
 
     private _isRunning = false;
     private _paused = false;
@@ -90,6 +98,8 @@ export class GameplayRuntime implements CombatGameContext {
         this.services = services;
         this.stage = new PIXI.Container();
         this.stage.sortableChildren = true;
+        this._systemManager = new SystemManager({ profiler: this._profiler });
+        this._entityManager = new EntityManager(this.entities, { releaseEntity: (entity, index) => this.releaseEntity(entity, index) });
 
         this._entityPools = new Map<string, RuntimePool>();
         this._enemyPools = new Map<string, RuntimePool>();
@@ -121,16 +131,29 @@ export class GameplayRuntime implements CombatGameContext {
         this._paused = false;
     }
 
-    update(delta: number): void {
+    update(delta: number, interpolation = this._frameInterpolation): void {
         if (!this._isRunning || this._paused) {
             return;
         }
 
-        for (const system of this.systems) {
-            system.update(this.entities, delta);
-        }
+        this._frameInterpolation = interpolation;
+        this._systemManager.update(this.entities, delta);
+        this._systemDiagnostics = this._systemManager.getDiagnosticsSnapshot();
 
         this._updatePerformanceOverlay(delta);
+    }
+
+
+    render(interpolation: number): void {
+        this._frameInterpolation = interpolation;
+    }
+
+    setFrameSkipCount(count: number): void {
+        this._lastFrameSkips = count;
+    }
+
+    getPerformanceSummary(): PerformanceSummary {
+        return this._profiler.getSummary();
     }
 
     // Test helpers (read-only)
@@ -168,12 +191,6 @@ export class GameplayRuntime implements CombatGameContext {
     stop(): void {
         if (!this._isRunning) {
             return;
-        }
-
-        for (const system of this.systems) {
-            if (typeof system.destroy === 'function') {
-                system.destroy();
-            }
         }
 
         this._isRunning = false;
@@ -233,8 +250,10 @@ export class GameplayRuntime implements CombatGameContext {
             this._performanceText = null;
         }
         this._performanceStats = { frameCount: 0, accumulator: 0, fps: 0, lastFrameMs: 0 };
-        this.entities = [];
-        this.systems = [];
+        this._systemManager.reset({ destroy: true });
+        this._entityManager.clear();
+        this.entities.length = 0;
+        this._systemDiagnostics = [];
         this._collisionSystem = null;
     }
 
@@ -309,6 +328,7 @@ export class GameplayRuntime implements CombatGameContext {
         }
 
         let activeBullets = 0;
+        let enemyBullets = 0;
         let activeEffects = 0;
         const enemyActive: Record<string, number> = {};
 
@@ -319,6 +339,9 @@ export class GameplayRuntime implements CombatGameContext {
             }
             if (poolId === 'bullet') {
                 activeBullets += 1;
+            } else if (poolId === 'enemyBullet') {
+                enemyBullets += 1;
+            
             } else if (poolId === 'effect') {
                 activeEffects += 1;
             } else if (typeof poolId === 'string' && poolId.startsWith('enemy:')) {
@@ -327,6 +350,7 @@ export class GameplayRuntime implements CombatGameContext {
         }
 
         const bulletPool = this._entityPools.get('bullet');
+        const enemyBulletPool = this._entityPools.get('enemyBullet');
         const effectPool = this._entityPools.get('effect');
 
         const enemySummaries: string[] = [];
@@ -344,8 +368,10 @@ export class GameplayRuntime implements CombatGameContext {
 
         const lines = [
             `FPS: ${fpsDisplay} (frame ${frameDisplay}ms)`,
+            `Interpolation: ${this._frameInterpolation.toFixed(2)}`,
             `Entities: ${this.entities.length}`,
-            `Bullets A:${activeBullets} | Pool:${bulletPool ? bulletPool.size() : 0}`,
+            `Player Bullets A:${activeBullets} | Pool:${bulletPool ? bulletPool.size() : 0}`,
+            `Enemy Bullets A:${enemyBullets} | Pool:${enemyBulletPool ? enemyBulletPool.size() : 0}`,
             `Effects A:${activeEffects} | Pool:${effectPool ? effectPool.size() : 0}`
         ];
 
@@ -359,7 +385,7 @@ export class GameplayRuntime implements CombatGameContext {
             lines.push('Enemies none');
         }
 
-        this._performanceText.text = lines.join('\n');
+        this._performanceText.text = lines.join('\\n');
     }
 
     _ensurePools(): void {
@@ -444,21 +470,22 @@ export class GameplayRuntime implements CombatGameContext {
             eventBus = null;
         }
 
-        this.systems.push(new PlayerInputSystem(inputService));
-        this.systems.push(new BehaviorTreeSystem(this, this.services));
-        this.systems.push(new AbilitySystem(this, eventBus, inputService));
-        this.systems.push(new EnemyBehaviorSystem(this));
-        this.systems.push(new MovementSystem());
-        this.systems.push(new EffectLifetimeSystem(this));
-        this.systems.push(new ShootingSystem(this, this.services, eventBus));
+        this._systemManager.register(new PlayerInputSystem(inputService));
+        this._systemManager.register(new BehaviorTreeSystem(this, this.services));
+        this._systemManager.register(new AbilitySystem(this, eventBus, inputService));
+        this._systemManager.register(new EnemyBehaviorSystem(this));
+        this._systemManager.register(new MovementSystem());
+        this._systemManager.register(new EffectLifetimeSystem(this));
+        this._systemManager.register(new ShootingSystem(this, this.services, eventBus));
         const collisionSystem = new CollisionSystem(this, eventBus);
-        this.systems.push(collisionSystem);
+        this._systemManager.register(collisionSystem);
         this._collisionSystem = collisionSystem;
-        this.systems.push(new UISystem(this));
-        this.systems.push(new BoundaryCleanupSystem(this));
-        this.systems.push(new RenderSystem(this.app));
-        this.systems.push(new CleanupSystem(this));
+        this._systemManager.register(new UISystem(this));
+        this._systemManager.register(new BoundaryCleanupSystem(this));
+        this._systemManager.register(new RenderSystem(this.app));
+        this._systemManager.register(new CleanupSystem(this));
 
+        this._bindPerformanceToggle(inputService);
         this._bindPerformanceToggle(inputService);
     }
 
@@ -467,7 +494,7 @@ export class GameplayRuntime implements CombatGameContext {
         this._registerEntity(player);
 
         const enemyOptions = this.sceneOptions?.enemies ?? {};
-        this.systems.push(new EnemySpawningSystem(this, enemyOptions));
+        this._systemManager.register(new EnemySpawningSystem(this, enemyOptions));
     }
 
     _setupBossMode(): void {
@@ -509,15 +536,15 @@ export class GameplayRuntime implements CombatGameContext {
 
         this._registerEntity(boss);
 
-        this.systems.push(new BossAISystem(this));
-        this.systems.push(new BossShootingSystem(this));
+        this._systemManager.register(new BossAISystem(this));
+        this._systemManager.register(new BossShootingSystem(this));
     }
 
     _setupEnemyDemoMode(): void {
         const player = this._createPlayerEntity();
         this._registerEntity(player);
         const enemyOptions = this.sceneOptions?.enemies ?? {};
-        this.systems.push(new EnemySpawningSystem(this, enemyOptions));
+        this._systemManager.register(new EnemySpawningSystem(this, enemyOptions));
     }
 
     _createPlayerEntity(): RuntimeEntity {
@@ -788,7 +815,9 @@ export class GameplayRuntime implements CombatGameContext {
         const effect = new Entity() as RuntimeEntity;
         effect.poolId = 'effect';
         effect.addComponent(new Transform({ x: 0, y: 0 }));
-        const animated = new PIXI.AnimatedSprite([]);
+        const placeholderTexture = PIXI.Texture.EMPTY || PIXI.Texture.WHITE;
+        const animated = new PIXI.AnimatedSprite([placeholderTexture]);
+        animated.texture = placeholderTexture;
         animated.visible = false;
         animated.loop = false;
         animated.animationSpeed = 0.18;
@@ -947,7 +976,7 @@ export class GameplayRuntime implements CombatGameContext {
             projectile.damage = normalized.damage;
         }
 
-        this._registerEntity(projectile, true);
+        this._registerEntity(projectile);
         return projectile;
     }
 
@@ -973,7 +1002,7 @@ export class GameplayRuntime implements CombatGameContext {
             return null;
         }
         effect.poolId = 'effect';
-        this._registerEntity(effect, true);
+        this._registerEntity(effect);
         return effect;
     }
 
@@ -1000,7 +1029,7 @@ export class GameplayRuntime implements CombatGameContext {
             return null;
         }
         enemy.poolId = template && template.id ? 'enemy:' + template.id : 'enemy:default';
-        this._registerEntity(enemy, true);
+        this._registerEntity(enemy);
         return enemy;
     }
 
@@ -1220,6 +1249,20 @@ export class GameplayRuntime implements CombatGameContext {
         this._attachSprite(entity);
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

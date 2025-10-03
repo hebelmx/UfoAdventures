@@ -19,7 +19,7 @@
 - ❌ Victory/defeat/result states collapse into a single results overlay rather than distinct scenes listed in the design (`src/js/scenes/results-scene.ts:26`).
 
 ### 3. Enhanced Game Loop with Performance Monitoring (§3)
-- ⚠️ The ticker applies a fixed-step accumulator but lacks the `MAX_FRAME_SKIP` guard and interpolated render pass shown in the spec (`src/js/game-application.ts:325`).
+- ⚠️ `_onTick` now enforces the documented `MAX_FRAME_SKIP` guard, but the interpolated render pass is still pending per the spec (`src/js/game-application.ts`).
 - ❌ `PerformanceProfiler` is implemented yet unused anywhere in the runtime (`src/js/engine/performance-profiler.ts:33`).
 
 ### 4. Enhanced Component System (§4)
