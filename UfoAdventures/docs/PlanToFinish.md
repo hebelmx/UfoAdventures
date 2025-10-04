@@ -135,6 +135,22 @@
 - [x] Unit tests for service API (happy-dom) ensure DOM updates fire.
 - [ ] Documentation snippet added to README or docs describing usage.
 
+### Story 1.5: Stabilize and Refactor the Main Menu
+**Narrative:** As a developer, I need to stabilize the main menu to ensure it loads reliably after asset loading, and refactor it to align with the existing architecture, so that the application is usable and easier to maintain.
+**Context & Constraints:** The main menu is currently getting stuck after asset loading, likely due to a JavaScript error. The `MainMenuScene` directly manipulates the DOM, bypassing the `UiService`. This story will address this immediate issue and improve the code's consistency.
+
+**Acceptance Criteria**
+- Given the application has finished loading assets, when the main menu is supposed to appear, then it is rendered correctly and is interactive.
+- Given the `MainMenuScene` is active, when it interacts with the UI, then it uses the `UiService` for all UI-related operations.
+- Given the code has been refactored, when the unit tests are run, then all existing tests pass and new tests for the main menu are added.
+
+**Definition of Done**
+- [ ] `MainMenuScene` is updated with defensive code to prevent crashes from missing DOM elements.
+- [ ] `MainMenuScene` is refactored to use `UiService` for all DOM interactions.
+- [ ] Unit tests are added for `MainMenuScene` to cover its functionality.
+- [ ] The application successfully loads into the main menu without getting stuck.
+- [ ] Manual testing confirms that the main menu is fully functional.
+
 ## Epic 2: Scene Flow & States
 
 ### Story 2.1: Implement Typed Scene Transitions

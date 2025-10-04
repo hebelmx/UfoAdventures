@@ -23,6 +23,7 @@ export class SceneTransitions {
     private _sceneManager: SceneManager | null = null;
     private _queue: Promise<unknown> = Promise.resolve();
     private readonly _wrappedMethods = new Set<TransitionMethod>();
+    private _running = false;
     private readonly _originalMethods: Map<TransitionMethod, SceneManagerMethod> = new Map();
     private _isActive = false;
 
@@ -95,6 +96,15 @@ export class SceneTransitions {
     }
 
     private _enqueue<T>(action: () => Promise<T> | T): Promise<T> {
+        if (this._running) {
+            try {
+                const direct = action();
+                return direct instanceof Promise ? direct : Promise.resolve(direct);
+            } catch (error) {
+                return Promise.reject(error);
+            }
+        }
+
         const next = this._queue.then(() => this._run(action));
         this._queue = next.then(
             () => undefined,
@@ -109,6 +119,7 @@ export class SceneTransitions {
             return action();
         }
 
+        this._running = true;
         await this._activate(mask);
         try {
             const result = await action();
@@ -117,6 +128,8 @@ export class SceneTransitions {
         } catch (error) {
             await this._deactivate(mask);
             throw error;
+        } finally {
+            this._running = false;
         }
     }
 

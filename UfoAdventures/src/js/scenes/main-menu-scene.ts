@@ -103,23 +103,32 @@ export class MainMenuScene extends Scene {
 
 
 
+        const getElement = <T extends HTMLElement>(id: string): T | null => {
+            const element = document.getElementById(id);
+            if (!element) {
+                console.error(`MainMenuScene: Element with id '${id}' not found.`);
+                return null;
+            }
+            return element as T;
+        };
+
         this._elements = {
-            header: document.getElementById('missionHeader'),
-            list: document.getElementById('missionList'),
-            title: document.getElementById('missionTitle'),
-            description: document.getElementById('missionDescription'),
-            objectives: document.getElementById('missionObjectiveList'),
-            rewards: document.getElementById('missionRewards'),
-            leaderboard: document.getElementById('missionLeaderboardPreview'),
-            launchButton: document.getElementById('missionLaunchButton') as HTMLButtonElement,
-            leaderboardButton: document.getElementById('missionLeaderboardButton') as HTMLButtonElement,
-            campaignButton: document.getElementById('menuCampaignButton') as HTMLButtonElement,
-            arcadeButton: document.getElementById('menuArcadeButton') as HTMLButtonElement,
-            trainingButton: document.getElementById('menuTrainingButton') as HTMLButtonElement,
-            optionsButton: document.getElementById('menuOptionsButton') as HTMLButtonElement,
-            creditsButton: document.getElementById('menuCreditsButton') as HTMLButtonElement,
-            leaderboardSceneButton: document.getElementById('menuLeaderboardSceneButton') as HTMLButtonElement
-        } as MainMenuElements;
+            header: getElement('missionHeader'),
+            list: getElement('missionList'),
+            title: getElement('missionTitle'),
+            description: getElement('missionDescription'),
+            objectives: getElement('missionObjectiveList'),
+            rewards: getElement('missionRewards'),
+            leaderboard: getElement('missionLeaderboardPreview'),
+            launchButton: getElement<HTMLButtonElement>('missionLaunchButton'),
+            leaderboardButton: getElement<HTMLButtonElement>('missionLeaderboardButton'),
+            campaignButton: getElement<HTMLButtonElement>('menuCampaignButton'),
+            arcadeButton: getElement<HTMLButtonElement>('menuArcadeButton'),
+            trainingButton: getElement<HTMLButtonElement>('menuTrainingButton'),
+            optionsButton: getElement<HTMLButtonElement>('menuOptionsButton'),
+            creditsButton: getElement<HTMLButtonElement>('menuCreditsButton'),
+            leaderboardSceneButton: getElement<HTMLButtonElement>('menuLeaderboardSceneButton')
+        };
 
 
 

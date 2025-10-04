@@ -100,7 +100,7 @@ export class GameplayRuntime implements CombatGameContext {
         this.stage = new PIXI.Container();
         this.stage.sortableChildren = true;
         this._systemManager = new SystemManager({ profiler: this._profiler });
-        this._entityManager = new EntityManager(this.entities, { releaseEntity: (entity, index) => this.releaseEntity(entity, index) });
+        this._entityManager = new EntityManager(this.entities, { releaseEntity: (entity, index) => this._releasePooledEntity(entity, index) });
 
         this._entityPools = new Map<string, RuntimePool>();
         this._enemyPools = new Map<string, RuntimePool>();
@@ -176,7 +176,7 @@ export class GameplayRuntime implements CombatGameContext {
         let enemyBullets = 0;
         let activeEffects = 0;
 
-        for (const entity of this.entities) {
+        for (const entity of this._entityManager.getAll()) {
             const poolId = (entity as any).poolId;
             if (poolId === 'bullet') {
                 activeBullets += 1;
@@ -196,7 +196,7 @@ export class GameplayRuntime implements CombatGameContext {
             fps,
             frameSkips: this._lastFrameSkips,
             interpolation,
-            entities: this.entities.length,
+            entities: this._entityManager.count(),
             bullets: activeBullets,
             enemyBullets,
             effects: activeEffects,
@@ -209,17 +209,22 @@ export class GameplayRuntime implements CombatGameContext {
         return this._profiler.getSummary();
     }
 
+    getEntityManager(): EntityManager {
+        return this._entityManager;
+    }
+
+
     // Test helpers (read-only)
     getActiveCounts(): { bullets: number; effects: number; enemies: number; hasPlayer: boolean } {
-        const bullets = this.entities.filter(entity => entity.hasComponent(Bullet) && !entity.isRemoved).length;
-        const effects = this.entities.filter(entity => entity.poolId === 'effect' && !entity.isRemoved).length;
-        const enemies = this.entities.filter(entity => entity.hasComponent(Enemy) && !entity.isRemoved).length;
-        const player = this.entities.find(entity => entity.hasComponent(Player)) ?? null;
+        const bullets = this._entityManager.query(entity => entity.hasComponent(Bullet) && !entity.isRemoved).length;
+        const effects = this._entityManager.query(entity => entity.poolId === 'effect' && !entity.isRemoved).length;
+        const enemies = this._entityManager.query(entity => entity.hasComponent(Enemy) && !entity.isRemoved).length;
+        const player = this._entityManager.find(entity => entity.hasComponent(Player));
         return { bullets, effects, enemies, hasPlayer: Boolean(player) };
     }
 
     getAbilitySnapshot(): AbilitySnapshot | null {
-        const playerEntity = this.entities.find(entity => entity.hasComponent(Player));
+        const playerEntity = this._entityManager.find(entity => entity.hasComponent(Player));
         if (!playerEntity) {
             return null;
         }
@@ -231,7 +236,7 @@ export class GameplayRuntime implements CombatGameContext {
 
         const shieldState = abilities.states?.shield ?? null;
         const stasisState = abilities.states?.stasisField ?? null;
-        const stasisPaused = this.entities.filter(entity => entity._stasisPaused).length;
+        const stasisPaused = this._entityManager.query(entity => (entity as RuntimeEntity)._stasisPaused).length;
 
         return {
             shieldRemaining: abilities.activeShieldStrength ?? 0,
@@ -264,18 +269,17 @@ export class GameplayRuntime implements CombatGameContext {
             return;
         }
 
-        if (entity.poolId) {
-            this.releaseEntity(entity);
+        const hadPool = Boolean(entity.poolId);
+        const removed = this._entityManager.remove(entity);
+        if (!removed) {
             return;
         }
 
-        const index = this.entities.indexOf(entity);
-        if (index > -1) {
-            this.entities.splice(index, 1);
+        if (hadPool) {
+            return;
         }
 
         this._detachSprite(entity);
-        entity.isRemoved = true;
     }
 
     addEntity(entity: RuntimeEntity): void {
@@ -305,7 +309,6 @@ export class GameplayRuntime implements CombatGameContext {
         this._performanceStats = { frameCount: 0, accumulator: 0, fps: 0, lastFrameMs: 0 };
         this._systemManager.reset({ destroy: true });
         this._entityManager.clear();
-        this.entities.length = 0;
         this._systemDiagnostics = [];
         this._collisionSystem = null;
     }
@@ -384,8 +387,9 @@ export class GameplayRuntime implements CombatGameContext {
         let enemyBullets = 0;
         let activeEffects = 0;
         const enemyActive: Record<string, number> = {};
+        const entities = this._entityManager.getAll();
 
-        for (const entity of this.entities) {
+        for (const entity of entities) {
             const poolId = entity.poolId;
             if (!poolId) {
                 continue;
@@ -394,7 +398,6 @@ export class GameplayRuntime implements CombatGameContext {
                 activeBullets += 1;
             } else if (poolId === 'enemyBullet') {
                 enemyBullets += 1;
-            
             } else if (poolId === 'effect') {
                 activeEffects += 1;
             } else if (typeof poolId === 'string' && poolId.startsWith('enemy:')) {
@@ -423,7 +426,7 @@ export class GameplayRuntime implements CombatGameContext {
             `FPS: ${fpsDisplay} (frame ${frameDisplay}ms)`,
             `Frame Skips: ${this._lastFrameSkips}`,
             `Interpolation: ${this._frameInterpolation.toFixed(2)}`,
-            `Entities: ${this.entities.length}`,
+            `Entities: ${this._entityManager.count()}`,
             `Player Bullets A:${activeBullets} | Pool:${bulletPool ? bulletPool.size() : 0}`,
             `Enemy Bullets A:${enemyBullets} | Pool:${enemyBulletPool ? enemyBulletPool.size() : 0}`,
             `Effects A:${activeEffects} | Pool:${effectPool ? effectPool.size() : 0}`
@@ -466,7 +469,6 @@ export class GameplayRuntime implements CombatGameContext {
 
         this._performanceText.text = lines.join('\\n');
     }
-
     _ensurePools(): void {
         if (!this._entityPools.has('bullet')) {
             this._entityPools.set('bullet', new EntityPool<RuntimeEntity, PoolParamRecord>({
@@ -712,24 +714,47 @@ export class GameplayRuntime implements CombatGameContext {
 
     private _resolveAnimationFrames(spritesheet: PIXI.Spritesheet, animation: string): PIXI.Texture[] {
         const animations = spritesheet.animations ?? {};
-        if (animations && animations[animation] && animations[animation].length) {
-            return animations[animation].slice();
-        }
-
-        if (animations && animations.idle && animations.idle.length) {
-            return animations.idle.slice();
-        }
-
         const textures = spritesheet.textures ?? {};
+
+        const coerceFrames = (frames: unknown): PIXI.Texture[] => {
+            if (!frames || !Array.isArray(frames)) {
+                return [];
+            }
+
+            return frames
+                .map(frame => {
+                    if (typeof frame === 'string') {
+                        const direct = textures[frame];
+                        if (direct) {
+                            return direct;
+                        }
+                        const normalized = frame.toLowerCase();
+                        return textures[normalized];
+                    }
+                    return frame as PIXI.Texture;
+                })
+                .filter((texture): texture is PIXI.Texture => !!texture);
+        };
+
+        const directFrames = coerceFrames(animations?.[animation]);
+        if (directFrames.length) {
+            return directFrames;
+        }
+
+        const idleFrames = coerceFrames(animations?.idle);
+        if (idleFrames.length) {
+            return idleFrames;
+        }
+
         const textureNames = Object.keys(textures);
         if (!textureNames.length) {
             return [];
         }
 
-        const normalizedName = animation?.toLowerCase() ?? 'idle';
+        const targetName = (animation ?? 'idle').toLowerCase();
         const prefixed = textureNames.filter(name => {
             const lower = name.toLowerCase();
-            return lower.startsWith(`${normalizedName}-`) || lower.startsWith(`${normalizedName}/`);
+            return lower.startsWith(`${targetName}-`) || lower.startsWith(`${targetName}/`);
         });
 
         const selected = prefixed.length ? prefixed : textureNames;
@@ -1279,16 +1304,16 @@ export class GameplayRuntime implements CombatGameContext {
             return;
         }
 
-        const spriteComponent = getComponentOrNull(entity, Sprite);
-        if (spriteComponent?.sprite?.parent) {
-            spriteComponent.sprite.parent.removeChild(spriteComponent.sprite);
+        this._releasePooledEntity(entity, index);
+    }
+
+    private _releasePooledEntity(entity: RuntimeEntity, index?: number): void {
+        const detached = this._entityManager.detach(entity, index);
+        if (!detached) {
+            return;
         }
 
-        const removalIndex = typeof index === 'number' ? index : this.entities.indexOf(entity);
-        if (removalIndex > -1) {
-            this.entities.splice(removalIndex, 1);
-        }
-
+        this._detachSprite(entity);
         entity.isRemoved = false;
 
         const poolId = entity.poolId;
@@ -1324,15 +1349,11 @@ export class GameplayRuntime implements CombatGameContext {
         }
     }
 
-    _registerEntity(entity: RuntimeEntity | null | undefined, isPooled = false): void {
+    _registerEntity(entity: RuntimeEntity | null | undefined, _isPooled = false): void {
         if (!entity) {
             return;
         }
-        if (!isPooled || !this.entities.includes(entity)) {
-            if (!this.entities.includes(entity)) {
-                this.entities.push(entity);
-            }
-        }
+        this._entityManager.add(entity);
         this._attachSprite(entity);
     }
 }

@@ -174,6 +174,34 @@ export class ResourceManager {
             }
         }
 
+        if (data) {
+            if (!data.meta) {
+                data.meta = {};
+            }
+            if (!data.meta.prefix) {
+                data.meta.prefix = alias;
+            }
+            if (data.frames && typeof data.frames === 'object') {
+                const remappedFrames: Record<string, unknown> = {};
+                Object.entries(data.frames).forEach(([name, frame]) => {
+                    const key = name.startsWith(`${alias}/`) ? name : `${alias}/${name}`;
+                    remappedFrames[key] = frame;
+                    if (Array.isArray(data.animations)) {
+                        /* no-op for array based animations */
+                    }
+                });
+                data.frames = remappedFrames as typeof data.frames;
+            }
+            if (data.animations && typeof data.animations === 'object') {
+                Object.keys(data.animations).forEach(animKey => {
+                    const frames = data.animations![animKey];
+                    if (Array.isArray(frames)) {
+                        data.animations![animKey] = frames.map(frameName => frameName.startsWith(`${alias}/`) ? frameName : `${alias}/${frameName}`);
+                    }
+                });
+            }
+        }
+
         if (!data) {
             const width = asset.width ?? texture.width ?? texture.baseTexture?.width ?? 0;
             const height = asset.height ?? texture.height ?? texture.baseTexture?.height ?? 0;
@@ -216,23 +244,16 @@ export class ResourceManager {
             }
         }
 
-        const spritesheet = new PIXI.Spritesheet(texture.baseTexture, data);
+        const spritesheet = new PIXI.Spritesheet(texture.source ?? texture.baseTexture, data);
         await spritesheet.parse();
 
         this._spritesheets.set(alias, spritesheet);
         PIXI.Assets.cache.set(alias, spritesheet);
-
-        Object.entries(spritesheet.textures).forEach(([name, tex]) => {
-            const cacheKey = `${alias}:${name}`;
-            if (!PIXI.Assets.cache.has(cacheKey)) {
-                PIXI.Assets.cache.set(cacheKey, tex);
-            }
-        });
     }
 
     private async _createPlaceholderSpritesheet(alias: string, asset: AssetManifestEntry = {} as AssetManifestEntry): Promise<void> {
         const frameName = `${alias}__frame__`;
-        const baseTexture = PIXI.Texture.WHITE.baseTexture;
+        const baseTexture = PIXI.Texture.WHITE.source ?? PIXI.Texture.WHITE.baseTexture;
         const manifestAnimations = this._normalizeAnimationMap(asset.animations);
         const animations = manifestAnimations && Object.keys(manifestAnimations).length
             ? manifestAnimations
@@ -251,7 +272,8 @@ export class ResourceManager {
             meta: {
                 image: 'placeholder',
                 scale: 1,
-                size: { w: 1, h: 1 }
+                size: { w: 1, h: 1 },
+                prefix: alias
             }
         };
 

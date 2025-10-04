@@ -125,7 +125,10 @@ export class GameApplication {
 
         // Load configuration and apply to runtime services
         const config = await configService.load<GameConfiguration>();
-        this._initializePixiApp(config?.application?.screen || {});
+        await this._initializePixiApp(config?.application?.screen || {});
+        if (!this.pixiApp) {
+            throw new Error('GameApplication: PIXI application failed to initialize');
+        }
         this.services.register('pixiApp', this.pixiApp);
 
         this._applyConfiguration({
@@ -296,7 +299,7 @@ export class GameApplication {
         }
     }
 
-    private _initializePixiApp(screen: ApplicationScreenConfig = {}): void {
+    private async _initializePixiApp(screen: ApplicationScreenConfig = {}): Promise<void> {
         if (this.pixiApp) {
             return;
         }
@@ -306,16 +309,16 @@ export class GameApplication {
         const backgroundColor = this._normalizeColor(screen.backgroundColor);
 
         try {
-            this.pixiApp = new PIXI.Application({
-                view: this.canvas,
+            const app = new PIXI.Application();
+            await app.init({
+                canvas: this.canvas,
                 width,
                 height,
                 backgroundColor,
                 antialias: true
             });
-            if (this.pixiApp?.stage) {
-                this.pixiApp.stage.sortableChildren = true;
-            }
+            app.stage.sortableChildren = true;
+            this.pixiApp = app;
         } catch (error) {
             console.error('GameApplication: failed to initialize PIXI application', error);
             throw error;
@@ -328,11 +331,13 @@ export class GameApplication {
         }
         this._fixedDelta = 1 / 60;
         this._resetAccumulator();
-        this._ticker = this.pixiApp.ticker;
-        if (this._ticker) {
-            this._ticker.add(this._tickHandler, this);
-            this._bindLifecycleHandlers();
+        this._ticker = this.pixiApp.ticker ?? null;
+        if (!this._ticker) {
+            console.warn('GameApplication: PIXI ticker unavailable; runtime updates disabled');
+            return;
         }
+        this._ticker.add(this._tickHandler, this);
+        this._bindLifecycleHandlers();
     }
 
     private _onTick(): void {
