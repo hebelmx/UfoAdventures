@@ -24,3 +24,20 @@
 - Test the `instant` transition for pause and inventory menus.
 - Test that the game is still responsive during transitions.
 - Check the console for any errors related to scene transitions.
+
+## Overlay IDs
+- `loadingScreen`
+- `mainMenuOverlay`
+- `pauseOverlay`
+- `inventoryOverlay`
+- `optionsOverlay`
+- `resultsOverlay`
+- `leaderboardOverlay`
+- `creditsOverlay`
+- `arcadeOverlay`
+- `trainingOverlay`
+
+## Keyboard Navigation Checklist (Manual)
+- Verify that all interactive elements in the overlays are focusable and can be operated using the keyboard.
+- Verify that the focus is trapped within the modal overlays.
+- Verify that the `Escape` key closes the overlays.

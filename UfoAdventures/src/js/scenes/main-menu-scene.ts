@@ -604,7 +604,7 @@ export class MainMenuScene extends Scene {
 
     private _openScene(name: string): void {
         const sceneManager = this.services.resolve<SceneManager>('sceneManager');
-        sceneManager.push(name).catch(error => {
+        sceneManager.push(name, undefined, undefined, 'fade').catch(error => {
             console.error(`MainMenuScene: failed to open scene ${name}`, error);
         });
     }
