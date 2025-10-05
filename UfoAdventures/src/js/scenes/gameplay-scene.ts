@@ -210,7 +210,7 @@ export class GameplayScene extends Scene {
             return;
         }
 
-        sceneManager.push('pause-menu', { mode: this.mode, missionId: this._missionId }).catch((error) => {
+        sceneManager.push('pause-menu', { mode: this.mode, missionId: this._missionId }, undefined, 'instant').catch((error) => {
             console.error('GameplayScene: failed to open pause menu', error);
         });
     }
@@ -225,7 +225,7 @@ export class GameplayScene extends Scene {
             return;
         }
 
-        sceneManager.push('inventory', { mode: this.mode }).catch((error) => {
+        sceneManager.push('inventory', { mode: this.mode }, undefined, 'instant').catch((error) => {
             console.error('GameplayScene: failed to open inventory', error);
         });
     }
@@ -283,7 +283,7 @@ export class GameplayScene extends Scene {
         }
 
         const sceneManager = this.services.resolve<SceneManager>('sceneManager');
-        sceneManager.replace('main-menu').catch((error) => {
+        sceneManager.replace('main-menu', undefined, undefined, 'fade').catch((error) => {
             console.error('Failed to return to main menu', error);
             this._isTransitioning = false;
         });
@@ -310,7 +310,7 @@ export class GameplayScene extends Scene {
             details: payload?.details ?? null
         };
 
-        sceneManager.replace('results', params).catch((error) => {
+        sceneManager.replace('results', params, undefined, 'fade').catch((error) => {
             console.error('GameplayScene: failed to show results scene', error);
             this._isTransitioning = false;
         });

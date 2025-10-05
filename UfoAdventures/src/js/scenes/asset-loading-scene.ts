@@ -69,7 +69,7 @@ export class AssetLoadingScene extends Scene {
 
         const sceneManager = this.services.resolve<SceneManager>('sceneManager');
         if (isTestMode) {
-            sceneManager.change('main-menu').then(() => {
+            sceneManager.change('main-menu', undefined, undefined, 'fade').then(() => {
                 if (typeof window !== 'undefined') {
                     console.info('AssetLoadingScene: main menu scene loaded');
                 }
@@ -79,6 +79,6 @@ export class AssetLoadingScene extends Scene {
             return;
         }
 
-        await sceneManager.change('main-menu');
+        await sceneManager.change('main-menu', undefined, undefined, 'fade');
     }
 }

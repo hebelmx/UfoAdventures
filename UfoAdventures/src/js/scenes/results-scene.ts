@@ -272,7 +272,7 @@ export class ResultsScene extends Scene {
         this._hookButton('resultsMenuButton', async (button) => {
             (button as HTMLButtonElement).disabled = true;
             try {
-                await sceneManager.replace('main-menu');
+                await sceneManager.replace('main-menu', undefined, undefined, 'fade');
             } catch (error) {
                 console.error('ResultsScene: failed to return to menu', error);
                 (button as HTMLButtonElement).disabled = false;
@@ -287,7 +287,7 @@ export class ResultsScene extends Scene {
                     missionId,
                     mode: this._lastParams.mode || null,
                     options: this._lastParams.options || {}
-                });
+                }, undefined, 'fade');
             } catch (error) {
                 console.error('ResultsScene: failed to restart gameplay', error);
                 (button as HTMLButtonElement).disabled = false;

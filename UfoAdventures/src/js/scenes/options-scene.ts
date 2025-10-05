@@ -174,7 +174,7 @@ export class OptionsScene extends Scene {
 
     private _close(): void {
         const sceneManager = this.services.resolve<SceneManager>('sceneManager');
-        sceneManager.pop();
+        sceneManager.pop(undefined, undefined, 'fade');
     }
 }
 

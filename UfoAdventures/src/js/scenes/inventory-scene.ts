@@ -68,7 +68,7 @@ export class InventoryScene extends Scene {
             const handler = async () => {
                 close.disabled = true;
                 try {
-                    await sceneManager.pop();
+                    await sceneManager.pop(undefined, undefined, 'instant');
                 } catch (error) {
                     console.error('InventoryScene: failed to close', error);
                     close.disabled = false;

@@ -17,3 +17,10 @@
 - Toggle the performance overlay (`togglePerformanceOverlay`, default `F6`) and verify the new metrics — frame time, skip count, update/render averages, and top system timings — update every frame without console warnings.
 - Pause and resume (game menu or focus change) while the overlay is visible; ensure accumulator resets cleanly and profiler values continue updating after resume.
 - Document the run in release notes (FPS, frame skip observations) or flag issues in `docs/testing-notes.md` before sign-off.
+
+## Scene Transition Checklist (Manual)
+- Verify that scene transitions are working correctly.
+- Test the `fade` transition between the main menu and other scenes.
+- Test the `instant` transition for pause and inventory menus.
+- Test that the game is still responsive during transitions.
+- Check the console for any errors related to scene transitions.

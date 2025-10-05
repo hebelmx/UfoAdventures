@@ -1,9 +1,8 @@
 import type { SceneManager } from '../engine/scene-manager';
+import { ISceneTransition, transitions } from '../engine/transition-types';
 
 export interface SceneTransitionOptions {
     elementId?: string;
-    fadeInDuration?: number;
-    fadeOutDuration?: number;
 }
 
 type TransitionMethod = 'replace' | 'push' | 'pop';
@@ -18,8 +17,6 @@ type MethodReturn<M extends TransitionMethod> = ManagerMethod<M> extends (...arg
 
 export class SceneTransitions {
     readonly elementId: string;
-    readonly fadeInDuration: number;
-    readonly fadeOutDuration: number;
     private _sceneManager: SceneManager | null = null;
     private _queue: Promise<unknown> = Promise.resolve();
     private readonly _wrappedMethods = new Set<TransitionMethod>();
@@ -29,8 +26,6 @@ export class SceneTransitions {
 
     constructor(options: SceneTransitionOptions = {}) {
         this.elementId = options.elementId || 'sceneTransition';
-        this.fadeInDuration = SceneTransitions._sanitizeDuration(options.fadeInDuration, 240);
-        this.fadeOutDuration = SceneTransitions._sanitizeDuration(options.fadeOutDuration, 180);
     }
 
     attach(sceneManager: SceneManager | null): void {
@@ -85,8 +80,9 @@ export class SceneTransitions {
             return;
         }
         const wrapped: SceneManagerMethod = (...args: unknown[]) => {
+            const transitionId = (args.pop() as string) || 'instant';
             const run = originalMethod.bind(manager) as (...innerArgs: unknown[]) => unknown;
-            return this._enqueue(() => run(...args));
+            return this._enqueue(() => run(...args), transitionId);
         };
 
         this._originalMethods.set(method, originalMethod);
@@ -95,7 +91,7 @@ export class SceneTransitions {
 
     }
 
-    private _enqueue<T>(action: () => Promise<T> | T): Promise<T> {
+    private _enqueue<T>(action: () => Promise<T> | T, transitionId: string): Promise<T> {
         if (this._running) {
             try {
                 const direct = action();
@@ -105,7 +101,7 @@ export class SceneTransitions {
             }
         }
 
-        const next = this._queue.then(() => this._run(action));
+        const next = this._queue.then(() => this._run(action, transitionId));
         this._queue = next.then(
             () => undefined,
             () => undefined
@@ -113,40 +109,26 @@ export class SceneTransitions {
         return next;
     }
 
-    private async _run<T>(action: () => Promise<T> | T): Promise<T> {
+    private async _run<T>(action: () => Promise<T> | T, transitionId: string): Promise<T> {
         const mask = this._getElement();
-        if (!mask) {
+        const transition = transitions.get(transitionId) || transitions.get('instant');
+
+        if (!mask || !transition) {
             return action();
         }
 
         this._running = true;
-        await this._activate(mask);
+        transition.init(mask);
+
         try {
-            const result = await action();
-            await this._deactivate(mask);
-            return result;
-        } catch (error) {
-            await this._deactivate(mask);
-            throw error;
+            await transition.play(async () => {
+                await action();
+            });
         } finally {
             this._running = false;
         }
-    }
 
-    private async _activate(mask: HTMLElement): Promise<void> {
-        this._isActive = true;
-        mask.classList.add('scene-transition--visible');
-        if (this.fadeInDuration > 0) {
-            await this._delay(this.fadeInDuration);
-        }
-    }
-
-    private async _deactivate(mask: HTMLElement): Promise<void> {
-        mask.classList.remove('scene-transition--visible');
-        if (this.fadeOutDuration > 0) {
-            await this._delay(this.fadeOutDuration);
-        }
-        this._isActive = false;
+        return Promise.resolve() as Promise<T>;
     }
 
     private _getElement(): HTMLElement | null {
@@ -154,21 +136,5 @@ export class SceneTransitions {
             return null;
         }
         return document.getElementById(this.elementId);
-    }
-
-    private _delay(ms: number): Promise<void> {
-        if (!Number.isFinite(ms) || ms <= 0) {
-            return Promise.resolve();
-        }
-        return new Promise(resolve => {
-            setTimeout(resolve, ms);
-        });
-    }
-
-    private static _sanitizeDuration(value: number | undefined, fallback: number): number {
-        if (!Number.isFinite(value) || value === undefined) {
-            return fallback;
-        }
-        return Math.max(0, value);
     }
 }

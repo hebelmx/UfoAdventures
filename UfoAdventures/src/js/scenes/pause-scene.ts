@@ -51,7 +51,7 @@ export class PauseScene extends Scene {
         this._hookButton('pauseResumeButton', async (button) => {
             button.disabled = true;
             try {
-                await sceneManager.pop();
+                await sceneManager.pop(undefined, undefined, 'instant');
             } catch (error) {
                 console.error('PauseScene: failed to resume gameplay', error);
                 button.disabled = false;
@@ -61,7 +61,7 @@ export class PauseScene extends Scene {
         this._hookButton('pauseInventoryButton', async (button) => {
             button.disabled = true;
             try {
-                await sceneManager.push('inventory', { mode: this._mode });
+                await sceneManager.push('inventory', { mode: this._mode }, undefined, 'instant');
             } catch (error) {
                 console.error('PauseScene: failed to open inventory', error);
             } finally {
@@ -72,7 +72,7 @@ export class PauseScene extends Scene {
         this._hookButton('pauseEndButton', async (button) => {
             button.disabled = true;
             try {
-                await sceneManager.pop(undefined, { resume: false });
+                await sceneManager.pop(undefined, { resume: false }, 'fade');
                 if (eventBus) {
                     const payload: GameResultsRequest = {
                         outcome: 'mission-complete',
@@ -91,7 +91,7 @@ export class PauseScene extends Scene {
         this._hookButton('pauseQuitButton', async (button) => {
             button.disabled = true;
             try {
-                await sceneManager.pop(undefined, { resume: false });
+                await sceneManager.pop(undefined, { resume: false }, 'fade');
                 if (eventBus) {
                     eventBus.emit('game:return-to-menu');
                 }

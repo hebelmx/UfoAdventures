@@ -134,7 +134,7 @@ export class LeaderboardScene extends Scene {
             row.appendChild(timeCell);
 
             const outcomeCell = document.createElement('td');
-            outcomeCell.textContent = run.outcome || '—';
+            outcomeCell.textContent = run.outcome || 'ï¿½';
             row.appendChild(outcomeCell);
 
             tableBody.appendChild(row);
@@ -155,6 +155,6 @@ export class LeaderboardScene extends Scene {
 
     private _close(): void {
         const sceneManager = this.services.resolve<SceneManager>('sceneManager');
-        sceneManager.pop();
+        sceneManager.pop(undefined, undefined, 'fade');
     }
 }

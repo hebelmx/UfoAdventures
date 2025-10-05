@@ -18,7 +18,7 @@ export class BootstrapScene extends Scene {
 
         const sceneManager = this.services.resolve<SceneManager>('sceneManager');
         window.requestAnimationFrame(() => {
-            sceneManager.change('asset-loading').catch((error: unknown) => {
+            sceneManager.change('asset-loading', undefined, undefined, 'instant').catch((error: unknown) => {
                 console.error('Failed to advance from bootstrap scene', error);
             });
         });

@@ -69,7 +69,7 @@ export class TrainingScene extends Scene {
             missionId: this._missionId,
             mode: 'training',
             options: { training: true }
-        }).catch(error => {
+        }, undefined, 'fade').catch(error => {
             console.error('TrainingScene: failed to start training mode', error);
         });
     }
@@ -79,6 +79,6 @@ export class TrainingScene extends Scene {
             return;
         }
         const sceneManager = this.services.resolve<SceneManager>('sceneManager');
-        sceneManager.pop();
+        sceneManager.pop(undefined, undefined, 'fade');
     }
 }

@@ -115,7 +115,7 @@ export class ArcadeScene extends Scene {
             missionId: this._missionId,
             mode: 'arcade',
             options: { arcade: true }
-        }).catch(error => {
+        }, undefined, 'fade').catch(error => {
             console.error('ArcadeScene: failed to start arcade gameplay', error);
         });
     }
@@ -125,7 +125,7 @@ export class ArcadeScene extends Scene {
             return;
         }
         const sceneManager = this.services.resolve<SceneManager>('sceneManager');
-        sceneManager.pop();
+        sceneManager.pop(undefined, undefined, 'fade');
     }
 
     private _formatDuration(seconds?: number): string {

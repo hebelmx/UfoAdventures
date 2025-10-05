@@ -97,17 +97,17 @@ export class SceneManager {
         await this.replace(name, params);
     }
 
-    async push(name: string, params?: unknown, options: { suspendCurrent?: boolean } = {}): Promise<void> {
+    async push(name: string, params?: unknown, options: { suspendCurrent?: boolean } = {}, transitionId?: string): Promise<void> {
         const suspendCurrent = options.suspendCurrent !== false;
         await this._push(name, params, { suspendCurrent });
     }
 
-    async pop(params?: unknown, options: { resume?: boolean } = {}): Promise<void> {
+    async pop(params?: unknown, options: { resume?: boolean } = {}, transitionId?: string): Promise<void> {
         const resume = options.resume !== false;
         await this._pop({ params, resume });
     }
 
-    async replace(name: string, params?: unknown, options: { resumeUnderneath?: boolean; suspendCurrent?: boolean } = {}): Promise<void> {
+    async replace(name: string, params?: unknown, options: { resumeUnderneath?: boolean; suspendCurrent?: boolean } = {}, transitionId?: string): Promise<void> {
         const resumeUnderneath = options.resumeUnderneath ?? false;
 
         await this._pop({ resume: resumeUnderneath });
