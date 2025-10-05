@@ -58,10 +58,13 @@ import {
     AbilityState,
     Vector2Like,
     getComponentOrNull,
-    getComponents
+    getComponents,
+    AIStateMachineComponent
 } from './components';
 import { Player } from '../entities/player';
 import { UiService, type AbilityName } from './ui-service';
+import { IAIBrain, StateMachine } from './ai-state-machine';
+import { PatrolState, ChaseState, AttackState } from './enemy-ai-states';
 
 type BehaviorTreeStepDefinition = BehaviorTreeActionStep | BehaviorTreeWaitStep;
 
@@ -895,6 +898,10 @@ export class AbilitySystem extends System {
     }
 }
 
+import { IAIBrain, StateMachine } from './ai-state-machine';
+import { PatrolState, ChaseState, AttackState } from './enemy-ai-states';
+import { AIStateMachineComponent } from './components';
+
 export class EnemyBehaviorSystem extends System {
     private readonly game: RuntimeGameContext;
 
@@ -905,73 +912,14 @@ export class EnemyBehaviorSystem extends System {
 
     update(entities: Entity[], delta: number): void {
         const deltaSeconds = delta / 60;
-        const screen = this._getScreen();
 
         entities.forEach(entity => {
-            if (!entity.hasComponent(EnemyBehavior) || !entity.hasComponent(Enemy)) {
+            if (!entity.hasComponent(EnemyBehavior) || !entity.hasComponent(Enemy) || !entity.hasComponent(AIStateMachineComponent)) {
                 return;
             }
 
-            const components = getComponents(entity, EnemyBehavior, Transform, Motion);
-            if (!components) {
-                return;
-            }
-
-            const [behavior, transform, motion] = components;
-
-            behavior.elapsed += deltaSeconds;
-            if (behavior.originX === null) {
-                behavior.originX = transform.position.x;
-            }
-
-            switch (behavior.pattern) {
-                case 'sine': {
-                    const originX = behavior.originX ?? transform.position.x;
-                    const frequency = behavior.frequency || 1.2;
-                    const amplitude = behavior.amplitude || 80;
-                    const angle = behavior.elapsed * frequency * Math.PI * 2;
-                    transform.position.x = originX + Math.sin(angle) * amplitude;
-                    motion.velocity.x = 0;
-                    motion.velocity.y = behavior.verticalSpeed || 2;
-                    break;
-                }
-                case 'swoop': {
-                    const diveDuration = 1.2;
-                    const climbDuration = 0.9;
-                    const cycle = diveDuration + climbDuration + 1.2;
-                    const time = behavior.elapsed % cycle;
-
-                    if (time < diveDuration) {
-                        motion.velocity.y = behavior.diveSpeed || 4.5;
-                    } else if (time < diveDuration + climbDuration) {
-                        motion.velocity.y = behavior.climbSpeed || -3.2;
-                    } else {
-                        motion.velocity.y = behavior.verticalSpeed || 2;
-                    }
-
-                    motion.velocity.x = behavior.horizontalDrift || 0;
-                    break;
-                }
-                case 'strafe':
-                default: {
-                    if (!behavior.direction) {
-                        behavior.direction = Math.random() > 0.5 ? 1 : -1;
-                    }
-
-                    const margin = 60;
-                    const speed = behavior.horizontalSpeed || 3;
-
-                    if (transform.position.x < margin) {
-                        behavior.direction = 1;
-                    } else if (transform.position.x > (screen.width - margin)) {
-                        behavior.direction = -1;
-                    }
-
-                    motion.velocity.x = speed * behavior.direction;
-                    motion.velocity.y = behavior.verticalSpeed || 2;
-                    break;
-                }
-            }
+            const aiComponent = entity.getComponent(AIStateMachineComponent);
+            aiComponent.stateMachine.update(deltaSeconds);
         });
     }
 
@@ -980,6 +928,7 @@ export class EnemyBehaviorSystem extends System {
         return renderer ? renderer.screen : this.game.app.screen;
     }
 }
+
 
 export class EnemySpawningSystem extends System {
     private readonly game: BehaviorTreeGameContext;
@@ -1082,6 +1031,14 @@ export class EnemySpawningSystem extends System {
             }));
         }
 
+        const aiStates = new Map<string, IAIBrain>();
+        aiStates.set('patrol', new PatrolState());
+        aiStates.set('chase', new ChaseState());
+        aiStates.set('attack', new AttackState());
+        const stateMachine = new StateMachine(aiStates);
+        enemy.addComponent(new AIStateMachineComponent(stateMachine));
+        stateMachine.transitionTo('patrol', { entity: enemy });
+
         return enemy;
     }
 
@@ -1114,7 +1071,7 @@ export class EnemySpawningSystem extends System {
             map.set('default', {
                 id: 'default',
                 texture: 'blade',
-                pattern: 'sine',
+                initialState: 'patrol',
                 verticalSpeed: 2,
                 amplitude: 80,
                 frequency: 1.2

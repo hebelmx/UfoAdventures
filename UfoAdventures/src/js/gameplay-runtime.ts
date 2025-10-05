@@ -3,7 +3,7 @@ import { Entity } from './engine/core';
 import { SystemManager, type SystemDiagnostics } from './engine/system-manager';
 import { EntityManager } from './engine/entity-manager';
 import { PerformanceProfiler, type PerformanceSummary, type FrameMetrics } from './engine/performance-profiler';
-import { Transform, Sprite, Motion, Enemy, BehaviorTreeComponent, EnemyBehavior, Weapon, Bullet, EnemyBullet, Collider, Health, PlayerAbilities, Boss, BossPhase, getComponentOrNull, Vector2Like } from './engine/components';
+import { Transform, Sprite, Motion, Enemy, BehaviorTreeComponent, EnemyBehavior, Weapon, Bullet, EnemyBullet, Collider, Health, PlayerAbilities, Boss, BossPhase, getComponentOrNull, Vector2Like, AIStateMachineComponent } from './engine/components';
 import { Player } from './entities/player';
 import {
     RenderSystem,
@@ -38,6 +38,8 @@ import type {
     RuntimeEntity
 } from './engine/combat-types';
 import { UiService } from './engine/ui-service';
+import { IAIBrain, StateMachine } from './engine/ai-state-machine';
+import { PatrolState, ChaseState, AttackState } from './engine/enemy-ai-states';
 
 interface PerformanceStats {
     frameCount: number;
@@ -1190,6 +1192,15 @@ export class GameplayRuntime implements CombatGameContext {
                 cooldown: template.weaponCooldown ?? template.fireRate ?? 1.0
             }));
         }
+
+        const aiStates = new Map<string, IAIBrain>();
+        aiStates.set('patrol', new PatrolState());
+        aiStates.set('chase', new ChaseState());
+        aiStates.set('attack', new AttackState());
+        const stateMachine = new StateMachine(aiStates);
+        enemy.addComponent(new AIStateMachineComponent(stateMachine));
+        stateMachine.transitionTo('patrol', { entity: enemy });
+
         return enemy;
     }
 

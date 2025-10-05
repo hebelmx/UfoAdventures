@@ -1,6 +1,7 @@
 import * as PIXI from 'pixi.js';
 import { Component, ComponentConstructor, Entity } from './core';
 import type { BossPhaseDefinition } from './combat-types';
+import { StateMachine } from './ai-state-machine';
 export type { BossPhaseDefinition } from './combat-types';
 
 type ComponentCtor<T extends Component = Component> = ComponentConstructor<T>;
@@ -334,6 +335,16 @@ export class BossPhase extends Component {
     getCurrent(): BossPhaseDefinition | null {
         return this.phases[this.currentIndex] || null;
     }
+}
+
+export class AIStateMachineComponent<T extends string> extends Component {
+    stateMachine: StateMachine<T>;
+
+    constructor(stateMachine: StateMachine<T>) {
+        super();
+        this.stateMachine = stateMachine;
+    }
+}
 }
 
 
