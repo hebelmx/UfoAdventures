@@ -149,6 +149,8 @@ export class GameApplication {
         await this._loadUserSettings();
         this._applyUserSettings();
 
+        
+
         // Attach optional scene transition helper
         if (typeof SceneTransitions === 'function') {
             this._sceneTransitions = new SceneTransitions();

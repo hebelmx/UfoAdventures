@@ -702,11 +702,27 @@ export class GameplayRuntime implements CombatGameContext {
             displayObject.anchor.y = displayObject.anchor.y ?? 0.5;
         }
 
-        if (typeof width === 'number' && width > 0) {
-            displayObject.width = width;
-        }
-        if (typeof height === 'number' && height > 0) {
-            displayObject.height = height;
+        const texture = displayObject.texture;
+        if (texture && texture.valid) {
+            if (typeof width === 'number' && width > 0 && (typeof height !== 'number' || height <= 0)) {
+                const aspectRatio = texture.height / texture.width;
+                displayObject.width = width;
+                displayObject.height = width * aspectRatio;
+            } else if (typeof height === 'number' && height > 0 && (typeof width !== 'number' || width <= 0)) {
+                const aspectRatio = texture.width / texture.height;
+                displayObject.height = height;
+                displayObject.width = height * aspectRatio;
+            } else if (typeof width === 'number' && width > 0 && typeof height === 'number' && height > 0) {
+                displayObject.width = width;
+                displayObject.height = height;
+            }
+        } else {
+            if (typeof width === 'number' && width > 0) {
+                displayObject.width = width;
+            }
+            if (typeof height === 'number' && height > 0) {
+                displayObject.height = height;
+            }
         }
 
         return displayObject;

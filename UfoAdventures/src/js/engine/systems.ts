@@ -118,33 +118,36 @@ export class PlayerInputSystem extends System {
     }
 
     update(entities: Entity[], delta: number): void {
-        entities.forEach(entity => {
-            const motion = getComponentOrNull(entity, Motion);
-            if (motion) {
-                const horizontal = this.input?.getAxisValue('moveX') ?? 0;
-                const vertical = this.input?.getAxisValue('moveY') ?? 0;
+        const playerEntity = entities.find(entity => entity.hasComponent(Player));
+        if (!playerEntity) {
+            return;
+        }
 
-                motion.velocity.x = horizontal * motion.speed;
-                motion.velocity.y = vertical * motion.speed;
+        const motion = getComponentOrNull(playerEntity, Motion);
+        if (motion) {
+            const horizontal = this.input?.getAxisValue('moveX') ?? 0;
+            const vertical = this.input?.getAxisValue('moveY') ?? 0;
 
-                const abilities = getComponentOrNull(entity, PlayerAbilities);
-                if (abilities) {
-                    const { x, y } = motion.velocity;
-                    if (Math.abs(x) > 0.05 || Math.abs(y) > 0.05) {
-                        const magnitude = Math.sqrt(x * x + y * y) || 1;
-                        abilities.lastDirection = {
-                            x: x / magnitude,
-                            y: y / magnitude
-                        };
-                    }
+            motion.velocity.x = horizontal * motion.speed;
+            motion.velocity.y = vertical * motion.speed;
+
+            const abilities = getComponentOrNull(playerEntity, PlayerAbilities);
+            if (abilities) {
+                const { x, y } = motion.velocity;
+                if (Math.abs(x) > 0.05 || Math.abs(y) > 0.05) {
+                    const magnitude = Math.sqrt(x * x + y * y) || 1;
+                    abilities.lastDirection = {
+                        x: x / magnitude,
+                        y: y / magnitude
+                    };
                 }
             }
+        }
 
-            const weapon = getComponentOrNull(entity, Weapon);
-            if (weapon) {
-                weapon.isShooting = this.input?.isActionActive('attackPrimary') ?? false;
-            }
-        });
+        const weapon = getComponentOrNull(playerEntity, Weapon);
+        if (weapon) {
+            weapon.isShooting = this.input?.isActionActive('attackPrimary') ?? false;
+        }
     }
 }
 

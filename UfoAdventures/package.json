@@ -21,6 +21,7 @@
   },
   "keywords": [],
   "dependencies": {
+    "gsap": "^3.13.0",
     "pixi.js": "^8.13.2"
   },
   "devDependencies": {
