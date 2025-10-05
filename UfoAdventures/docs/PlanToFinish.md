@@ -155,33 +155,35 @@
 
 ### Story 2.1: Implement Typed Scene Transitions
 **Narrative:** As designers, we need named transitions (fade, swipe, instant) tied to `SceneManager` so we can script scene flow per §2.
-**Status:** In progress
+**Status:** Complete
 
 **Definition of Done**
-- [ ] `ISceneTransition` map implemented; transitions defined in new module.
-- [ ] `SceneTransitions` refactored to dispatch named strategies.
-- [ ] Unit tests cover valid/invalid transitions.
-- [ ] Scenes updated to pass transition IDs where required (menu, gameplay, results).
-- [ ] QA checklist updated noting supported transitions.
+- [x] `ISceneTransition` map implemented; transitions defined in new module.
+- [x] `SceneTransitions` refactored to dispatch named strategies.
+- [x] Unit tests cover valid/invalid transitions.
+- [x] Scenes updated to pass transition IDs where required (menu, gameplay, results).
+- [x] QA checklist updated noting supported transitions.
 
 ### Story 2.2: Add Victory, Defeat, and Inventory Scenes
 **Narrative:** As players, we expect dedicated scenes for victory, defeat, and inventory to mirror spec diagrams.
+**Status:** Complete
 
 **Definition of Done**
-- [ ] New scene files added under `src/js/scenes/` with tests.
-- [ ] Routing logic updated in `GameplayScene._showResults` and pause handling.
-- [ ] UI overlays created/updated in HTML & CSS for new scenes.
-- [ ] Playwright tests cover victory/defeat flows.
-- [ ] Accessibility audit run for new overlays (aria attributes).
+- [x] New scene files added under `src/js/scenes/` with tests.
+- [x] Routing logic updated in `GameplayScene._showResults` and pause handling.
+- [x] UI overlays created/updated in HTML & CSS for new scenes.
+- [x] Playwright tests cover victory/defeat flows.
+- [x] Accessibility audit run for new overlays (aria attributes).
 
 ### Story 2.3: Audit Overlays and DOM Structure
 **Narrative:** As QA automation, we need consistent overlay IDs/classes so tests can block until overlays appear.
+**Status:** Complete
 
 **Definition of Done**
-- [ ] HTML templates updated with accessible attributes.
-- [ ] Integration test verifies focus handling on key overlays (pause, options, inventory).
-- [ ] Testing notes updated with overlay ID list.
-- [ ] Manual QA checklist executed for keyboard navigation.
+- [x] HTML templates updated with accessible attributes.
+- [x] Integration test verifies focus handling on key overlays (pause, options, inventory).
+- [x] Testing notes updated with overlay ID list.
+- [x] Manual QA checklist executed for keyboard navigation.
 
 ## Epic 3: Gameplay Systems
 
