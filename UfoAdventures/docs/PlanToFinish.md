@@ -157,18 +157,7 @@
 **Narrative:** As designers, we need named transitions (fade, swipe, instant) tied to `SceneManager` so we can script scene flow per §2.
 **Status:** In progress
 
-**Acceptance Criteria**
-- Given the ticker runs, when frames exceed the fixed timestep, then a MAX_FRAME_SKIP guard prevents more than five updates per render.
-- Given an interpolation factor is required, when render callbacks run, then systems receive interpolation leveraging accumulator state.
-- Given performance overlay is open, when frames render, then metrics (FPS, frame time, per-system data) show live values derived from `PerformanceProfiler`.
-
 **Definition of Done**
-- [ ] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
-- [ ] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
-- [ ] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
-- [ ] Vitest suite passes (`npm run test:unit`).
-- [ ] Manual sanity check: throttle browser to 4× CPU slowdown, verify skip guard triggers without runtime stall.
-
 - [ ] `ISceneTransition` map implemented; transitions defined in new module.
 - [ ] `SceneTransitions` refactored to dispatch named strategies.
 - [ ] Unit tests cover valid/invalid transitions.
@@ -178,18 +167,7 @@
 ### Story 2.2: Add Victory, Defeat, and Inventory Scenes
 **Narrative:** As players, we expect dedicated scenes for victory, defeat, and inventory to mirror spec diagrams.
 
-**Acceptance Criteria**
-- Given the ticker runs, when frames exceed the fixed timestep, then a MAX_FRAME_SKIP guard prevents more than five updates per render.
-- Given an interpolation factor is required, when render callbacks run, then systems receive interpolation leveraging accumulator state.
-- Given performance overlay is open, when frames render, then metrics (FPS, frame time, per-system data) show live values derived from `PerformanceProfiler`.
-
 **Definition of Done**
-- [ ] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
-- [ ] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
-- [ ] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
-- [ ] Vitest suite passes (`npm run test:unit`).
-- [ ] Manual sanity check: throttle browser to 4× CPU slowdown, verify skip guard triggers without runtime stall.
-
 - [ ] New scene files added under `src/js/scenes/` with tests.
 - [ ] Routing logic updated in `GameplayScene._showResults` and pause handling.
 - [ ] UI overlays created/updated in HTML & CSS for new scenes.
@@ -199,18 +177,7 @@
 ### Story 2.3: Audit Overlays and DOM Structure
 **Narrative:** As QA automation, we need consistent overlay IDs/classes so tests can block until overlays appear.
 
-**Acceptance Criteria**
-- Given the ticker runs, when frames exceed the fixed timestep, then a MAX_FRAME_SKIP guard prevents more than five updates per render.
-- Given an interpolation factor is required, when render callbacks run, then systems receive interpolation leveraging accumulator state.
-- Given performance overlay is open, when frames render, then metrics (FPS, frame time, per-system data) show live values derived from `PerformanceProfiler`.
-
 **Definition of Done**
-- [ ] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
-- [ ] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
-- [ ] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
-- [ ] Vitest suite passes (`npm run test:unit`).
-- [ ] Manual sanity check: throttle browser to 4× CPU slowdown, verify skip guard triggers without runtime stall.
-
 - [ ] HTML templates updated with accessible attributes.
 - [ ] Integration test verifies focus handling on key overlays (pause, options, inventory).
 - [ ] Testing notes updated with overlay ID list.
