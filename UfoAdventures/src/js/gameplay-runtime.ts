@@ -87,6 +87,7 @@ export class GameplayRuntime implements CombatGameContext {
     private _paused = false;
 
     private _resourceManager: ResourceManager | null = null;
+    private _configService: ConfigService | null = null; // Added ConfigService
     private readonly _entityPools: Map<string, RuntimePool>;
     private readonly _enemyPools: Map<string, RuntimePool>;
 
@@ -103,6 +104,7 @@ export class GameplayRuntime implements CombatGameContext {
         this.stage.sortableChildren = true;
         this._systemManager = new SystemManager({ profiler: this._profiler });
         this._entityManager = new EntityManager(this.entities, { releaseEntity: (entity, index) => this._releasePooledEntity(entity, index) });
+        this._configService = this.services.optional<ConfigService>('configService'); // Resolve ConfigService
 
         this._entityPools = new Map<string, RuntimePool>();
         this._enemyPools = new Map<string, RuntimePool>();
@@ -142,7 +144,7 @@ export class GameplayRuntime implements CombatGameContext {
         this._profiler.markStart('frame:update');
         this._frameInterpolation = interpolation;
         try {
-            this._systemManager.update(this.entities, delta);
+            this._systemManager.update(this.entities, delta, interpolation);
             this._systemDiagnostics = this._systemManager.getDiagnosticsSnapshot();
         } finally {
             this._profiler.markEnd('frame:update');
@@ -560,20 +562,20 @@ export class GameplayRuntime implements CombatGameContext {
             uiService = null;
         }
 
-        this._systemManager.register(new PlayerInputSystem(inputService));
-        this._systemManager.register(new BehaviorTreeSystem(this, this.services, uiService));
-        this._systemManager.register(new AbilitySystem(this, eventBus, inputService, uiService));
-        this._systemManager.register(new EnemyBehaviorSystem(this));
-        this._systemManager.register(new MovementSystem());
-        this._systemManager.register(new EffectLifetimeSystem(this));
-        this._systemManager.register(new ShootingSystem(this, this.services, eventBus));
+        this._systemManager.registerSystem(new PlayerInputSystem(inputService));
+        this._systemManager.registerSystem(new BehaviorTreeSystem(this, this.services, uiService));
+        this._systemManager.registerSystem(new AbilitySystem(this, eventBus, inputService, uiService));
+        this._systemManager.registerSystem(new EnemyBehaviorSystem(this));
+        this._systemManager.registerSystem(new MovementSystem());
+        this._systemManager.registerSystem(new EffectLifetimeSystem(this));
+        this._systemManager.registerSystem(new ShootingSystem(this, this.services, eventBus));
         const collisionSystem = new CollisionSystem(this, eventBus, uiService);
-        this._systemManager.register(collisionSystem);
+        this._systemManager.registerSystem(collisionSystem);
         this._collisionSystem = collisionSystem;
-        this._systemManager.register(new UISystem(this, uiService));
-        this._systemManager.register(new BoundaryCleanupSystem(this));
-        this._systemManager.register(new RenderSystem(this.app));
-        this._systemManager.register(new CleanupSystem(this));
+        this._systemManager.registerSystem(new UISystem(this, uiService));
+        this._systemManager.registerSystem(new BoundaryCleanupSystem(this));
+        this._systemManager.registerSystem(new RenderSystem(this.app));
+        this._systemManager.registerSystem(new CleanupSystem(this));
 
         this._bindPerformanceToggle(inputService);
         this._bindPerformanceToggle(inputService);
@@ -584,7 +586,7 @@ export class GameplayRuntime implements CombatGameContext {
         this._registerEntity(player);
 
         const enemyOptions = this.sceneOptions?.enemies ?? {};
-        this._systemManager.register(new EnemySpawningSystem(this, enemyOptions));
+        this._systemManager.registerSystem(new EnemySpawningSystem(this, enemyOptions));
     }
 
     _setupBossMode(): void {
@@ -635,7 +637,7 @@ export class GameplayRuntime implements CombatGameContext {
         const player = this._createPlayerEntity();
         this._registerEntity(player);
         const enemyOptions = this.sceneOptions?.enemies ?? {};
-        this._systemManager.register(new EnemySpawningSystem(this, enemyOptions));
+        this._systemManager.registerSystem(new EnemySpawningSystem(this, enemyOptions));
     }
 
     _createPlayerEntity(): RuntimeEntity {
@@ -1197,7 +1199,7 @@ export class GameplayRuntime implements CombatGameContext {
         aiStates.set('patrol', new PatrolState());
         aiStates.set('chase', new ChaseState());
         aiStates.set('attack', new AttackState());
-        const stateMachine = new StateMachine(aiStates);
+        const stateMachine = new StateMachine(aiStates, this._configService ?? undefined); // Pass ConfigService
         enemy.addComponent(new AIStateMachineComponent(stateMachine));
         stateMachine.transitionTo('patrol', { entity: enemy });
 

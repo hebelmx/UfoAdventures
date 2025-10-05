@@ -346,6 +346,16 @@ export class AIStateMachineComponent<T extends string> extends Component {
     }
 }
 
+export class CyborgCore extends Component {
+    limbs: Entity[] = [];
+    isVulnerable: boolean = false;
+    vulnerabilityTimer: number = 0;
+    maxVulnerabilityTime: number = 5; // seconds
+}
 
-
-
+export class CyborgLimb extends Component {
+    coreEntityId: string | null = null;
+    isAttached: boolean = true;
+    health: number = 50;
+    maxHealth: number = 50;
+}

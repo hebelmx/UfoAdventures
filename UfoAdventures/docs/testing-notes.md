@@ -41,3 +41,16 @@
 - Verify that all interactive elements in the overlays are focusable and can be operated using the keyboard.
 - Verify that the focus is trapped within the modal overlays.
 - Verify that the `Escape` key closes the overlays.
+
+## UiService Usage
+The `UiService` (`src/js/engine/ui-service.ts`) is the centralized service for all UI interactions, including HUD updates, message display, and overlay management. Scenes and systems should depend on `UiService` via the `ServiceLocator` rather than directly manipulating the DOM.
+
+**Key methods:**
+- `updateHealth(current: number, max: number)`: Updates the player's health display.
+- `updateCombo(combo: number)`: Updates the player's combo counter.
+- `updateLives(lives: number)`: Updates the player's lives display.
+- `showMessage(message: string, color?: string)`: Displays a temporary message on the screen.
+- `updateAbilityCooldown(abilityName: AbilityName, state: AbilityState | null)`: Updates the cooldown display for a specific ability.
+- `updateBossHealth(current: number, max: number)`: Updates the boss's health display.
+- `setBossHealthVisible(visible: boolean)`: Shows or hides the boss health bar.
+- `setOverlayVisible(overlayId: string, visible: boolean)`: Shows or hides a specific overlay.

@@ -1,5 +1,5 @@
 import { System, Entity } from './core';
-import { PerformanceProfiler } from './performance-profiler';
+import { PerformanceProfiler, type MeasurementSummary } from './performance-profiler'; // Import MeasurementSummary
 
 export interface SystemDiagnostics {
     name: string;
@@ -7,6 +7,7 @@ export interface SystemDiagnostics {
     minMs: number;
     maxMs: number;
     samples: number;
+    lastError?: string; // Added lastError
 }
 
 interface SystemManagerOptions {
@@ -28,15 +29,30 @@ export class SystemManager {
     }
 
     unregisterSystem(system: System): void {
-        this.systems = this.systems.filter(s => s !== system);
+        const initialLength = this.systems.length;
+        this.systems = this.systems.filter(s => {
+            if (s === system) {
+                s.destroy?.(); // Call destroy on the system being unregistered
+                this.profiler?.clearMeasurements(`system:${s.constructor.name}`); // Clear profiler data
+                return false;
+            }
+            return true;
+        });
     }
 
     update(entities: Entity[], delta: number, interpolation: number = 0): void {
         this.systems.forEach(system => {
             const systemName = system.constructor.name;
-            this.profiler?.start(`system:${systemName}`);
-            system.update(entities, delta, interpolation);
-            this.profiler?.end(`system:${systemName}`);
+            this.profiler?.markStart(`system:${systemName}`);
+            try {
+                system.update(entities, delta, interpolation);
+            } catch (error: unknown) { // Catch unknown error type
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                console.error(`Error in system ${systemName}:`, error);
+                this.profiler?.recordError(`system:${systemName}`, errorMessage);
+            } finally {
+                this.profiler?.markEnd(`system:${systemName}`);
+            }
         });
     }
 
@@ -55,7 +71,8 @@ export class SystemManager {
                     averageMs: measurement.averageMs,
                     minMs: measurement.minMs,
                     maxMs: measurement.maxMs,
-                    samples: measurement.samples
+                    samples: measurement.samples,
+                    lastError: measurement.lastError // Include lastError
                 });
             }
         }
@@ -77,5 +94,23 @@ export class SystemManager {
     destroy(): void {
         this.systems.forEach(system => system.destroy?.());
         this.systems = [];
+    }
+
+    render(entities: Entity[], interpolation: number): void {
+        this.systems.forEach(system => {
+            if (typeof system.render === 'function') {
+                const systemName = system.constructor.name;
+                this.profiler?.markStart(`system:render:${systemName}`);
+                try {
+                    system.render(entities, interpolation);
+                } catch (error: unknown) {
+                    const errorMessage = error instanceof Error ? error.message : String(error);
+                    console.error(`Error in system render ${systemName}:`, error);
+                    this.profiler?.recordError(`system:render:${systemName}`, errorMessage);
+                } finally {
+                    this.profiler?.markEnd(`system:render:${systemName}`);
+                }
+            }
+        });
     }
 }

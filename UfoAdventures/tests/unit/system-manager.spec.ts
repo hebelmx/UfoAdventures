@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { Entity, System } from '../../src/js/engine/core';
-import { SystemManager } from '../../src/js/engine/system-manager';
+import { SystemManager, type SystemDiagnostics } from '../../src/js/engine/system-manager';
+import { PerformanceProfiler, type MeasurementSummary } from '../../src/js/engine/performance-profiler';
 
 describe('SystemManager', () => {
     class StubSystem extends System {
@@ -37,9 +38,31 @@ describe('SystemManager', () => {
 
     let manager: SystemManager;
     let entities: Entity[];
+    let profiler: PerformanceProfiler; // Keep this as PerformanceProfiler type
+    let mockProfiler: {
+        markStart: ReturnType<typeof vi.fn>;
+        markEnd: ReturnType<typeof vi.fn>;
+        recordError: ReturnType<typeof vi.fn>;
+        clearMeasurements: ReturnType<typeof vi.fn>;
+        getSummary: ReturnType<typeof vi.fn>;
+    };
 
     beforeEach(() => {
-        manager = new SystemManager();
+        mockProfiler = {
+            markStart: vi.fn(),
+            markEnd: vi.fn(),
+            recordError: vi.fn(),
+            clearMeasurements: vi.fn(),
+            getSummary: vi.fn(() => ({
+                samples: 0,
+                durationMs: 0,
+                metrics: [],
+                measurements: {},
+                errors: {}
+            }))
+        };
+        profiler = mockProfiler as unknown as PerformanceProfiler; // Cast to PerformanceProfiler
+        manager = new SystemManager({ profiler });
         entities = [new Entity()];
     });
 
@@ -48,8 +71,8 @@ describe('SystemManager', () => {
         const first = new StubSystem('first', () => calls.push('first'));
         const second = new StubSystem('second', () => calls.push('second'));
 
-        manager.register(first);
-        manager.register(second);
+        manager.registerSystem(first);
+        manager.registerSystem(second);
 
         manager.update(entities, 1 / 60);
 
@@ -60,15 +83,30 @@ describe('SystemManager', () => {
         const system = new StubSystem('timed', () => {
             // noop
         });
-        manager.register(system);
+        manager.registerSystem(system);
+
+        mockProfiler.getSummary.mockReturnValue({
+            samples: 1,
+            durationMs: 10,
+            metrics: [],
+            measurements: {
+                'system:StubSystem': {
+                    samples: 1,
+                    averageMs: 10,
+                    minMs: 5,
+                    maxMs: 15
+                } as MeasurementSummary
+            },
+            errors: {}
+        });
 
         manager.update(entities, 1 / 60);
 
         const diagnostics = manager.getDiagnosticsSnapshot();
         expect(diagnostics).toHaveLength(1);
         expect(diagnostics[0].name).toBe('StubSystem');
-        expect(diagnostics[0].updateCount).toBe(1);
-        expect(diagnostics[0].lastUpdateMs).toBeGreaterThanOrEqual(0);
+        expect(diagnostics[0].samples).toBeGreaterThanOrEqual(1);
+        expect(diagnostics[0].averageMs).toBeGreaterThanOrEqual(0);
     });
 
     it('records errors without stopping subsequent systems', () => {
@@ -80,14 +118,12 @@ describe('SystemManager', () => {
 
         const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
 
-        manager.register(errorSystem);
-        manager.register(healthySystem);
+        manager.registerSystem(errorSystem);
+        manager.registerSystem(healthySystem);
 
         manager.update(entities, 1 / 60);
 
-        const diagnostics = manager.getDiagnosticsSnapshot();
-        const errorDiag = diagnostics.find(diag => diag.name === 'StubSystem');
-        expect(errorDiag?.lastError).toContain('boom');
+        expect(mockProfiler.recordError).toHaveBeenCalledWith('system:StubSystem', 'boom');
         expect(healthySpy).toHaveBeenCalledTimes(1);
         errorSpy.mockRestore();
     });
@@ -95,19 +131,19 @@ describe('SystemManager', () => {
     it('unregister destroys systems when requested', () => {
         const destroySpy = vi.fn();
         const system = new StubSystem('temp', () => {}, destroySpy);
-        const id = manager.register(system);
+        manager.registerSystem(system);
 
-        manager.unregister(id);
+        manager.unregisterSystem(system);
 
         expect(destroySpy).toHaveBeenCalledTimes(1);
-        expect(manager.getDiagnosticsSnapshot()).toHaveLength(0);
+        expect(mockProfiler.clearMeasurements).toHaveBeenCalledWith('system:StubSystem');
     });
 
     it('invokes render on systems that implement it', () => {
         const renderSpy = vi.fn();
         const system = new StubSystem('renderable', () => {}, undefined, renderSpy);
 
-        manager.register(system);
+        manager.registerSystem(system);
         manager.render(entities, 0.75);
 
         expect(renderSpy).toHaveBeenCalledTimes(1);
@@ -117,7 +153,7 @@ describe('SystemManager', () => {
 
     it('skips rendering for systems without a render method', () => {
         const system = new StubSystem('headless', () => {});
-        manager.register(system);
+        manager.registerSystem(system);
 
         expect(() => manager.render(entities, 0.2)).not.toThrow();
     });

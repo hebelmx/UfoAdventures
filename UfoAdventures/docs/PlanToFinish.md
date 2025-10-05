@@ -12,17 +12,17 @@
 - Given performance overlay is open, when frames render, then metrics (FPS, frame time, per-system data) show live values derived from `PerformanceProfiler`.
 
 **Definition of Done**
-- [ ] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
-- [ ] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
-- [ ] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
-- [ ] Vitest suite passes (`npm run test:unit`).
+- [x] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
+- [x] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
+- [x] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
+- [x] Vitest suite passes (`npm run test:unit`).
 - [ ] Manual sanity check: throttle browser to 4× CPU slowdown, verify skip guard triggers without runtime stall.
 
-- [ ] `SystemManager` module created with register/unregister/update methods and tests.
-- [ ] `GameplayRuntime` delegates system lifecycle to the manager.
-- [ ] Performance metrics captured per system and exposed via existing overlay/dev handles.
-- [ ] Vitest coverage for manager ordering and error handling ≥80%.
-- [ ] Lint passes; no regressions in Playwright smoke.
+- [x] `SystemManager` module created with register/unregister/update methods and tests.
+- [x] `GameplayRuntime` delegates system lifecycle to the manager.
+- [x] Performance metrics captured per system and exposed via existing overlay/dev handles.
+- [x] Vitest coverage for manager ordering and error handling ≥80%.
+- [x] Lint passes; no regressions in Playwright smoke.
 
 ### Story 1.2: Add an Entity Manager Abstraction
 **Narrative:** As gameplay engineers, we need an `EntityManager` that encapsulates pooling, lookup, and lifecycle so features can query components cleanly.
@@ -33,16 +33,16 @@
 - Given performance overlay is open, when frames render, then metrics (FPS, frame time, per-system data) show live values derived from `PerformanceProfiler`.
 
 **Definition of Done**
-- [ ] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
-- [ ] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
-- [ ] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
-- [ ] Vitest suite passes (`npm run test:unit`).
+- [x] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
+- [x] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
+- [x] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
+- [x] Vitest suite passes (`npm run test:unit`).
 - [ ] Manual sanity check: throttle browser to 4× CPU slowdown, verify skip guard triggers without runtime stall.
 
-- [ ] `EntityManager` added under `src/js/engine/` with query helpers and integration tests.
-- [ ] `GameplayRuntime` uses manager for add/release/lookups.
-- [ ] Pools remain functional (bullets/effects) verified via unit tests.
-- [ ] Documentation comment summarising usage and migration steps.
+- [x] `EntityManager` added under `src/js/engine/` with query helpers and integration tests.
+- [x] `GameplayRuntime` uses manager for add/release/lookups.
+- [x] Pools remain functional (bullets/effects) verified via unit tests.
+- [x] Documentation comment summarising usage and migration steps.
 - [ ] No console errors during dev server smoke run.
 
 ### Story 1.3.1: Reinforce Fixed-Step Accumulator Guard
@@ -77,7 +77,7 @@
 - [x] `GameplayRuntime` passes interpolation to renderable systems and preserves existing update order.
 - [x] Tests cover interpolation bounds and propagation to at least one render system.
 - [ ] Manual throttle run shows smoother motion without stepping artifacts.
-- [ ] docs/audit.md notes for interpolation updated or cleared.
+- [x] docs/audit.md notes for interpolation updated or cleared.
 
 ### Story 1.3.3: Instrument Loop Metrics with Performance Profiler
 **Narrative:** As a diagnostics engineer, I need per-frame metrics recorded so QA can verify timing budgets and frame skips in the overlay.
@@ -94,7 +94,7 @@
 - [x] Dev overlay panels render frame time, update count, interpolation, and per-system timings.
 - [x] Automated coverage validates profiler buffers and summary accessors.
 - [ ] Manual smoke with overlay enabled shows live data and no console warnings.
-- [ ] docs/audit.md entry on missing metrics marked resolved with implementation notes.
+- [x] docs/audit.md entry on missing metrics marked resolved with implementation notes.
 
 ### Story 1.3.4: Finalise Loop Regression Coverage and Documentation
 **Narrative:** As QA leads, we need the upgraded loop validated across tests and documentation so the release meets the runtime spec.
@@ -110,8 +110,8 @@
 - [x] Vitest suite and lint checks run clean with the new loop code. _(Vitest executed 2025-10-03; lint pending until requested.)_
 - [x] Manual QA checklist updated in `docs/testing-notes.md` with loop scenarios.
 - [x] docs/UfoGameDesign_Architecture.md and docs/audit.md refreshed to match implementation.
-- [ ] PlanToFinish story statuses updated to reflect completion order.
-- [ ] Release checklist annotated with loop verification evidence.
+- [x] PlanToFinish story statuses updated to reflect completion order.
+- [x] Release checklist annotated with loop verification evidence.
 ### Story 1.4: Register a UI Service for HUD and Overlay Control
 **Narrative:** As UI engineers, we need a service to orchestrate HUD state per the architecture (`UISvc`) so scenes access UI via the locator.
 
@@ -133,7 +133,7 @@
 - [x] Existing `src/js/ui.ts` refactored into service method(s).
 - [x] Scene classes updated to depend on service rather than direct imports.
 - [x] Unit tests for service API (happy-dom) ensure DOM updates fire.
-- [ ] Documentation snippet added to README or docs describing usage.
+- [x] Documentation snippet added to README or docs describing usage.
 
 ### Story 1.5: Stabilize and Refactor the Main Menu
 **Narrative:** As a developer, I need to stabilize the main menu to ensure it loads reliably after asset loading, and refactor it to align with the existing architecture, so that the application is usable and easier to maintain.
@@ -145,9 +145,9 @@
 - Given the code has been refactored, when the unit tests are run, then all existing tests pass and new tests for the main menu are added.
 
 **Definition of Done**
-- [ ] `MainMenuScene` is updated with defensive code to prevent crashes from missing DOM elements.
-- [ ] `MainMenuScene` is refactored to use `UiService` for all DOM interactions.
-- [ ] Unit tests are added for `MainMenuScene` to cover its functionality.
+- [x] `MainMenuScene` is updated with defensive code to prevent crashes from missing DOM elements.
+- [x] `MainMenuScene` is refactored to use `UiService` for all DOM interactions.
+- [x] Unit tests are added for `MainMenuScene` to cover its functionality.
 - [ ] The application successfully loads into the main menu without getting stuck.
 - [ ] Manual testing confirms that the main menu is fully functional.
 
@@ -202,11 +202,11 @@
 - [ ] Vitest suite passes (`npm run test:unit`).
 - [ ] Manual sanity check: throttle browser to 4× CPU slowdown, verify skip guard triggers without runtime stall.
 
-- [ ] `IAIBrain` component and state machine utility implemented.
+- [x] `IAIBrain` component and state machine utility implemented.
 - [x] Enemy templates updated with state definitions.
-- [ ] Systems integrate state machine with behaviour tree results.
-- [ ] Unit tests cover transitions and state persistence.
-- [ ] Debug logging toggled via config for QA verification.
+- [x] Systems integrate state machine with behaviour tree results.
+- [x] Unit tests cover transitions and state persistence.
+- [x] Debug logging toggled via config for QA verification.
 
 ### Story 3.2: Enrich Enemy Templates with Difficulty Modifiers
 **Narrative:** As balance designers, we need enemy templates to include spawn weights and difficulty modifiers reflecting §5.2.
@@ -223,9 +223,9 @@
 - [ ] Vitest suite passes (`npm run test:unit`).
 - [ ] Manual sanity check: throttle browser to 4× CPU slowdown, verify skip guard triggers without runtime stall.
 
-- [ ] `game-config.json` updated with modifiers and weights.
-- [ ] Spawning system applies modifiers based on selected difficulty.
-- [ ] Unit tests verify scaling for representative templates (blade, amidogus, cyborg).
+- [x] `game-config.json` updated with modifiers and weights.
+- [x] Spawning system applies modifiers based on selected difficulty.
+- [x] Unit tests verify scaling for representative templates (blade, amidogus, cyborg).
 - [ ] Gameplay smoke test run on easy & hard to validate behaviour.
 
 ### Story 3.3: Build Pet Cyborg Arena Encounter
@@ -243,7 +243,7 @@
 - [ ] Vitest suite passes (`npm run test:unit`).
 - [ ] Manual sanity check: throttle browser to 4× CPU slowdown, verify skip guard triggers without runtime stall.
 
-- [ ] Components `CyborgCore`, `CyborgLimb` implemented with animations.
+- [x] Components `CyborgCore`, `CyborgLimb` implemented with animations.
 - [ ] Arena environment system spawns hazards and warning effects.
 - [ ] Tests simulate limb detachment and hazard sequencing.
 - [ ] Assets referenced (cyborg-atlas) verified and animated.

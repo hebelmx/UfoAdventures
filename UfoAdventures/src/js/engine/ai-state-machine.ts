@@ -1,4 +1,6 @@
 
+import { ConfigService } from './config-service';
+
 export interface IAIBrain {
     onEnter(params?: unknown): void;
     onExit(): void;
@@ -8,9 +10,11 @@ export interface IAIBrain {
 export class StateMachine<T extends string> {
     private _currentState: T | null = null;
     private readonly _states: Map<T, IAIBrain>;
+    private readonly _debugLoggingEnabled: boolean;
 
-    constructor(states: Map<T, IAIBrain>) {
+    constructor(states: Map<T, IAIBrain>, configService?: ConfigService) {
         this._states = states;
+        this._debugLoggingEnabled = configService?.get('debug.aiStateMachine') ?? false;
     }
 
     public get currentState(): T | null {
@@ -19,8 +23,14 @@ export class StateMachine<T extends string> {
 
     public transitionTo(newState: T, params?: unknown): void {
         if (!this._states.has(newState)) {
-            console.warn(`StateMachine: Attempted to transition to unregistered state: ${newState}`);
+            if (this._debugLoggingEnabled) {
+                console.warn(`StateMachine: Attempted to transition to unregistered state: ${newState}`);
+            }
             return;
+        }
+
+        if (this._debugLoggingEnabled) {
+            console.log(`StateMachine: Transitioning from ${this._currentState ?? 'null'} to ${newState}`);
         }
 
         if (this._currentState) {

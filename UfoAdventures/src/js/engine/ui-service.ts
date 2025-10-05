@@ -98,4 +98,37 @@ export class UiService {
         this.ensureInitialized();
         coreShowMessage(text, color);
     }
+
+    setOverlayVisible(overlayId: string, visible: boolean): void {
+        if (typeof document === 'undefined') {
+            return;
+        }
+        const overlay = document.getElementById(overlayId);
+        if (overlay) {
+            overlay.style.display = visible ? 'block' : 'none';
+            overlay.setAttribute('aria-hidden', String(!visible));
+            if (visible) {
+                overlay.focus();
+            }
+        }
+    }
+
+    getElement<T extends HTMLElement>(id: string): T | null {
+        if (typeof document === 'undefined') {
+            return null;
+        }
+        const element = document.getElementById(id);
+        if (!element) {
+            console.warn(`UiService: Element with id '${id}' not found.`);
+            return null;
+        }
+        return element as T;
+    }
+
+    setTextContent(id: string, content: string | null): void {
+        const element = this.getElement(id);
+        if (element) {
+            element.textContent = content;
+        }
+    }
 }

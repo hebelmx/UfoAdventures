@@ -5,7 +5,8 @@ import { ProgressionService } from '../engine/progression-service';
 import { AudioService } from '../engine/audio-service';
 import { RunSummary } from '../engine/mission-service';
 import type { SceneTransitions } from '../ui/scene-transitions';
-import { setOverlayVisible } from '../ui/overlay-helpers';
+import { setOverlayVisible } from '../ui/overlay-helpers'; // This will be removed later
+import { UiService } from '../engine/ui-service';
 
 interface MainMenuElements {
     header: HTMLElement | null;
@@ -59,21 +60,13 @@ export class MainMenuScene extends Scene {
     private _missionService: MissionService | null = null;
     private _progressionService: ProgressionService | null = null;
     private _sceneTransitions: SceneTransitions | null = null;
-    private _overlay: HTMLElement | null = null;
-
     constructor(services: ServiceLocator) {
         super('main-menu', services);
-    }
-    private _ensureOverlay(): HTMLElement | null {
-        if (!this._overlay && typeof document !== 'undefined') {
-            this._overlay = document.getElementById('mainMenuOverlay');
-        }
-        return this._overlay;
+        this._uiService = this.services.optional<UiService>('uiService');
     }
 
     private _setOverlayVisible(visible: boolean): void {
-        const overlay = this._ensureOverlay();
-        setOverlayVisible(overlay, visible);
+        this._uiService?.setOverlayVisible('mainMenuOverlay', visible);
         if (visible) {
             this._focusSelectedMission();
         }
@@ -85,10 +78,7 @@ export class MainMenuScene extends Scene {
             console.info('MainMenuScene: onEnter invoked');
         }
 
-        const loadingScreen = document.getElementById('loadingScreen');
-        if (loadingScreen) {
-            loadingScreen.style.display = 'none';
-        }
+        this._uiService?.setOverlayVisible('loadingScreen', false);
 
         this._setOverlayVisible(true);
 
@@ -103,38 +93,25 @@ export class MainMenuScene extends Scene {
 
 
 
-        const getElement = <T extends HTMLElement>(id: string): T | null => {
-            const element = document.getElementById(id);
-            if (!element) {
-                console.error(`MainMenuScene: Element with id '${id}' not found.`);
-                return null;
-            }
-            return element as T;
-        };
-
         this._elements = {
-            header: getElement('missionHeader'),
-            list: getElement('missionList'),
-            title: getElement('missionTitle'),
-            description: getElement('missionDescription'),
-            objectives: getElement('missionObjectiveList'),
-            rewards: getElement('missionRewards'),
-            leaderboard: getElement('missionLeaderboardPreview'),
-            launchButton: getElement<HTMLButtonElement>('missionLaunchButton'),
-            leaderboardButton: getElement<HTMLButtonElement>('missionLeaderboardButton'),
-            campaignButton: getElement<HTMLButtonElement>('menuCampaignButton'),
-            arcadeButton: getElement<HTMLButtonElement>('menuArcadeButton'),
-            trainingButton: getElement<HTMLButtonElement>('menuTrainingButton'),
-            optionsButton: getElement<HTMLButtonElement>('menuOptionsButton'),
-            creditsButton: getElement<HTMLButtonElement>('menuCreditsButton'),
-            leaderboardSceneButton: getElement<HTMLButtonElement>('menuLeaderboardSceneButton')
+            header: this._uiService?.getElement('missionHeader'),
+            list: this._uiService?.getElement('missionList'),
+            title: this._uiService?.getElement('missionTitle'),
+            description: this._uiService?.getElement('missionDescription'),
+            objectives: this._uiService?.getElement('missionObjectiveList'),
+            rewards: this._uiService?.getElement('missionRewards'),
+            leaderboard: this._uiService?.getElement('missionLeaderboardPreview'),
+            launchButton: this._uiService?.getElement<HTMLButtonElement>('missionLaunchButton'),
+            leaderboardButton: this._uiService?.getElement<HTMLButtonElement>('missionLeaderboardButton'),
+            campaignButton: this._uiService?.getElement<HTMLButtonElement>('menuCampaignButton'),
+            arcadeButton: this._uiService?.getElement<HTMLButtonElement>('menuArcadeButton'),
+            trainingButton: this._uiService?.getElement<HTMLButtonElement>('menuTrainingButton'),
+            optionsButton: this._uiService?.getElement<HTMLButtonElement>('menuOptionsButton'),
+            creditsButton: this._uiService?.getElement<HTMLButtonElement>('menuCreditsButton'),
+            leaderboardSceneButton: this._uiService?.getElement<HTMLButtonElement>('menuLeaderboardSceneButton')
         };
 
-
-
-        if (this._elements.header) {
-            this._elements.header.textContent = 'Select a mission to begin';
-        }
+        this._uiService?.setTextContent('missionHeader', 'Select a mission to begin');
 
         this._missionService = this.services.resolve<MissionService>('missionService');
         this._progressionService = this.services.resolve<ProgressionService>('progressionService');
@@ -177,7 +154,6 @@ export class MainMenuScene extends Scene {
 
 
         this._setOverlayVisible(false);
-        this._overlay = null;
 
         this._elements = createEmptyMainMenuElements();
         this._missionService = null;
@@ -427,9 +403,7 @@ export class MainMenuScene extends Scene {
         if (this._elements.leaderboard) {
             this._elements.leaderboard.classList.add('mission-leaderboard--collapsed');
         }
-        if (this._elements.leaderboardButton) {
-            this._elements.leaderboardButton.textContent = 'View Leaderboard';
-        }
+        this._uiService?.setTextContent('missionLeaderboardButton', 'View Leaderboard');
         const campaignMissions = this._allMissions.filter(mission => mission.mode === 'adventure' || mission.mode === 'boss');
         this._missions = campaignMissions.length ? campaignMissions : this._missions;
         const defaultMission = this._missionService!.getDefault() || this._missions[0];
@@ -459,13 +433,8 @@ export class MainMenuScene extends Scene {
             launchButton.removeAttribute('aria-disabled');
         }
 
-        if (this._elements.title) {
-            this._elements.title.textContent = mission.name;
-        }
-
-        if (this._elements.description) {
-            this._elements.description.textContent = mission.description ?? 'Awaiting briefing.';
-        }
+        this._uiService?.setTextContent('missionTitle', mission.name);
+        this._uiService?.setTextContent('missionDescription', mission.description ?? 'Awaiting briefing.');
 
         if (this._elements.objectives) {
             this._elements.objectives.innerHTML = '';
@@ -490,7 +459,7 @@ export class MainMenuScene extends Scene {
             const rewards = mission.rewards || {};
             const entries = Object.entries(rewards);
             if (!entries.length) {
-                this._elements.rewards.textContent = 'Rewards classified';
+                this._uiService?.setTextContent('missionRewards', 'Rewards classified');
             } else {
                 entries.forEach(([key, value]) => {
                     const pill = document.createElement('span');
@@ -506,9 +475,7 @@ export class MainMenuScene extends Scene {
             this._elements.leaderboard.classList.add('mission-leaderboard--collapsed');
         }
 
-        if (this._elements.leaderboardButton) {
-            this._elements.leaderboardButton.textContent = 'View Leaderboard';
-        }
+        this._uiService?.setTextContent('missionLeaderboardButton', 'View Leaderboard');
     }
 
     private _renderMissionLeaderboard(mission: Mission | null, compact = false): void {

@@ -1,7 +1,12 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { BehaviorTreeService } from '../../src/js/engine/behavior-tree-service';
+import { EnemySpawningSystem } from '../../src/js/engine/systems';
+import { ConfigService } from '../../src/js/engine/config-service';
+import { ServiceLocator } from '../../src/js/engine/service-locator';
+import { Health, Motion, Weapon, EnemyBehavior } from '../../src/js/engine/components';
+import type { EnemySpawnTemplate, BehaviorTreeGameContext } from '../../src/js/engine/combat-types';
 
 type BehaviorTreeStep = {
     type?: string;
@@ -121,7 +126,7 @@ describe('game configuration', () => {
                     expect(weapons).toHaveProperty(step.weaponId);
                 }
 
-                if (actionName === 'summon') {
+                if (actionName === 'summon' && step.targets) {
                     const targets = collectSummonTargets(step);
                     targets.forEach(target => {
                         expect(enemyIds.has(target)).toBe(true);
@@ -150,5 +155,119 @@ describe('BehaviorTreeService with configured trees', () => {
         const again = service.getTree(id);
         expect(again).not.toBeNull();
         expect((again as any).children?.some((step: BehaviorTreeStep) => step.duration === 99)).toBeFalsy();
+    });
+});
+
+describe('EnemySpawningSystem with difficulty modifiers', () => {
+    let mockConfigService: ConfigService;
+    let mockServiceLocator: ServiceLocator;
+    let mockGameContext: BehaviorTreeGameContext;
+    let enemySpawningSystem: EnemySpawningSystem;
+
+    const baseTemplate: EnemySpawnTemplate = {
+        id: 'test-enemy',
+        health: 100,
+        verticalSpeed: 2,
+        weaponId: 'enemy-dart',
+        fireRate: 1.0,
+        colliderRadius: 20,
+    };
+
+    beforeEach(() => {
+        mockConfigService = {
+            get: vi.fn((key: string) => {
+                if (key === 'enemies.difficultyModifiers') {
+                    return {
+                        easy: {
+                            healthMultiplier: 0.8,
+                            damageMultiplier: 0.7,
+                            fireRateMultiplier: 1.2,
+                            speedMultiplier: 0.8,
+                        },
+                        normal: {
+                            healthMultiplier: 1.0,
+                            damageMultiplier: 1.0,
+                            fireRateMultiplier: 1.0,
+                            speedMultiplier: 1.0,
+                        },
+                        hard: {
+                            healthMultiplier: 1.2,
+                            damageMultiplier: 1.3,
+                            fireRateMultiplier: 0.8,
+                            speedMultiplier: 1.2,
+                        },
+                    };
+                }
+                return undefined;
+            }),
+        } as unknown as ConfigService;
+
+        mockServiceLocator = {
+            optional: vi.fn((key: string) => {
+                if (key === 'configService') {
+                    return mockConfigService;
+                }
+                return undefined;
+            }),
+            resolve: vi.fn(), // Add resolve for other services if needed
+        } as unknown as ServiceLocator;
+
+        mockGameContext = {
+            mode: 'normal', // Default difficulty
+            services: mockServiceLocator,
+            app: { renderer: { screen: { width: 800, height: 600 } } }, // Mock PIXI.Application
+            addEntity: vi.fn(),
+        } as unknown as BehaviorTreeGameContext;
+
+        enemySpawningSystem = new EnemySpawningSystem(mockGameContext, { templates: [baseTemplate] });
+    });
+
+    it('should apply normal difficulty modifiers by default', () => {
+        const enemy = (enemySpawningSystem as any)._createEnemy(baseTemplate, 0.5);
+        const health = enemy.getComponent(Health);
+        const motion = enemy.getComponent(Motion);
+        const weapon = enemy.getComponent(Weapon);
+
+        expect(health?.max).toBe(100 * 1.0);
+        expect(motion?.velocity.y).toBe(2 * 1.0);
+        expect(weapon?.cooldown).toBe(1.0 / 1.0);
+    });
+
+    it('should apply easy difficulty modifiers', () => {
+        mockGameContext.mode = 'easy';
+        const enemy = (enemySpawningSystem as any)._createEnemy(baseTemplate, 0.5);
+        const health = enemy.getComponent(Health);
+        const motion = enemy.getComponent(Motion);
+        const weapon = enemy.getComponent(Weapon);
+
+        expect(health?.max).toBe(100 * 0.8);
+        expect(motion?.velocity.y).toBe(2 * 0.8);
+        expect(weapon?.cooldown).toBe(1.0 / 1.2);
+    });
+
+    it('should apply hard difficulty modifiers', () => {
+        mockGameContext.mode = 'hard';
+        const enemy = (enemySpawningSystem as any)._createEnemy(baseTemplate, 0.5);
+        const health = enemy.getComponent(Health);
+        const motion = enemy.getComponent(Motion);
+        const weapon = enemy.getComponent(Weapon);
+
+        expect(health?.max).toBe(100 * 1.2);
+        expect(motion?.velocity.y).toBe(2 * 1.2);
+        expect(weapon?.cooldown).toBe(1.0 / 0.8);
+    });
+
+    it('should apply modifiers to behavior properties', () => {
+        const templateWithBehavior: EnemySpawnTemplate = {
+            ...baseTemplate,
+            horizontalSpeed: 10,
+            diveSpeed: 5,
+        };
+        mockGameContext.mode = 'hard';
+        const enemy = (enemySpawningSystem as any)._createEnemy(templateWithBehavior, 0.5);
+        const behavior = enemy.getComponent(EnemyBehavior);
+
+        expect(behavior?.horizontalSpeed).toBe(10 * 1.2);
+        expect(behavior?.diveSpeed).toBe(5 * 1.2);
     });
 });

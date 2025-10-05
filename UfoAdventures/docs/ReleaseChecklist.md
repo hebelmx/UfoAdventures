@@ -19,7 +19,7 @@
 
 ## Performance & Telemetry
 - Enable performance overlay (`F6`) during peak combat (boss phase gamma) and capture FPS >55.
-- Record profiler overlay snapshot showing frame skips ≤5, update/render averages, and top system timings for the release archive.
+- Record profiler overlay snapshot showing frame skips ≤5, update/render averages, and top system timings for the release archive. (Loop verification evidence)
 - Record load times (first paint <3s on target hardware) and GPU memory usage after asset consolidation.
 - Validate persistence: complete a run, reload, confirm `ProgressionService` shows recorded summary.
 

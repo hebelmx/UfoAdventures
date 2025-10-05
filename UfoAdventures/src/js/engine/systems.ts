@@ -1,4 +1,3 @@
-
 import * as PIXI from 'pixi.js';
 import { System, Entity } from './core';
 import { EventBus } from './event-bus';
@@ -65,6 +64,7 @@ import { Player } from '../entities/player';
 import { UiService, type AbilityName } from './ui-service';
 import { IAIBrain, StateMachine } from './ai-state-machine';
 import { PatrolState, ChaseState, AttackState } from './enemy-ai-states';
+import { ConfigService } from './config-service'; // Import ConfigService
 
 type BehaviorTreeStepDefinition = BehaviorTreeActionStep | BehaviorTreeWaitStep;
 
@@ -512,7 +512,7 @@ export class BehaviorTreeSystem extends System {
         }
 
         const templates = this._getEnemyTemplates();
-        return templates.find(entry => entry.id === templateId) || null;
+        return templates.find(entry => entry.id === templateId) ?? null;
     }
 
     private _getEnemyTemplates(): EnemySpawnTemplate[] {
@@ -665,12 +665,12 @@ export class AbilitySystem extends System {
     }
 
     update(entities: Entity[], delta: number): void {
-        const player = this._getPlayer(entities);
-        if (!player) {
+        const playerEntity = entities.find(entity => entity.hasComponent(Player));
+        if (!playerEntity) {
             return;
         }
 
-        const abilities = getComponentOrNull(player, PlayerAbilities);
+        const abilities = getComponentOrNull(playerEntity, PlayerAbilities);
         if (!abilities) {
             return;
         }
@@ -898,10 +898,6 @@ export class AbilitySystem extends System {
     }
 }
 
-import { IAIBrain, StateMachine } from './ai-state-machine';
-import { PatrolState, ChaseState, AttackState } from './enemy-ai-states';
-import { AIStateMachineComponent } from './components';
-
 export class EnemyBehaviorSystem extends System {
     private readonly game: RuntimeGameContext;
 
@@ -936,12 +932,16 @@ export class EnemySpawningSystem extends System {
     private readonly waves: EnemyWaveDefinition[];
     private waveIndex = 0;
     private elapsed = 0;
+    private readonly _difficultyModifiers: Record<string, any>; // Store difficulty modifiers
 
     constructor(game: BehaviorTreeGameContext, config: EnemySpawningConfig = {}) {
         super();
         this.game = game;
         this.templates = this._buildTemplateMap(config.templates);
         this.waves = this._normalizeWaves(config.waves);
+
+        const configService = game.services.optional<ConfigService>('configService');
+        this._difficultyModifiers = configService?.get('enemies.difficultyModifiers') ?? {};
     }
 
     update(_entities: Entity[], delta: number): void {
@@ -993,22 +993,33 @@ export class EnemySpawningSystem extends System {
         const spawnX = screen.width * positionRatio;
         const spawnY = typeof altitude === 'number' ? altitude : -50;
 
+        const difficulty = this.game.mode; // Assuming game.mode holds the difficulty
+        const modifiers = this._difficultyModifiers[difficulty] || this._difficultyModifiers.normal || {};
+
+        const healthMultiplier = modifiers.healthMultiplier ?? 1.0;
+        const damageMultiplier = modifiers.damageMultiplier ?? 1.0;
+        const fireRateMultiplier = modifiers.fireRateMultiplier ?? 1.0;
+        const speedMultiplier = modifiers.speedMultiplier ?? 1.0; // Added speedMultiplier
+
         const enemy = new Entity();
         enemy.addComponent(new Transform({ x: spawnX, y: spawnY }));
         enemy.addComponent(new Sprite(template.spritesheet?.alias ?? template.texture ?? PIXI.Texture.WHITE));
-        enemy.addComponent(new Motion({ x: 0, y: typeof template.verticalSpeed === 'number' ? template.verticalSpeed : 2 }));
+        enemy.addComponent(new Motion({ x: 0, y: (typeof template.verticalSpeed === 'number' ? template.verticalSpeed : 2) * speedMultiplier }));
         enemy.addComponent(new Enemy());
-        enemy.addComponent(new Collider(20));
+        enemy.addComponent(new Collider(template.colliderRadius ?? 20));
+
+        const modifiedHealth = (template.health ?? 50) * healthMultiplier;
+        enemy.addComponent(new Health(modifiedHealth));
 
         const behaviorConfig: EnemyBehaviorConfig = {
             pattern: typeof template.pattern === 'string' ? template.pattern : undefined,
             amplitude: typeof template.amplitude === 'number' ? template.amplitude : undefined,
             frequency: typeof template.frequency === 'number' ? template.frequency : undefined,
-            verticalSpeed: typeof template.verticalSpeed === 'number' ? template.verticalSpeed : undefined,
-            diveSpeed: typeof template.diveSpeed === 'number' ? template.diveSpeed : undefined,
-            climbSpeed: typeof template.climbSpeed === 'number' ? template.climbSpeed : undefined,
-            horizontalSpeed: typeof template.horizontalSpeed === 'number' ? template.horizontalSpeed : undefined,
-            horizontalDrift: typeof template.horizontalDrift === 'number' ? template.horizontalDrift : undefined,
+            verticalSpeed: (typeof template.verticalSpeed === 'number' ? template.verticalSpeed : undefined) * speedMultiplier,
+            diveSpeed: (typeof template.diveSpeed === 'number' ? template.diveSpeed : undefined) * speedMultiplier,
+            climbSpeed: (typeof template.climbSpeed === 'number' ? template.climbSpeed : undefined) * speedMultiplier,
+            horizontalSpeed: (typeof template.horizontalSpeed === 'number' ? template.horizontalSpeed : undefined) * speedMultiplier,
+            horizontalDrift: (typeof template.horizontalDrift === 'number' ? template.horizontalDrift : undefined) * speedMultiplier,
             originX: spawnX
         };
 
@@ -1019,11 +1030,11 @@ export class EnemySpawningSystem extends System {
         }
 
         if (typeof template.weaponId === 'string') {
-            const cooldown = typeof template.weaponCooldown === 'number'
+            const cooldown = (typeof template.weaponCooldown === 'number'
                 ? template.weaponCooldown
                 : typeof template.fireRate === 'number'
                     ? template.fireRate
-                    : 1.0;
+                    : 1.0) / fireRateMultiplier; // Apply fire rate multiplier
 
             enemy.addComponent(new Weapon({
                 weaponId: template.weaponId,
@@ -1035,7 +1046,7 @@ export class EnemySpawningSystem extends System {
         aiStates.set('patrol', new PatrolState());
         aiStates.set('chase', new ChaseState());
         aiStates.set('attack', new AttackState());
-        const stateMachine = new StateMachine(aiStates);
+        const stateMachine = new StateMachine(aiStates, this.game.services.optional<ConfigService>('configService') ?? undefined); // Pass ConfigService
         enemy.addComponent(new AIStateMachineComponent(stateMachine));
         stateMachine.transitionTo('patrol', { entity: enemy });
 
@@ -1595,14 +1606,17 @@ export class UISystem extends System {
         const playerEntity = entities.find(entity => entity.hasComponent(Player));
         if (playerEntity) {
             const components = getComponents(playerEntity, Player, Health);
-            if (components) {
-                const [playerComponent, health] = components;
-                const maxHealth = typeof health.max === 'number' ? health.max : 100;
-                this.uiService?.updateHealth(health.health, maxHealth);
+            if (!components) {
+                return;
+            }
 
-                const stats = playerComponent as unknown as { combo?: number; lives?: number };
-                this.uiService?.updateCombo(stats.combo ?? 0);
-                this.uiService?.updateLives(stats.lives ?? 0);
+            const [playerComponent, health] = components;
+            const maxHealth = typeof health.max === 'number' ? health.max : 100;
+            this.uiService?.updateHealth(health.health, maxHealth);
+
+            const stats = playerComponent as unknown as { combo?: number; lives?: number };
+            this.uiService?.updateCombo(stats.combo ?? 0);
+            this.uiService?.updateLives(stats.lives ?? 0);
             }
         }
 
@@ -2087,25 +2101,3 @@ export class CleanupSystem extends System {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

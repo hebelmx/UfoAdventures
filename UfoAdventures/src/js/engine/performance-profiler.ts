@@ -13,6 +13,7 @@ export interface MeasurementSummary {
     averageMs: number;
     minMs: number;
     maxMs: number;
+    lastError?: string; // Added lastError
 }
 
 export interface MetricRow {
@@ -28,6 +29,7 @@ export interface PerformanceSummary {
     durationMs: number;
     metrics: MetricRow[];
     measurements: Record<string, MeasurementSummary>;
+    errors: Record<string, string>; // Added errors
 }
 
 export class PerformanceProfiler {
@@ -35,6 +37,7 @@ export class PerformanceProfiler {
     private readonly _frames: FrameEntry[] = [];
     private readonly _marks: Map<string, number> = new Map();
     private readonly _measurements: Map<string, number[]> = new Map();
+    private readonly _errors: Record<string, string> = {}; // Added _errors
 
     constructor(options: PerformanceProfilerOptions = {}) {
         this.maxSamples = Math.max(1, Math.floor(options.maxSamples ?? 600));
@@ -44,6 +47,7 @@ export class PerformanceProfiler {
         this._frames.length = 0;
         this._marks.clear();
         this._measurements.clear();
+        this._errors = {}; // Clear errors on reset
     }
 
     markStart(label: string | null | undefined): void {
@@ -74,6 +78,15 @@ export class PerformanceProfiler {
         this._recordMeasurement(label, duration as number);
     }
 
+    recordError(label: string, error: string): void {
+        this._errors[label] = error;
+    }
+
+    clearMeasurements(label: string): void {
+        this._measurements.delete(label);
+        delete this._errors[label];
+    }
+
     recordFrame(frameMetrics: FrameMetrics = {}): void {
         const entry: FrameEntry = {
             timestamp: performance.now(),
@@ -91,7 +104,8 @@ export class PerformanceProfiler {
                 samples: 0,
                 durationMs: 0,
                 metrics: [],
-                measurements: {}
+                measurements: {},
+                errors: {}
             };
         }
 
@@ -128,7 +142,8 @@ export class PerformanceProfiler {
                 samples: values.length,
                 averageMs: total / values.length,
                 minMs: Math.min(...values),
-                maxMs: Math.max(...values)
+                maxMs: Math.max(...values),
+                lastError: this._errors[label] // Include lastError
             };
         });
 
@@ -136,7 +151,8 @@ export class PerformanceProfiler {
             samples: this._frames.length,
             durationMs,
             metrics,
-            measurements
+            measurements,
+            errors: { ...this._errors } // Return a copy of errors
         };
     }
 

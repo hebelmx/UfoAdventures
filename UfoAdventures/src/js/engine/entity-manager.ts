@@ -5,6 +5,11 @@ export interface EntityManagerOptions {
     releaseEntity?: (entity: RuntimeEntity, index?: number) => void;
 }
 
+/**
+ * Manages the lifecycle, storage, and querying of entities within the game runtime.
+ * It provides methods for adding, removing, finding, and querying entities,
+ * and integrates with an entity pooling mechanism for efficient resource management.
+ */
 export class EntityManager {
     private readonly _entities: RuntimeEntity[];
     private readonly _releaseEntity: ((entity: RuntimeEntity, index?: number) => void) | null;
