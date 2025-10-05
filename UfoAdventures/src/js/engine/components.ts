@@ -345,7 +345,6 @@ export class AIStateMachineComponent<T extends string> extends Component {
         this.stateMachine = stateMachine;
     }
 }
-}
 
 
 

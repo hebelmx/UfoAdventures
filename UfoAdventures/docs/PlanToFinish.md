@@ -203,7 +203,7 @@
 - [ ] Manual sanity check: throttle browser to 4× CPU slowdown, verify skip guard triggers without runtime stall.
 
 - [ ] `IAIBrain` component and state machine utility implemented.
-- [ ] Enemy templates updated with state definitions.
+- [x] Enemy templates updated with state definitions.
 - [ ] Systems integrate state machine with behaviour tree results.
 - [ ] Unit tests cover transitions and state persistence.
 - [ ] Debug logging toggled via config for QA verification.

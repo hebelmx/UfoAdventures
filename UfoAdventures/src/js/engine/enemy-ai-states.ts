@@ -1,7 +1,8 @@
 
 import type { IAIBrain } from './ai-state-machine';
 import type { Entity } from './core';
-import { Motion, Transform, Player, getComponentOrNull, EnemyBehavior } from './components';
+import { Motion, Transform, getComponentOrNull, EnemyBehavior } from './components';
+import { Player } from '../entities/player';
 
 export class PatrolState implements IAIBrain {
     private _entity: Entity | null = null;
