@@ -155,6 +155,7 @@
 
 ### Story 2.1: Implement Typed Scene Transitions
 **Narrative:** As designers, we need named transitions (fade, swipe, instant) tied to `SceneManager` so we can script scene flow per §2.
+**Status:** In progress
 
 **Acceptance Criteria**
 - Given the ticker runs, when frames exceed the fixed timestep, then a MAX_FRAME_SKIP guard prevents more than five updates per render.
