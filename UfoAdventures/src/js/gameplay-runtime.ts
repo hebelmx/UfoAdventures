@@ -14,6 +14,8 @@ import {
     EffectLifetimeSystem,
     AbilitySystem,
     MagicSystem,
+    SpellSystem,
+    AbilityVFXSystem,
     EnemySpawningSystem,
     ShootingSystem,
     CollisionSystem,
@@ -24,7 +26,8 @@ import {
     CleanupSystem,
     MissileGuidanceSystem,
     CyborgLimbSystem,
-    ArenaEnvironmentSystem
+    ArenaEnvironmentSystem,
+    TarakBossSystem
 } from './engine/systems';
 import { EntityPool } from './engine/entity-pool';
 import type { ServiceLocator } from './engine/service-locator';
@@ -570,6 +573,8 @@ export class GameplayRuntime implements CombatGameContext {
         this._systemManager.registerSystem(new BehaviorTreeSystem(this, this.services, uiService));
         this._systemManager.registerSystem(new AbilitySystem(this, eventBus, inputService, uiService));
         this._systemManager.registerSystem(new MagicSystem(this, eventBus));
+        this._systemManager.registerSystem(new SpellSystem(this, eventBus));
+        this._systemManager.registerSystem(new AbilityVFXSystem(this, eventBus));
         this._systemManager.registerSystem(new EnemyBehaviorSystem(this));
         this._systemManager.registerSystem(new MovementSystem());
         this._systemManager.registerSystem(new EffectLifetimeSystem(this));
@@ -584,6 +589,7 @@ export class GameplayRuntime implements CombatGameContext {
         this._systemManager.registerSystem(new MissileGuidanceSystem(this));
         this._systemManager.registerSystem(new CyborgLimbSystem(this, this.services));
         this._systemManager.registerSystem(new ArenaEnvironmentSystem(this));
+        this._systemManager.registerSystem(new TarakBossSystem(this, this.services));
 
         this._bindPerformanceToggle(inputService);
     }

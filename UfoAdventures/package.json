@@ -17,7 +17,9 @@
     "test:unit:watch": "vitest watch",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "test:all": "npm run test:unit && npm run test:e2e"
+    "test:all": "npm run test:unit && npm run test:e2e",
+    "test:epic3": "node scripts/run-epic3-tests.js",
+    "test:epic3:manual": "python scripts/run-epic3-tests.py"
   },
   "keywords": [],
   "dependencies": {

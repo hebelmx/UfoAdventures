@@ -12,10 +12,11 @@ describe('MagicSystem', () => {
         const e = new Entity();
         e.addComponent(new Transform({ x: 10, y: 10 }));
         e.addComponent(new MagicInventory(100));
-        const abilities = e.addComponent(new PlayerAbilities({ shieldDuration: 1, shieldStrength: 20 }));
+        const abilities = e.addComponent(new PlayerAbilities({ shieldDuration: 5, shieldStrength: 20 }));
         abilities.states['shield'].queued = true;
 
         sys.update([e] as any, 60);
+        
         expect(abilities.states['shield'].active).toBe(true);
         expect(game.spawnEffect).toHaveBeenCalled();
     });

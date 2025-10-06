@@ -1,0 +1,57 @@
+{
+  "timestamp": "2025-10-06T15:12:30.001Z",
+  "summary": {
+    "totalTests": 0,
+    "passedTests": 0,
+    "failedTests": 0,
+    "successRate": null
+  },
+  "results": [
+    {
+      "story": "3.2",
+      "name": "Enemy Difficulty Modifiers",
+      "testFile": "epic3-difficulty-modifiers.spec.ts",
+      "passed": 0,
+      "failed": 1,
+      "total": 1,
+      "status": "ERROR"
+    },
+    {
+      "story": "3.3",
+      "name": "Pet Cyborg Arena Encounter",
+      "testFile": "epic3-arena-environment.spec.ts",
+      "passed": 0,
+      "failed": 1,
+      "total": 1,
+      "status": "ERROR"
+    },
+    {
+      "story": "3.4",
+      "name": "Dimensional Portal Escape Scene",
+      "testFile": "epic3-portal-escape.spec.ts",
+      "passed": 0,
+      "failed": 1,
+      "total": 1,
+      "status": "ERROR"
+    },
+    {
+      "story": "3.5",
+      "name": "Missile Guidance and Seeker Systems",
+      "testFile": "epic3-missile-guidance.spec.ts",
+      "passed": 0,
+      "failed": 1,
+      "total": 1,
+      "status": "ERROR"
+    },
+    {
+      "story": "3.6",
+      "name": "Tarak Boss Behaviors",
+      "testFile": "epic3-tarak-boss.spec.ts",
+      "passed": 0,
+      "failed": 1,
+      "total": 1,
+      "status": "ERROR"
+    }
+  ],
+  "manualTestingReplacement": false
+}

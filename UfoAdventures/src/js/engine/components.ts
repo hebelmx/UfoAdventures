@@ -364,24 +364,21 @@ export class CyborgLimb extends Component {
 export class Guidance extends Component {
     navigationConstant: number;
     target: 'player' | 'enemy';
+    guidanceType: 'proportional' | 'purePursuit' | 'intercept';
 
-    constructor(navigationConstant = 3, target: 'player' | 'enemy' = 'player') {
+    constructor(
+        navigationConstant = 3, 
+        target: 'player' | 'enemy' = 'player',
+        guidanceType: 'proportional' | 'purePursuit' | 'intercept' = 'proportional'
+    ) {
         super();
         this.navigationConstant = navigationConstant;
         this.target = target;
+        this.guidanceType = guidanceType;
     }
 }
 
 export class HomingMissile extends Component {}
 
-export class MagicInventory extends Component {
-    manaPoints: number;
-    maxMana: number;
-    globalCooldown: number;
-    constructor(maxMana = 100) {
-        super();
-        this.maxMana = maxMana;
-        this.manaPoints = maxMana;
-        this.globalCooldown = 0;
-    }
-}
+// MagicInventory is now defined in magic-inventory.ts
+export { MagicInventory } from './magic-inventory';

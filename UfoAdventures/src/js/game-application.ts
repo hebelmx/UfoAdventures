@@ -13,6 +13,8 @@ import { WeaponService } from './engine/weapon-service';
 import { ProgressionService } from './engine/progression-service';
 import { UiService } from './engine/ui-service';
 import { PlayerBlasterStrategy } from './engine/weapons/player-blaster';
+import { BurstRifleStrategy } from './engine/weapons/burst-rifle';
+import { LaserCannonStrategy } from './engine/weapons/laser-cannon';
 import { SceneTransitions } from './ui/scene-transitions';
 import { BootstrapScene } from './scenes/bootstrap-scene';
 import { AssetLoadingScene } from './scenes/asset-loading-scene';
@@ -122,6 +124,8 @@ export class GameApplication {
         const weaponService = new WeaponService();
         this.services.register('weaponService', weaponService);
         weaponService.registerWeaponType('player-blaster', PlayerBlasterStrategy);
+        weaponService.registerWeaponType('burst-rifle', BurstRifleStrategy);
+        weaponService.registerWeaponType('laser-cannon', LaserCannonStrategy);
 
         const uiService = new UiService();
         this.services.register('uiService', uiService);

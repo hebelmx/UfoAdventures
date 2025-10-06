@@ -63,7 +63,7 @@ import {
     HomingMissile,
     CyborgLimb
 } from './components';
-import { ProportionalNavigationGuidance } from './guidance';
+import { ProportionalNavigationGuidance, PurePursuitGuidance, InterceptGuidance } from './guidance';
 import { Player } from '../entities/player';
 import { UiService, type AbilityName } from './ui-service';
 import { IAIBrain, StateMachine } from './ai-state-machine';
@@ -752,21 +752,11 @@ export class AbilitySystem extends System {
         state.timer = state.cooldown;
         state.queued = false;
 
-        const transform = getComponentOrNull(player, Transform);
-        if (transform) {
-            this.game.spawnEffect?.({
-                position: { x: transform.position.x, y: transform.position.y },
-                tint: 0xffaa33,
-                alpha: 0.95,
-                lifeTime: 0.4,
-                fade: 1.2,
-                scale: 1.2,
-                atlasAlias: 'vfx-atlas',
-                animation: 'comboBreaker',
-                animationSpeed: 0.18,
-                loop: false
-            });
-        }
+        // Use enhanced VFX system
+        this.eventBus?.emit('ability:vfx-trigger', {
+            entity: player,
+            abilityName: 'comboBreaker'
+        });
 
         this._playPlayerAnimation(player, 'comboBreaker', { revertAfter: 600 });
         this.uiService?.updateCombo(0);
@@ -799,29 +789,12 @@ export class AbilitySystem extends System {
 
         this._playPlayerAnimation(player, 'teleport', { revertAfter: 400 });
 
-        this.game.spawnEffect?.({
-            position: origin,
-            tint: 0x66ccff,
-            alpha: 0.7,
-            lifeTime: 0.25,
-            fade: 1.5,
-            scale: 0.9,
-            atlasAlias: 'vfx-atlas',
-            animation: 'teleport-trail',
-            animationSpeed: 0.24,
-            loop: false
-        });
-        this.game.spawnEffect?.({
-            position: { x: transform.position.x, y: transform.position.y },
-            tint: 0xffffff,
-            alpha: 0.8,
-            lifeTime: 0.3,
-            fade: 1.8,
-            scale: 1.0,
-            atlasAlias: 'vfx-atlas',
-            animation: 'teleport-arrive',
-            animationSpeed: 0.2,
-            loop: false
+        // Use enhanced VFX system for teleport
+        this.eventBus?.emit('ability:vfx-trigger', {
+            entity: player,
+            abilityName: 'teleport',
+            origin,
+            destination: { x: transform.position.x, y: transform.position.y }
         });
 
         this.uiService?.showMessage('Teleport!', '#66ccff');
@@ -1156,6 +1129,20 @@ export class ShootingSystem extends System {
 
             const [weapon, transform] = components;
             const definition = (this.weaponService?.get(weapon.weaponId) ?? null) as WeaponDefinitionWithExtras | null;
+            
+            // Update weapon heat
+            if (this.weaponService && definition) {
+                const entityId = entity.id || 'unknown';
+                this.weaponService.updateWeaponHeat(entityId, weapon.weaponId, deltaSeconds);
+                
+                // Check if weapon is overheated
+                const isOverheated = this.weaponService.isWeaponOverheated(entityId, weapon.weaponId);
+                if (isOverheated) {
+                    // Skip firing if overheated
+                    return;
+                }
+            }
+
             const cooldown = this._resolveCooldown(weapon, definition);
 
             weapon.cooldown = cooldown;
@@ -2038,6 +2025,32 @@ export class BossShootingSystem extends System {
                 }
                 break;
             }
+            case 'tarak-beam': {
+                // Tarak's signature beam attack - single powerful projectile
+                velocities.push({ vx: 0, vy: 8 });
+                break;
+            }
+            case 'tarak-shockwave': {
+                // Tarak's shockwave attack - expanding ring of projectiles
+                const steps = 12;
+                for (let i = 0; i < steps; i += 1) {
+                    const angle = (Math.PI * 2 * i) / steps;
+                    velocities.push({ 
+                        vx: Math.cos(angle) * 3, 
+                        vy: Math.sin(angle) * 3 + 2 
+                    });
+                }
+                break;
+            }
+            case 'tarak-missile-rain': {
+                // Tarak's missile rain - homing missiles from above
+                const steps = 5;
+                for (let i = 0; i < steps; i += 1) {
+                    const x = (i - 2) * 80; // Spread across screen
+                    velocities.push({ vx: x * 0.1, vy: 4 });
+                }
+                break;
+            }
             case 'spread':
             default:
                 velocities.push({ vx: 0, vy: 6 });
@@ -2046,20 +2059,313 @@ export class BossShootingSystem extends System {
                 break;
         }
 
-        velocities.forEach(velocity => {
+        velocities.forEach((velocity, index) => {
             const bullet = new Entity();
             bullet.addComponent(new Transform({ x: transform.position.x, y: transform.position.y + 50 }));
+            
             const sprite = new Sprite(PIXI.Texture.WHITE);
             sprite.sprite.width = 10;
             sprite.sprite.height = 10;
-            sprite.sprite.tint = 0xff5555;
+            
+            // Different colors for different attack patterns
+            switch (pattern) {
+                case 'tarak-beam':
+                    sprite.sprite.width = 15;
+                    sprite.sprite.height = 8;
+                    sprite.sprite.tint = 0xff0000; // Red beam
+                    break;
+                case 'tarak-shockwave':
+                    sprite.sprite.tint = 0x00ffff; // Cyan shockwave
+                    break;
+                case 'tarak-missile-rain':
+                    sprite.sprite.tint = 0xffff00; // Yellow missiles
+                    break;
+                default:
+                    sprite.sprite.tint = 0xff5555; // Default red
+                    break;
+            }
+            
             bullet.addComponent(sprite);
             bullet.addComponent(new Motion({ x: velocity.vx, y: velocity.vy }));
             bullet.addComponent(new EnemyBullet());
             bullet.addComponent(new Collider(5));
 
+            // Add special properties for Tarak attacks
+            if (pattern === 'tarak-missile-rain') {
+                // Make missiles homing
+                bullet.addComponent(new HomingMissile());
+                bullet.addComponent(new Guidance(2, 'player', 'proportional'));
+            }
+
             this.game.addEntity(bullet);
         });
+
+        // Add special effects for Tarak attacks
+        this._addTarakAttackEffects(pattern, transform);
+    }
+
+    private _addTarakAttackEffects(pattern: string, transform: Transform): void {
+        switch (pattern) {
+            case 'tarak-beam':
+                // Beam charging effect
+                this.game.spawnEffect({
+                    position: { x: transform.position.x, y: transform.position.y + 30 },
+                    alpha: 0.9,
+                    scale: 2.0,
+                    tint: 0xff0000,
+                    lifeTime: 0.5,
+                    atlasAlias: 'vfx-atlas',
+                    animation: 'beam-charge'
+                });
+                break;
+            case 'tarak-shockwave':
+                // Shockwave expansion effect
+                this.game.spawnEffect({
+                    position: { x: transform.position.x, y: transform.position.y },
+                    alpha: 0.8,
+                    scale: 3.0,
+                    tint: 0x00ffff,
+                    lifeTime: 0.8,
+                    atlasAlias: 'vfx-atlas',
+                    animation: 'shockwave-expand'
+                });
+                break;
+            case 'tarak-missile-rain':
+                // Missile rain warning effect
+                this.game.spawnEffect({
+                    position: { x: transform.position.x, y: transform.position.y - 100 },
+                    alpha: 0.7,
+                    scale: 4.0,
+                    tint: 0xffff00,
+                    lifeTime: 0.3,
+                    atlasAlias: 'vfx-atlas',
+                    animation: 'missile-rain-warning'
+                });
+                break;
+        }
+    }
+}
+
+export class TarakBossSystem extends System {
+    private readonly game: CombatGameContext;
+    private readonly eventBus: EventBus | null;
+    private _phaseTransitionTimer = 0;
+    private _lastPhaseTransition = 0;
+
+    constructor(game: CombatGameContext, services?: ServiceLocator) {
+        super();
+        this.game = game;
+        this.eventBus = services ? ((): EventBus | null => {
+            try { return services.resolve<EventBus>('eventBus'); } catch { return null; }
+        })() : null;
+    }
+
+    update(entities: Entity[], delta: number): void {
+        const deltaSeconds = delta / 60;
+        this._phaseTransitionTimer += deltaSeconds;
+
+        entities.forEach(entity => {
+            if (!entity.hasComponent(Boss) || !entity.hasComponent(BossPhase)) {
+                return;
+            }
+
+            const bossPhase = entity.getComponent(BossPhase)!;
+            const health = entity.getComponent(Health);
+            const transform = entity.getComponent(Transform);
+
+            if (!health || !transform) return;
+
+            // Check for phase transitions
+            this._checkPhaseTransitions(entity, bossPhase, health);
+
+            // Tarak-specific behaviors
+            this._handleTarakBehaviors(entity, bossPhase, deltaSeconds);
+        });
+    }
+
+    private _checkPhaseTransitions(entity: Entity, bossPhase: BossPhase, health: Health): void {
+        const currentPhase = bossPhase.currentPhase;
+        const healthPercent = health.health / health.max;
+
+        // Check if we need to transition to a more aggressive phase
+        if (healthPercent <= 0.3 && currentPhase < 2) {
+            this._transitionToPhase(entity, 2, 'Tarak unleashes chaos!');
+        } else if (healthPercent <= 0.6 && currentPhase < 1) {
+            this._transitionToPhase(entity, 1, 'Tarak grows furious!');
+        }
+    }
+
+    private _transitionToPhase(entity: Entity, phaseIndex: number, message: string): void {
+        const bossPhase = entity.getComponent(BossPhase)!;
+        if (bossPhase.currentPhase === phaseIndex) return;
+
+        bossPhase.currentPhase = phaseIndex;
+        this._lastPhaseTransition = this._phaseTransitionTimer;
+
+        // Emit phase transition event
+        this.eventBus?.emit('boss:phase-transition', {
+            entity,
+            phase: phaseIndex,
+            message
+        });
+
+        // Add dramatic effect
+        const transform = entity.getComponent(Transform);
+        if (transform) {
+            this.game.spawnEffect({
+                position: { x: transform.position.x, y: transform.position.y },
+                alpha: 1.0,
+                scale: 4.0,
+                tint: 0xff0000,
+                lifeTime: 1.0,
+                atlasAlias: 'vfx-atlas',
+                animation: 'phase-transition'
+            });
+        }
+    }
+
+    private _handleTarakBehaviors(entity: Entity, bossPhase: BossPhase, deltaSeconds: number): void {
+        const transform = entity.getComponent(Transform);
+        const motion = entity.getComponent(Motion);
+        if (!transform || !motion) return;
+
+        // Tarak's unique movement patterns based on phase
+        switch (bossPhase.currentPhase) {
+            case 0: // Alpha phase - slow, methodical
+                this._handleAlphaPhaseMovement(transform, motion, deltaSeconds);
+                break;
+            case 1: // Beta phase - more aggressive
+                this._handleBetaPhaseMovement(transform, motion, deltaSeconds);
+                break;
+            case 2: // Gamma phase - chaotic
+                this._handleGammaPhaseMovement(transform, motion, deltaSeconds);
+                break;
+        }
+
+        // Special Tarak abilities
+        this._handleTarakSpecialAbilities(entity, bossPhase, deltaSeconds);
+    }
+
+    private _handleAlphaPhaseMovement(transform: Transform, motion: Motion, deltaSeconds: number): void {
+        // Slow horizontal oscillation
+        const time = this._phaseTransitionTimer;
+        motion.velocity.x = Math.sin(time * 0.5) * 1.5;
+        motion.velocity.y = Math.sin(time * 0.3) * 0.8;
+    }
+
+    private _handleBetaPhaseMovement(transform: Transform, motion: Motion, deltaSeconds: number): void {
+        // More aggressive movement with sudden direction changes
+        const time = this._phaseTransitionTimer;
+        motion.velocity.x = Math.sin(time * 1.2) * 2.5 + Math.sin(time * 3.0) * 0.8;
+        motion.velocity.y = Math.sin(time * 0.8) * 1.2;
+    }
+
+    private _handleGammaPhaseMovement(transform: Transform, motion: Motion, deltaSeconds: number): void {
+        // Chaotic, unpredictable movement
+        const time = this._phaseTransitionTimer;
+        motion.velocity.x = Math.sin(time * 2.0) * 3.0 + Math.sin(time * 5.0) * 1.5;
+        motion.velocity.y = Math.sin(time * 1.5) * 2.0 + Math.cos(time * 4.0) * 0.8;
+    }
+
+    private _handleTarakSpecialAbilities(entity: Entity, bossPhase: BossPhase, deltaSeconds: number): void {
+        const timeSinceLastTransition = this._phaseTransitionTimer - this._lastPhaseTransition;
+        
+        // Tarak's special abilities based on phase
+        switch (bossPhase.currentPhase) {
+            case 1: // Beta phase - summon reinforcements
+                if (timeSinceLastTransition > 3.0 && Math.random() < 0.1) {
+                    this._summonReinforcements(entity);
+                }
+                break;
+            case 2: // Gamma phase - energy spikes
+                if (timeSinceLastTransition > 2.0 && Math.random() < 0.15) {
+                    this._createEnergySpikes(entity);
+                }
+                break;
+        }
+    }
+
+    private _summonReinforcements(boss: Entity): void {
+        const transform = boss.getComponent(Transform);
+        if (!transform) return;
+
+        // Summon minions around Tarak
+        const positions = [
+            { x: transform.position.x - 100, y: transform.position.y - 50 },
+            { x: transform.position.x + 100, y: transform.position.y - 50 },
+            { x: transform.position.x, y: transform.position.y - 100 }
+        ];
+
+        positions.forEach(pos => {
+            const minion = new Entity();
+            minion.addComponent(new Transform(pos));
+            
+            const sprite = new Sprite(PIXI.Texture.WHITE);
+            sprite.sprite.width = 20;
+            sprite.sprite.height = 20;
+            sprite.sprite.tint = 0x888888;
+            minion.addComponent(sprite);
+            
+            minion.addComponent(new Motion({ x: 0, y: 2 }));
+            minion.addComponent(new Enemy());
+            minion.addComponent(new Health(30));
+            minion.addComponent(new Collider(10));
+
+            this.game.addEntity(minion);
+        });
+
+        // Summon effect
+        this.game.spawnEffect({
+            position: { x: transform.position.x, y: transform.position.y },
+            alpha: 0.8,
+            scale: 2.5,
+            tint: 0x666666,
+            lifeTime: 0.6,
+            atlasAlias: 'vfx-atlas',
+            animation: 'summon-reinforcements'
+        });
+    }
+
+    private _createEnergySpikes(boss: Entity): void {
+        const transform = boss.getComponent(Transform);
+        if (!transform) return;
+
+        // Create energy spikes around the arena
+        const screen = (this.game.app as any)?.renderer?.screen || this.game.app.screen;
+        const spikes = 6;
+        
+        for (let i = 0; i < spikes; i++) {
+            const angle = (Math.PI * 2 * i) / spikes;
+            const radius = Math.min(screen?.width || 800, screen?.height || 600) * 0.4;
+            const x = transform.position.x + Math.cos(angle) * radius;
+            const y = transform.position.y + Math.sin(angle) * radius;
+
+            // Create energy spike entity
+            const spike = new Entity();
+            spike.addComponent(new Transform({ x, y }));
+            
+            const sprite = new Sprite(PIXI.Texture.WHITE);
+            sprite.sprite.width = 15;
+            sprite.sprite.height = 15;
+            sprite.sprite.tint = 0xff00ff;
+            spike.addComponent(sprite);
+            
+            spike.addComponent(new Collider(8));
+            spike.addComponent(new EnemyBullet()); // Treat as projectile for collision
+
+            this.game.addEntity(spike);
+
+            // Warning effect before spike appears
+            this.game.spawnEffect({
+                position: { x, y },
+                alpha: 0.7,
+                scale: 1.5,
+                tint: 0xff00ff,
+                lifeTime: 0.3,
+                atlasAlias: 'vfx-atlas',
+                animation: 'energy-spike-warning'
+            });
+        }
     }
 }
 
@@ -2150,11 +2456,18 @@ export class CleanupSystem extends System {
 
 export class MissileGuidanceSystem extends System {
     private readonly game: CombatGameContext;
-    private readonly guidance = new ProportionalNavigationGuidance(3);
+    private readonly guidanceSystems = new Map<string, any>();
 
     constructor(game: CombatGameContext) {
         super();
         this.game = game;
+        this._initializeGuidanceSystems();
+    }
+
+    private _initializeGuidanceSystems(): void {
+        this.guidanceSystems.set('proportional', new ProportionalNavigationGuidance(3, 50));
+        this.guidanceSystems.set('purePursuit', new PurePursuitGuidance(1.0, 30));
+        this.guidanceSystems.set('intercept', new InterceptGuidance(40, 5));
     }
 
     update(entities: Entity[], delta: number): void {
@@ -2174,10 +2487,35 @@ export class MissileGuidanceSystem extends System {
                 return;
             }
 
-            const accel = this.guidance.update(entity, target, deltaSeconds);
+            // Get guidance system based on missile type or default to proportional
+            const guidanceType = guidanceComp.guidanceType || 'proportional';
+            const guidance = this.guidanceSystems.get(guidanceType) || this.guidanceSystems.get('proportional')!;
+
+            const accel = guidance.update(entity, target, deltaSeconds);
             motion.velocity.x += accel.x * deltaSeconds * 120; // amplify for visibility
             motion.velocity.y += accel.y * deltaSeconds * 120;
+
+            // Add trail effect for visual feedback
+            this._addTrailEffect(entity);
         });
+    }
+
+    private _addTrailEffect(missile: Entity): void {
+        const transform = missile.getComponent(Transform);
+        if (!transform) return;
+
+        // Add trail effect occasionally to avoid performance issues
+        if (Math.random() < 0.3) {
+            this.game.spawnEffect({
+                position: { x: transform.position.x, y: transform.position.y },
+                alpha: 0.6,
+                scale: 0.8,
+                tint: 0xffaa00,
+                lifeTime: 0.2,
+                atlasAlias: 'vfx-atlas',
+                animation: 'missile-trail'
+            });
+        }
     }
 }
 
@@ -2215,10 +2553,18 @@ export class CyborgLimbSystem extends System {
     }
 }
 
+export { MagicSystem } from './magic-system';
+export { SpellSystem } from './spell-system';
+export { AbilityVFXSystem } from './ability-vfx-system';
+
 export class ArenaEnvironmentSystem extends System {
     private readonly game: CombatGameContext;
-    private _timer = 0;
-    private readonly _interval = 1.0; // seconds
+    private _hazardTimer = 0;
+    private _warningTimer = 0;
+    private readonly _hazardInterval = 3.0; // seconds between hazards
+    private readonly _warningDuration = 1.5; // seconds of warning before hazard
+    private _activeWarnings: Array<{ x: number; y: number; timeLeft: number }> = [];
+    private _activeHazards: Array<{ x: number; y: number; timeLeft: number }> = [];
 
     constructor(game: CombatGameContext) {
         super();
@@ -2226,13 +2572,126 @@ export class ArenaEnvironmentSystem extends System {
     }
 
     update(_entities: Entity[], delta: number): void {
-        this._timer += delta / 60;
-        if (this._timer >= this._interval) {
-            this._timer = 0;
-            const screen = (this.game.app as any)?.renderer?.screen || this.game.app.screen;
-            const x = Math.random() * (screen?.width || 800);
-            const y = (screen?.height || 600) * 0.2;
-            this.game.spawnEffect({ position: { x, y }, alpha: 0.8, scale: 1.0 });
+        const deltaSeconds = delta / 60;
+        
+        // Update warning timers
+        this._warningTimer += deltaSeconds;
+        if (this._warningTimer >= this._hazardInterval - this._warningDuration) {
+            this._warningTimer = 0;
+            this._spawnWarning();
+        }
+
+        // Update active warnings
+        for (let i = this._activeWarnings.length - 1; i >= 0; i--) {
+            const warning = this._activeWarnings[i];
+            warning.timeLeft -= deltaSeconds;
+            
+            if (warning.timeLeft <= 0) {
+                this._spawnHazard(warning.x, warning.y);
+                this._activeWarnings.splice(i, 1);
+            } else {
+                // Update warning visual intensity
+                const intensity = Math.sin(warning.timeLeft * 8) * 0.5 + 0.5;
+                this.game.spawnEffect({
+                    position: { x: warning.x, y: warning.y },
+                    alpha: intensity * 0.6,
+                    scale: 1.2 + intensity * 0.3,
+                    tint: 0xff4444,
+                    lifeTime: 0.1,
+                    atlasAlias: 'vfx-atlas',
+                    animation: 'warning-pulse'
+                });
+            }
+        }
+
+        // Update active hazards
+        for (let i = this._activeHazards.length - 1; i >= 0; i--) {
+            const hazard = this._activeHazards[i];
+            hazard.timeLeft -= deltaSeconds;
+            
+            if (hazard.timeLeft <= 0) {
+                this._activeHazards.splice(i, 1);
+            } else {
+                // Continuous hazard effect
+                this.game.spawnEffect({
+                    position: { x: hazard.x, y: hazard.y },
+                    alpha: 0.8,
+                    scale: 1.5,
+                    tint: 0xff0000,
+                    lifeTime: 0.1,
+                    atlasAlias: 'vfx-atlas',
+                    animation: 'energy-spike'
+                });
+            }
+        }
+    }
+
+    private _spawnWarning(): void {
+        const screen = (this.game.app as any)?.renderer?.screen || this.game.app.screen;
+        const x = 100 + Math.random() * (screen?.width - 200 || 600);
+        const y = 100 + Math.random() * (screen?.height - 200 || 400);
+        
+        this._activeWarnings.push({
+            x,
+            y,
+            timeLeft: this._warningDuration
+        });
+
+        // Initial warning effect
+        this.game.spawnEffect({
+            position: { x, y },
+            alpha: 0.7,
+            scale: 1.0,
+            tint: 0xffaa00,
+            lifeTime: 0.2,
+            atlasAlias: 'vfx-atlas',
+            animation: 'warning-appear'
+        });
+    }
+
+    private _spawnHazard(x: number, y: number): void {
+        this._activeHazards.push({
+            x,
+            y,
+            timeLeft: 2.0 // hazard lasts 2 seconds
+        });
+
+        // Hazard spawn effect
+        this.game.spawnEffect({
+            position: { x, y },
+            alpha: 1.0,
+            scale: 2.0,
+            tint: 0xff0000,
+            lifeTime: 0.3,
+            atlasAlias: 'vfx-atlas',
+            animation: 'hazard-spawn'
+        });
+
+        // Check for player collision with hazard
+        const player = this.game.getEntities().find(e => e.hasComponent(Player));
+        if (player) {
+            const playerTransform = player.getComponent(Transform);
+            if (playerTransform) {
+                const dx = playerTransform.position.x - x;
+                const dy = playerTransform.position.y - y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < 60) { // hazard radius
+                    const health = player.getComponent(Health);
+                    if (health) {
+                        health.health = Math.max(0, health.health - 25);
+                        this.game.spawnEffect({
+                            position: { x: playerTransform.position.x, y: playerTransform.position.y },
+                            alpha: 0.9,
+                            scale: 1.2,
+                            tint: 0xff4444,
+                            lifeTime: 0.4,
+                            atlasAlias: 'vfx-atlas',
+                            animation: 'damage-flash'
+                        });
+                    }
+                }
+            }
         }
     }
 }

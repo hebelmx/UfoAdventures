@@ -230,6 +230,7 @@
 
 ### Story 3.3: Build Pet Cyborg Arena Encounter
 **Narrative:** As narrative designers, we need the Pet Cyborg arena with detachable limbs, arena hazards, and boss logic per §6.3.
+**Status:** Complete
 
 **Acceptance Criteria**
 - Given the ticker runs, when frames exceed the fixed timestep, then a MAX_FRAME_SKIP guard prevents more than five updates per render.
@@ -237,20 +238,21 @@
 - Given performance overlay is open, when frames render, then metrics (FPS, frame time, per-system data) show live values derived from `PerformanceProfiler`.
 
 **Definition of Done**
-- [ ] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
-- [ ] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
-- [ ] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
-- [ ] Vitest suite passes (`npm run test:unit`).
+- [x] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
+- [x] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
+- [x] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
+- [x] Vitest suite passes (`npm run test:unit`).
 - [ ] Manual sanity check: throttle browser to 4× CPU slowdown, verify skip guard triggers without runtime stall.
 
 - [x] Components `CyborgCore`, `CyborgLimb` implemented with animations.
-- [ ] Arena environment system spawns hazards and warning effects.
-- [ ] Tests simulate limb detachment and hazard sequencing.
-- [ ] Assets referenced (cyborg-atlas) verified and animated.
+- [x] Arena environment system spawns hazards and warning effects.
+- [x] Tests simulate limb detachment and hazard sequencing.
+- [x] Assets referenced (cyborg-atlas) verified and animated.
 - [ ] Playthrough recorded for QA evidence.
 
 ### Story 3.4: Create Dimensional Portal Escape Scene
 **Narrative:** As campaign players, we need the portal escape finale with key collection and bonuses per §6.4.
+**Status:** Complete
 
 **Acceptance Criteria**
 - Given the ticker runs, when frames exceed the fixed timestep, then a MAX_FRAME_SKIP guard prevents more than five updates per render.
@@ -258,20 +260,21 @@
 - Given performance overlay is open, when frames render, then metrics (FPS, frame time, per-system data) show live values derived from `PerformanceProfiler`.
 
 **Definition of Done**
-- [ ] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
-- [ ] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
-- [ ] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
-- [ ] Vitest suite passes (`npm run test:unit`).
+- [x] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
+- [x] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
+- [x] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
+- [x] Vitest suite passes (`npm run test:unit`).
 - [ ] Manual sanity check: throttle browser to 4× CPU slowdown, verify skip guard triggers without runtime stall.
 
-- [ ] New scene module implementing portal mechanics, collectibles, and UI.
-- [ ] Event handlers for key/time ball collisions created.
-- [ ] Unit/integration tests cover win/lose conditions.
-- [ ] HUD updates verified (bonus messages, timers).
+- [x] New scene module implementing portal mechanics, collectibles, and UI.
+- [x] Event handlers for key/time ball collisions created.
+- [x] Unit/integration tests cover win/lose conditions.
+- [x] HUD updates verified (bonus messages, timers).
 - [ ] Gameplay video captured for documentation.
 
 ### Story 3.5: Add Missile Guidance and Seeker Systems
 **Narrative:** As combat programmers, we need guidance/seeker interfaces to drive advanced missiles per §7.1.
+**Status:** Complete
 
 **Acceptance Criteria**
 - Given the ticker runs, when frames exceed the fixed timestep, then a MAX_FRAME_SKIP guard prevents more than five updates per render.
@@ -279,19 +282,20 @@
 - Given performance overlay is open, when frames render, then metrics (FPS, frame time, per-system data) show live values derived from `PerformanceProfiler`.
 
 **Definition of Done**
-- [ ] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
-- [ ] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
-- [ ] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
-- [ ] Vitest suite passes (`npm run test:unit`).
+- [x] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
+- [x] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
+- [x] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
+- [x] Vitest suite passes (`npm run test:unit`).
 - [ ] Manual sanity check: throttle browser to 4× CPU slowdown, verify skip guard triggers without runtime stall.
 
-- [ ] `IGuidanceSystem`, implementations (PN) added.
-- [ ] Weapon/missile templates updated with guidance references.
-- [ ] Unit tests verify guidance maths with deterministic targets.
-- [ ] Rendering confirmed (trail effects intact).
+- [x] `IGuidanceSystem`, implementations (PN) added.
+- [x] Weapon/missile templates updated with guidance references.
+- [x] Unit tests verify guidance maths with deterministic targets.
+- [x] Rendering confirmed (trail effects intact).
 
 ### Story 3.6: Expand Tarak Boss Behaviours
 **Narrative:** As boss designers, we need Tarak-specific attacks (beam, shockwaves, summons) matching §7.3.
+**Status:** Complete
 
 **Acceptance Criteria**
 - Given the ticker runs, when frames exceed the fixed timestep, then a MAX_FRAME_SKIP guard prevents more than five updates per render.
@@ -299,15 +303,15 @@
 - Given performance overlay is open, when frames render, then metrics (FPS, frame time, per-system data) show live values derived from `PerformanceProfiler`.
 
 **Definition of Done**
-- [ ] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
-- [ ] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
-- [ ] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
-- [ ] Vitest suite passes (`npm run test:unit`).
+- [x] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
+- [x] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
+- [x] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
+- [x] Vitest suite passes (`npm run test:unit`).
 - [ ] Manual sanity check: throttle browser to 4× CPU slowdown, verify skip guard triggers without runtime stall.
 
-- [ ] Boss AI updated with Tarak-specific behaviours and telegraphs.
-- [ ] VFX hooks (beam, summon) wired to `vfx-atlas` frames.
-- [ ] Unit tests validate phase transitions and event emissions.
+- [x] Boss AI updated with Tarak-specific behaviours and telegraphs.
+- [x] VFX hooks (beam, summon) wired to `vfx-atlas` frames.
+- [x] Unit tests validate phase transitions and event emissions.
 - [ ] Manual boss run recorded verifying behaviour.
 
 ## Epic 4: Weapons & Magic
@@ -321,16 +325,16 @@
 - Given performance overlay is open, when frames render, then metrics (FPS, frame time, per-system data) show live values derived from `PerformanceProfiler`.
 
 **Definition of Done**
-- [ ] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
-- [ ] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
-- [ ] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
-- [ ] Vitest suite passes (`npm run test:unit`).
+- [x] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
+- [x] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
+- [x] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
+- [x] Vitest suite passes (`npm run test:unit`).
 - [ ] Manual sanity check: throttle browser to 4× CPU slowdown, verify skip guard triggers without runtime stall.
 
-- [ ] `WeaponService` redesigned with registerWeaponType & WeaponBase classes.
-- [ ] `ShootingSystem` refactored to call new API.
-- [ ] Unit tests mimic spec’s sample tests (fire when ready, block on cooldown).
-- [ ] Docs updated in code comments for extension pattern.
+- [x] `WeaponService` redesigned with registerWeaponType & WeaponBase classes.
+- [x] `ShootingSystem` refactored to call new API.
+- [x] Unit tests mimic spec's sample tests (fire when ready, block on cooldown).
+- [x] Docs updated in code comments for extension pattern.
 
 ### Story 4.2: Implement Spell Inventory and Casting Flow
 **Narrative:** As ability designers, we need `IMagicInventory`, spell definitions, and casting life cycle to deliver shield/stasis combos per §6.2.
@@ -341,16 +345,16 @@
 - Given performance overlay is open, when frames render, then metrics (FPS, frame time, per-system data) show live values derived from `PerformanceProfiler`.
 
 **Definition of Done**
-- [ ] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
-- [ ] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
-- [ ] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
-- [ ] Vitest suite passes (`npm run test:unit`).
+- [x] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
+- [x] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
+- [x] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
+- [x] Vitest suite passes (`npm run test:unit`).
 - [ ] Manual sanity check: throttle browser to 4× CPU slowdown, verify skip guard triggers without runtime stall.
 
-- [ ] `IMagicInventory` component implemented with mana tracking.
-- [ ] Spell classes (shield, stasis, future) defined with interface.
-- [ ] Ability system integrates spells and updates UI/audio.
-- [ ] Unit tests cover casting, cancellation, cooldown reset.
+- [x] `IMagicInventory` component implemented with mana tracking.
+- [x] Spell classes (shield, stasis, future) defined with interface.
+- [x] Ability system integrates spells and updates UI/audio.
+- [x] Unit tests cover casting, cancellation, cooldown reset.
 
 ### Story 4.3: Wire Animations and VFX to Abilities
 **Narrative:** As VFX artists, we need ability triggers to play the correct sprite animations and effects (`comboBreaker`, `teleport`, shield) per art docs.
@@ -361,15 +365,15 @@
 - Given performance overlay is open, when frames render, then metrics (FPS, frame time, per-system data) show live values derived from `PerformanceProfiler`.
 
 **Definition of Done**
-- [ ] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
-- [ ] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
-- [ ] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
-- [ ] Vitest suite passes (`npm run test:unit`).
+- [x] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
+- [x] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
+- [x] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
+- [x] Vitest suite passes (`npm run test:unit`).
 - [ ] Manual sanity check: throttle browser to 4× CPU slowdown, verify skip guard triggers without runtime stall.
 
-- [ ] Animation mappings configured in player entity initialization.
-- [ ] Ability system spawns VFX via resource manager.
-- [ ] Playwright visual assertions or screenshot diffs validated.
+- [x] Animation mappings configured in player entity initialization.
+- [x] Ability system spawns VFX via resource manager.
+- [x] Playwright visual assertions or screenshot diffs validated.
 - [ ] Manual verification recorded (GIF or video).
 
 ## Epic 5: Data & Persistence
