@@ -97,4 +97,41 @@
 - Manual validations for Epic 1 loop (CPU throttle/overlay) remain clean
 - Update docs: PlanToFinish and Architecture to reflect new implementations
 
+---
+
+## Next Session Plan (to continue tomorrow)
+
+1) Stabilize MagicSystem
+   - Fix export/re-export: add `MagicSystem` to `engine/systems.ts` re-exports or import directly in `gameplay-runtime.ts` from `magic-system.ts`.
+   - Re-run tests; ensure shield casting test passes; add stasis pause/resume test.
+   - Wire stasis to temporarily pause enemies (`_stasisPaused` flag) and auto-clear.
+
+2) Weapon Factory Adoption
+   - Migrate `player-blaster` config to include `volley`/`accuracyDegrees` in `game-config.json`.
+   - Add `BossBeamStrategy` (basic) and register; optional config migration.
+   - Add unit tests for BossBeamStrategy firing.
+
+3) Portal Escape Enhancements
+   - Add time balls and floating platforms; simple kinematics + collisions.
+   - Track portal activation progress; winning condition when entering active portal.
+   - Tests for time add and win condition.
+
+4) Cyborg Arena Improvements
+   - Reattach cooldown, detached limb behaviors; vulnerability window in boss core.
+   - Arena warnings before spikes (delay/telegraph → damage).
+   - Unit tests covering detach/reattach and warning timing.
+
+5) Spatial Grid Integration
+   - Instantiate `SpatialGrid` in CollisionSystem; compare naive vs grid results.
+   - Overlay metrics for cells/occupants.
+
+6) Config Schema & Save Migrations
+   - Integrate ajv validation + watchers in `ConfigService`.
+   - Add checksum + `migrate` to `SaveService`; tests for tamper detection.
+
+7) Docs & Build
+   - Update `PlanToFinish.md` statuses and `UfoGameDesign_Architecture.md` notes.
+   - Add Vite compression plugin (or document webpack alternative) and verify dist.
+
+
 
