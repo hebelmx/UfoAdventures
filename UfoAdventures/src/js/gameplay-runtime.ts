@@ -569,6 +569,7 @@ export class GameplayRuntime implements CombatGameContext {
         this._systemManager.registerSystem(new PlayerInputSystem(inputService));
         this._systemManager.registerSystem(new BehaviorTreeSystem(this, this.services, uiService));
         this._systemManager.registerSystem(new AbilitySystem(this, eventBus, inputService, uiService));
+        this._systemManager.registerSystem(new MagicSystem(this, eventBus));
         this._systemManager.registerSystem(new EnemyBehaviorSystem(this));
         this._systemManager.registerSystem(new MovementSystem());
         this._systemManager.registerSystem(new EffectLifetimeSystem(this));
