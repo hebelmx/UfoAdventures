@@ -359,3 +359,17 @@ export class CyborgLimb extends Component {
     health: number = 50;
     maxHealth: number = 50;
 }
+
+// Guidance components for homing missiles
+export class Guidance extends Component {
+    navigationConstant: number;
+    target: 'player' | 'enemy';
+
+    constructor(navigationConstant = 3, target: 'player' | 'enemy' = 'player') {
+        super();
+        this.navigationConstant = navigationConstant;
+        this.target = target;
+    }
+}
+
+export class HomingMissile extends Component {}

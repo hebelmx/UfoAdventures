@@ -20,7 +20,10 @@ import {
     BossAISystem,
     BossShootingSystem,
     BoundaryCleanupSystem,
-    CleanupSystem
+    CleanupSystem,
+    MissileGuidanceSystem,
+    CyborgLimbSystem,
+    ArenaEnvironmentSystem
 } from './engine/systems';
 import { EntityPool } from './engine/entity-pool';
 import type { ServiceLocator } from './engine/service-locator';
@@ -576,8 +579,10 @@ export class GameplayRuntime implements CombatGameContext {
         this._systemManager.registerSystem(new BoundaryCleanupSystem(this));
         this._systemManager.registerSystem(new RenderSystem(this.app));
         this._systemManager.registerSystem(new CleanupSystem(this));
+        this._systemManager.registerSystem(new MissileGuidanceSystem(this));
+        this._systemManager.registerSystem(new CyborgLimbSystem(this, this.services));
+        this._systemManager.registerSystem(new ArenaEnvironmentSystem(this));
 
-        this._bindPerformanceToggle(inputService);
         this._bindPerformanceToggle(inputService);
     }
 

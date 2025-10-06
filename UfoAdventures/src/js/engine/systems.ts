@@ -58,8 +58,12 @@ import {
     Vector2Like,
     getComponentOrNull,
     getComponents,
-    AIStateMachineComponent
+    AIStateMachineComponent,
+    Guidance,
+    HomingMissile,
+    CyborgLimb
 } from './components';
+import { ProportionalNavigationGuidance } from './guidance';
 import { Player } from '../entities/player';
 import { UiService, type AbilityName } from './ui-service';
 import { IAIBrain, StateMachine } from './ai-state-machine';
@@ -687,14 +691,14 @@ export class AbilitySystem extends System {
             teleportState.timer = Math.max(0, teleportState.timer - deltaSeconds);
         }
 
-        this._updateLastDirection(player, abilities);
+        this._updateLastDirection(playerEntity, abilities);
 
         if (comboState?.queued) {
-            this._executeComboBreaker(player, comboState);
+            this._executeComboBreaker(playerEntity, comboState);
         }
 
         if (teleportState?.queued) {
-            this._executeTeleport(player, abilities, teleportState);
+            this._executeTeleport(playerEntity, abilities, teleportState);
         }
 
         this.uiService?.updateAbilityCooldown('comboBreaker', comboState ?? null);
@@ -1617,7 +1621,6 @@ export class UISystem extends System {
             const stats = playerComponent as unknown as { combo?: number; lives?: number };
             this.uiService?.updateCombo(stats.combo ?? 0);
             this.uiService?.updateLives(stats.lives ?? 0);
-            }
         }
 
         const bossEntity = entities.find(entity => entity.hasComponent(Boss));
@@ -2098,6 +2101,95 @@ export class CleanupSystem extends System {
                     entities.splice(index, 1);
                 }
             }
+        }
+    }
+}
+
+export class MissileGuidanceSystem extends System {
+    private readonly game: CombatGameContext;
+    private readonly guidance = new ProportionalNavigationGuidance(3);
+
+    constructor(game: CombatGameContext) {
+        super();
+        this.game = game;
+    }
+
+    update(entities: Entity[], delta: number): void {
+        const deltaSeconds = delta / 60;
+        const player = entities.find(e => e.hasComponent(Player));
+        const enemies = entities.filter(e => e.hasComponent(Enemy));
+
+        entities.forEach(entity => {
+            if (!entity.hasComponent(HomingMissile) || !entity.hasComponent(Guidance) || !entity.hasComponent(Motion)) {
+                return;
+            }
+            const guidanceComp = entity.getComponent(Guidance)!;
+            const motion = entity.getComponent(Motion)!;
+
+            const target = guidanceComp.target === 'player' ? player : enemies[0];
+            if (!target) {
+                return;
+            }
+
+            const accel = this.guidance.update(entity, target, deltaSeconds);
+            motion.velocity.x += accel.x * deltaSeconds * 120; // amplify for visibility
+            motion.velocity.y += accel.y * deltaSeconds * 120;
+        });
+    }
+}
+
+export class CyborgLimbSystem extends System {
+    private readonly game: CombatGameContext;
+    private readonly eventBus: EventBus | null;
+
+    constructor(game: CombatGameContext, services?: ServiceLocator) {
+        super();
+        this.game = game;
+        this.eventBus = services ? ((): EventBus | null => {
+            try { return services.resolve<EventBus>('eventBus'); } catch { return null; }
+        })() : null;
+    }
+
+    update(entities: Entity[], _delta: number): void {
+        entities.forEach(entity => {
+            if (!entity.hasComponent(CyborgLimb) || !entity.hasComponent(Health)) {
+                return;
+            }
+            const limb = entity.getComponent(CyborgLimb)!;
+            const health = entity.getComponent(Health)!;
+            const threshold = Math.max(1, Math.floor(limb.maxHealth * 0.3));
+            if (limb.isAttached && health.health <= threshold) {
+                limb.isAttached = false;
+                // give detached motion nudge
+                const motion = getComponentOrNull(entity, Motion) || entity.addComponent(new Motion());
+                motion.velocity.x = (Math.random() * 2 - 1) * 3;
+                motion.velocity.y = (Math.random() * 2 - 1) * 3;
+                this.eventBus?.emit('cyborg:limb-detached', { entity });
+                // small spark effect
+                this.game.spawnEffect({ position: { x: entity.getComponent(Transform)?.position.x ?? 0, y: entity.getComponent(Transform)?.position.y ?? 0 }, alpha: 0.9, scale: 1.2 });
+            }
+        });
+    }
+}
+
+export class ArenaEnvironmentSystem extends System {
+    private readonly game: CombatGameContext;
+    private _timer = 0;
+    private readonly _interval = 1.0; // seconds
+
+    constructor(game: CombatGameContext) {
+        super();
+        this.game = game;
+    }
+
+    update(_entities: Entity[], delta: number): void {
+        this._timer += delta / 60;
+        if (this._timer >= this._interval) {
+            this._timer = 0;
+            const screen = (this.game.app as any)?.renderer?.screen || this.game.app.screen;
+            const x = Math.random() * (screen?.width || 800);
+            const y = (screen?.height || 600) * 0.2;
+            this.game.spawnEffect({ position: { x, y }, alpha: 0.8, scale: 1.0 });
         }
     }
 }

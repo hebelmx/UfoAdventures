@@ -1,5 +1,5 @@
 import { Scene, SceneManager } from '../engine/scene-manager';
-import { setOverlayVisible } from '../ui/overlay-helpers';
+import { UiService } from '../engine/ui-service';
 import { ServiceLocator } from '../engine/service-locator';
 import { SceneTransitions } from '../ui/scene-transitions';
 
@@ -13,21 +13,23 @@ export class TrainingScene extends Scene {
     private _sceneTransitions: SceneTransitions | null = null;
     private readonly _handlers: UIHandler[] = [];
     private readonly _missionId = 'training-sandbox';
+    private readonly _uiService: UiService | null;
 
     constructor(services: ServiceLocator) {
         super('training', services);
+        this._uiService = services.optional<UiService>('uiService');
     }
 
     async onEnter(): Promise<void> {
         this._overlay = document.getElementById('trainingOverlay');
-        setOverlayVisible(this._overlay, true, '#trainingStartButton');
+        this._uiService?.setOverlayVisible('trainingOverlay', true);
         this._sceneTransitions = this.services.optional<SceneTransitions>('sceneTransitions');
         this._bind();
     }
 
     async onExit(): Promise<void> {
         this._unbind();
-        setOverlayVisible(this._overlay, false);
+        this._uiService?.setOverlayVisible('trainingOverlay', false);
         this._overlay = null;
         this._sceneTransitions = null;
         await super.onExit();

@@ -23,6 +23,7 @@ import { ResultsScene } from './scenes/results-scene';
 import { OptionsScene } from './scenes/options-scene';
 import { CreditsScene } from './scenes/credits-scene';
 import { LeaderboardScene } from './scenes/leaderboard-scene';
+import { PortalEscapeScene } from './scenes/portal-escape-scene';
 import { ArcadeScene } from './scenes/arcade-scene';
 import { TrainingScene } from './scenes/training-scene';
 import type { GameConfiguration, ApplicationScreenConfig } from './engine/game-configuration';
@@ -176,6 +177,7 @@ export class GameApplication {
         this._registerScene(sceneManager, new OptionsScene(this.services));
         this._registerScene(sceneManager, new CreditsScene(this.services));
         this._registerScene(sceneManager, new LeaderboardScene(this.services));
+        this._registerScene(sceneManager, new PortalEscapeScene(this.services));
         this._registerScene(sceneManager, new ArcadeScene(this.services));
         this._registerScene(sceneManager, new TrainingScene(this.services));
     }

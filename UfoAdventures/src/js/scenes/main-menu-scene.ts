@@ -5,7 +5,6 @@ import { ProgressionService } from '../engine/progression-service';
 import { AudioService } from '../engine/audio-service';
 import { RunSummary } from '../engine/mission-service';
 import type { SceneTransitions } from '../ui/scene-transitions';
-import { setOverlayVisible } from '../ui/overlay-helpers'; // This will be removed later
 import { UiService } from '../engine/ui-service';
 
 interface MainMenuElements {
@@ -21,6 +20,7 @@ interface MainMenuElements {
     campaignButton: HTMLButtonElement | null;
     arcadeButton: HTMLButtonElement | null;
     trainingButton: HTMLButtonElement | null;
+    portalEscapeButton?: HTMLButtonElement | null;
     optionsButton: HTMLButtonElement | null;
     creditsButton: HTMLButtonElement | null;
     leaderboardSceneButton: HTMLButtonElement | null;
@@ -44,6 +44,7 @@ const createEmptyMainMenuElements = (): MainMenuElements => ({
     campaignButton: null,
     arcadeButton: null,
     trainingButton: null,
+    portalEscapeButton: null,
     optionsButton: null,
     creditsButton: null,
     leaderboardSceneButton: null
@@ -106,6 +107,7 @@ export class MainMenuScene extends Scene {
             campaignButton: this._uiService?.getElement<HTMLButtonElement>('menuCampaignButton'),
             arcadeButton: this._uiService?.getElement<HTMLButtonElement>('menuArcadeButton'),
             trainingButton: this._uiService?.getElement<HTMLButtonElement>('menuTrainingButton'),
+            portalEscapeButton: this._uiService?.getElement<HTMLButtonElement>('menuPortalEscapeButton'),
             optionsButton: this._uiService?.getElement<HTMLButtonElement>('menuOptionsButton'),
             creditsButton: this._uiService?.getElement<HTMLButtonElement>('menuCreditsButton'),
             leaderboardSceneButton: this._uiService?.getElement<HTMLButtonElement>('menuLeaderboardSceneButton')
@@ -394,6 +396,7 @@ export class MainMenuScene extends Scene {
         this._bindNavButton(this._elements.campaignButton, () => this._showCampaign());
         this._bindNavButton(this._elements.arcadeButton, () => this._openScene('arcade'));
         this._bindNavButton(this._elements.trainingButton, () => this._openScene('training'));
+        this._bindNavButton(this._elements.portalEscapeButton as HTMLButtonElement | null, () => this._openScene('portal-escape'));
         this._bindNavButton(this._elements.optionsButton, () => this._openScene('options'));
         this._bindNavButton(this._elements.creditsButton, () => this._openScene('credits'));
         this._bindNavButton(this._elements.leaderboardSceneButton, () => this._openScene('leaderboard'));
