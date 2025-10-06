@@ -1203,6 +1203,49 @@ export class ShootingSystem extends System {
     private _fireWeapon(entity: RuntimeEntity, transform: Transform, weapon: Weapon, definition: WeaponDefinitionWithExtras | null): void {
         const origin = { x: transform.position.x, y: transform.position.y };
 
+        // Strategy-first: allow factory-based weapons to drive firing
+        if (this.weaponService) {
+            const strategy = this.weaponService.createStrategy(weapon.weaponId);
+            if (strategy && definition) {
+                try {
+                    const shots = strategy.fire({ shooter: entity, transform, weapon, definition });
+                    if (Array.isArray(shots) && shots.length) {
+                        shots.forEach(projectileDef => {
+                            const projectileType = (projectileDef.type as 'player' | 'enemy') || this._inferProjectileOwner(entity);
+                            const position: Vector2Like = {
+                                x: origin.x + ((projectileDef as any).offset?.x ?? 0),
+                                y: origin.y + ((projectileDef as any).offset?.y ?? 0)
+                            };
+                            const velocity = this._resolveVelocity(projectileDef as any);
+                            const damage = this._resolveDamage(projectileDef as any, entity);
+
+                            const spawnOptions: ProjectileSpawnPayload = {
+                                ...(projectileDef as any),
+                                type: projectileType,
+                                position,
+                                velocity,
+                                tint: (projectileDef as any).tint,
+                                scale: (projectileDef as any).scale,
+                                damage
+                            };
+
+                            const projectile = this.game.spawnProjectile(spawnOptions);
+                            if (projectile && this.eventBus) {
+                                this.eventBus.emit<CombatProjectileFiredEvent>('combat:projectile-fired', {
+                                    origin: entity,
+                                    projectile,
+                                    source: projectileType
+                                });
+                            }
+                        });
+                        return; // handled by strategy
+                    }
+                } catch (_e) {
+                    // Fallback to default path
+                }
+            }
+        }
+
         const beamDef = definition?.beam ?? null;
         if (beamDef) {
             this._fireBeam(entity, transform, weapon, beamDef);

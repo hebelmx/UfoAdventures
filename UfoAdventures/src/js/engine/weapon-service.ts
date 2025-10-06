@@ -11,9 +11,28 @@ export interface WeaponDefinition {
     [key: string]: unknown;
 }
 
+// Optional extensions for factory-based weapons
+export interface WeaponDefinitionExtras extends WeaponDefinition {
+    accuracyDegrees?: number;
+    volley?: number;
+    heatPerShot?: number;
+    maxHeat?: number;
+}
+
+export abstract class WeaponBase {
+    // Return a list of projectile definitions to spawn for this fire action
+    abstract fire(params: {
+        shooter: any;
+        transform: any;
+        weapon: any;
+        definition: WeaponDefinitionExtras;
+    }): ProjectileDefinition[];
+}
+
 export class WeaponService {
     private readonly _weapons: Map<string, WeaponDefinition> = new Map();
     private _defaultId: string | null = 'player-blaster';
+    private readonly _strategies: Map<string, new () => WeaponBase> = new Map();
 
     configure(config: { [key: string]: Partial<WeaponDefinition> } = {}): void {
         this._weapons.clear();
@@ -42,5 +61,25 @@ export class WeaponService {
             return null;
         }
         return this._weapons.get(weaponId) || null;
+    }
+
+    registerWeaponType(id: string, ctor: new () => WeaponBase): void {
+        if (!id || typeof ctor !== 'function') {
+            return;
+        }
+        this._strategies.set(id, ctor);
+    }
+
+    createStrategy(id?: string): WeaponBase | null {
+        const key = id || this._defaultId || '';
+        const Ctor = this._strategies.get(key);
+        if (!Ctor) {
+            return null;
+        }
+        try {
+            return new Ctor();
+        } catch (_e) {
+            return null;
+        }
     }
 }

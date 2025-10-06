@@ -12,6 +12,7 @@ import { BehaviorTreeService } from './engine/behavior-tree-service';
 import { WeaponService } from './engine/weapon-service';
 import { ProgressionService } from './engine/progression-service';
 import { UiService } from './engine/ui-service';
+import { PlayerBlasterStrategy } from './engine/weapons/player-blaster';
 import { SceneTransitions } from './ui/scene-transitions';
 import { BootstrapScene } from './scenes/bootstrap-scene';
 import { AssetLoadingScene } from './scenes/asset-loading-scene';
@@ -120,6 +121,7 @@ export class GameApplication {
 
         const weaponService = new WeaponService();
         this.services.register('weaponService', weaponService);
+        weaponService.registerWeaponType('player-blaster', PlayerBlasterStrategy);
 
         const uiService = new UiService();
         this.services.register('uiService', uiService);

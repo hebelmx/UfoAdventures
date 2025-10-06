@@ -373,3 +373,15 @@ export class Guidance extends Component {
 }
 
 export class HomingMissile extends Component {}
+
+export class MagicInventory extends Component {
+    manaPoints: number;
+    maxMana: number;
+    globalCooldown: number;
+    constructor(maxMana = 100) {
+        super();
+        this.maxMana = maxMana;
+        this.manaPoints = maxMana;
+        this.globalCooldown = 0;
+    }
+}

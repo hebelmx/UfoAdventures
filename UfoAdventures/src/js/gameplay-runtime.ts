@@ -13,6 +13,7 @@ import {
     MovementSystem,
     EffectLifetimeSystem,
     AbilitySystem,
+    MagicSystem,
     EnemySpawningSystem,
     ShootingSystem,
     CollisionSystem,
