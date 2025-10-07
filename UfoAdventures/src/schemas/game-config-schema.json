@@ -1,0 +1,432 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Game Configuration Schema",
+  "type": "object",
+  "required": ["application", "assets", "modes", "missions", "weapons", "behaviorTrees", "input", "enemies", "boss", "debug"],
+  "properties": {
+    "application": {
+      "type": "object",
+      "required": ["screen"],
+      "properties": {
+        "screen": {
+          "type": "object",
+          "required": ["width", "height", "backgroundColor"],
+          "properties": {
+            "width": {
+              "type": "number",
+              "minimum": 100
+            },
+            "height": {
+              "type": "number",
+              "minimum": 100
+            },
+            "backgroundColor": {
+              "type": "string",
+              "pattern": "^#[0-9a-fA-F]{6}$"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "assets": {
+      "$ref": "./assets-schema.json"
+    },
+    "modes": {
+      "type": "object",
+      "required": ["default", "available"],
+      "properties": {
+        "default": {
+          "type": "string",
+          "enum": ["adventure", "boss", "enemyDemo"]
+        },
+        "available": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": ["adventure", "boss", "enemyDemo"]
+          },
+          "uniqueItems": true
+        }
+      },
+      "additionalProperties": false
+    },
+    "missions": {
+      "$ref": "./missions-schema.json"
+    },
+    "weapons": {
+      "$ref": "./weapons-schema.json"
+    },
+    "behaviorTrees": {
+      "type": "object",
+      "patternProperties": {
+        "^[a-zA-Z0-9-_]+$": {
+          "type": "object",
+          "required": ["type"],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["sequence", "selector", "action", "wait"]
+            },
+            "loop": {
+              "type": "boolean"
+            },
+            "children": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/behaviorTreeNode"
+              }
+            },
+            "name": {
+              "type": "string"
+            },
+            "duration": {
+              "type": "number",
+              "minimum": 0
+            },
+            "amplitude": {
+              "type": "number"
+            },
+            "frequency": {
+              "type": "number",
+              "minimum": 0
+            },
+            "speedY": {
+              "type": "number"
+            },
+            "diveSpeed": {
+              "type": "number"
+            },
+            "climbSpeed": {
+              "type": "number"
+            },
+            "vertical": {
+              "type": "number"
+            },
+            "horizontalDrift": {
+              "type": "number"
+            },
+            "speed": {
+              "type": "number",
+              "minimum": 0
+            },
+            "weaponId": {
+              "type": "string"
+            },
+            "effect": {
+              "type": "object",
+              "properties": {
+                "atlas": {
+                  "type": "string"
+                },
+                "animation": {
+                  "type": "string"
+                }
+              },
+              "additionalProperties": false
+            },
+            "message": {
+              "type": "string"
+            },
+            "targets": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": ["template"],
+                "properties": {
+                  "template": {
+                    "type": "string"
+                  },
+                  "count": {
+                    "type": "number",
+                    "minimum": 1
+                  },
+                  "radius": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "angleOffset": {
+                    "type": "number"
+                  },
+                  "offset": {
+                    "type": "object",
+                    "properties": {
+                      "x": {
+                        "type": "number"
+                      },
+                      "y": {
+                        "type": "number"
+                      }
+                    },
+                    "additionalProperties": false
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    },
+    "input": {
+      "type": "object",
+      "required": ["actions", "axes"],
+      "properties": {
+        "actions": {
+          "type": "object",
+          "patternProperties": {
+            "^[a-zA-Z0-9-_]+$": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "axes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "positive", "negative"],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "positive": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "negative": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "enemies": {
+      "$ref": "./enemies-schema.json"
+    },
+    "boss": {
+      "type": "object",
+      "required": ["behaviorTreeId", "weaponId", "phases"],
+      "properties": {
+        "behaviorTreeId": {
+          "type": "string"
+        },
+        "weaponId": {
+          "type": "string"
+        },
+        "phases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["pattern", "message", "horizontalSpeed", "verticalDrift", "fireRate", "behaviorTreeId", "weaponId", "telegraphEffect", "vulnerabilityWindow", "threshold"],
+            "properties": {
+              "pattern": {
+                "type": "string",
+                "enum": ["spread", "burst", "spiral"]
+              },
+              "message": {
+                "type": "string"
+              },
+              "horizontalSpeed": {
+                "type": "number"
+              },
+              "verticalDrift": {
+                "type": "number"
+              },
+              "fireRate": {
+                "type": "number",
+                "minimum": 0
+              },
+              "behaviorTreeId": {
+                "type": "string"
+              },
+              "weaponId": {
+                "type": "string"
+              },
+              "telegraphEffect": {
+                "type": "object",
+                "required": ["atlas", "animation"],
+                "properties": {
+                  "atlas": {
+                    "type": "string"
+                  },
+                  "animation": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "vulnerabilityWindow": {
+                "type": "number",
+                "minimum": 0
+              },
+              "threshold": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "summon": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": ["template", "count"],
+                  "properties": {
+                    "template": {
+                      "type": "string"
+                    },
+                    "count": {
+                      "type": "number",
+                      "minimum": 1
+                    },
+                    "spread": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    "altitude": {
+                      "type": "number"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "debug": {
+      "type": "object",
+      "properties": {
+        "aiStateMachine": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "definitions": {
+    "behaviorTreeNode": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["sequence", "selector", "action", "wait"]
+        },
+        "loop": {
+          "type": "boolean"
+        },
+        "children": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/behaviorTreeNode"
+          }
+        },
+        "name": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "number",
+          "minimum": 0
+        },
+        "amplitude": {
+          "type": "number"
+        },
+        "frequency": {
+          "type": "number",
+          "minimum": 0
+        },
+        "speedY": {
+          "type": "number"
+        },
+        "diveSpeed": {
+          "type": "number"
+        },
+        "climbSpeed": {
+          "type": "number"
+        },
+        "vertical": {
+          "type": "number"
+        },
+        "horizontalDrift": {
+          "type": "number"
+        },
+        "speed": {
+          "type": "number",
+          "minimum": 0
+        },
+        "weaponId": {
+          "type": "string"
+        },
+        "effect": {
+          "type": "object",
+          "properties": {
+            "atlas": {
+              "type": "string"
+            },
+            "animation": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "message": {
+          "type": "string"
+        },
+        "targets": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["template"],
+            "properties": {
+              "template": {
+                "type": "string"
+              },
+              "count": {
+                "type": "number",
+                "minimum": 1
+              },
+              "radius": {
+                "type": "number",
+                "minimum": 0
+              },
+              "angleOffset": {
+                "type": "number"
+              },
+              "offset": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

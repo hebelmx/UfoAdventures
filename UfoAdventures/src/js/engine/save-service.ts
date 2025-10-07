@@ -1,14 +1,19 @@
+import { SaveMigrationService } from './save-migration';
+
 export interface SaveServiceOptions {
     dbName?: string;
     storeName?: string;
     version?: number;
     keyPrefix?: string;
+    enableChecksums?: boolean;
 }
 
 export interface SaveRecord<T = unknown> {
     key: string;
     value: T;
     timestamp: number;
+    version?: number;
+    checksum?: string;
 }
 
 type LocalStorageLike = Pick<Storage, 'getItem' | 'setItem' | 'removeItem' | 'key' | 'length'>;
@@ -18,18 +23,22 @@ export class SaveService {
     private readonly storeName: string;
     private readonly version: number;
     private readonly keyPrefix: string;
+    private readonly enableChecksums: boolean;
     private _indexedDB: IDBFactory | null;
     private _dbPromise: Promise<IDBDatabase | null> | null = null;
     private readonly _localStorage: LocalStorageLike | null;
     private readonly _memoryStore: Map<string, SaveRecord> = new Map();
     private _isFallback: boolean;
     private readonly _readyPromise: Promise<IDBDatabase | null>;
+    private readonly _migrationService: SaveMigrationService;
 
     constructor(options: SaveServiceOptions = {}) {
         this.dbName = options.dbName || 'UFOAdventures';
         this.storeName = options.storeName || 'saves';
         this.version = Number.isFinite(options.version) ? Number(options.version) : 1;
         this.keyPrefix = options.keyPrefix || `${this.dbName}:${this.storeName}:`;
+        this.enableChecksums = options.enableChecksums ?? true;
+        this._migrationService = new SaveMigrationService();
         this._indexedDB = this._resolveIndexedDB();
         this._localStorage = this._resolveLocalStorage();
         this._isFallback = !this._indexedDB;
@@ -47,11 +56,30 @@ export class SaveService {
         return this._readyPromise;
     }
 
+    private _calculateChecksum(data: unknown): string {
+        const str = JSON.stringify(data);
+        let hash = 0;
+        for (let i = 0; i < str.length; i++) {
+            const char = str.charCodeAt(i);
+            hash = ((hash << 5) - hash) + char;
+            hash = hash & hash; // Convert to 32-bit integer
+        }
+        return hash.toString(16);
+    }
+
     async save(key: string, value: unknown): Promise<void> {
         if (!key) {
             return;
         }
-        const record: SaveRecord = { key, value, timestamp: Date.now() };
+        const record: SaveRecord = {
+            key,
+            value,
+            timestamp: Date.now(),
+            version: this.version
+        };
+        if (this.enableChecksums) {
+            record.checksum = this._calculateChecksum(value);
+        }
         if (this._indexedDB) {
             await this._writeIndexedDB(record);
         } else {
@@ -63,11 +91,38 @@ export class SaveService {
         if (!key) {
             return null;
         }
+        let record: SaveRecord | null = null;
         if (this._indexedDB) {
-            const record = await this._readIndexedDB(key);
-            return record ? (record.value as T) : null;
+            record = await this._readIndexedDB(key);
+        } else {
+            record = this._readFallbackRecord(key);
         }
-        return this._readFallback<T>(key);
+        if (!record) {
+            return null;
+        }
+        // Migrate if needed
+        if (record.version && record.version < this.version) {
+            record.value = this._migrationService.migrate(record.value, record.version, this.version);
+            record.version = this.version;
+            // Recalculate checksum after migration
+            if (this.enableChecksums) {
+                record.checksum = this._calculateChecksum(record.value);
+            }
+            // Save migrated record
+            if (this._indexedDB) {
+                await this._writeIndexedDB(record);
+            } else {
+                this._writeFallback(record);
+            }
+        }
+        // Validate checksum
+        if (this.enableChecksums && record.checksum) {
+            const calculatedChecksum = this._calculateChecksum(record.value);
+            if (calculatedChecksum !== record.checksum) {
+                throw new Error(`SaveService: Checksum validation failed for key '${key}'`);
+            }
+        }
+        return record.value as T;
     }
 
     async delete(key: string): Promise<void> {
@@ -293,20 +348,24 @@ export class SaveService {
     }
 
     private _readFallback<T>(key: string): T | null {
+        const record = this._readFallbackRecord(key);
+        return record ? record.value as T : null;
+    }
+
+    private _readFallbackRecord(key: string): SaveRecord | null {
         if (this._localStorage) {
             try {
                 const raw = this._localStorage.getItem(this.keyPrefix + key);
                 if (!raw) {
                     return null;
                 }
-                const parsed = JSON.parse(raw) as SaveRecord<T>;
-                return parsed ? parsed.value : null;
+                const parsed = JSON.parse(raw) as SaveRecord;
+                return parsed || null;
             } catch (error) {
                 console.warn('SaveService: failed to read from localStorage, checking memory store.', error);
             }
         }
-        const record = this._memoryStore.get(key) as SaveRecord<T> | undefined;
-        return record ? record.value : null;
+        return this._memoryStore.get(key) || null;
     }
 
     private _deleteFallback(key: string): void {

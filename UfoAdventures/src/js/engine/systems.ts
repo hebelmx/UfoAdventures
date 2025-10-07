@@ -64,6 +64,7 @@ import {
     CyborgLimb
 } from './components';
 import { ProportionalNavigationGuidance, PurePursuitGuidance, InterceptGuidance } from './guidance';
+import { SpatialGrid, SpatialBounds } from './spatial-grid';
 import { Player } from '../entities/player';
 import { UiService, type AbilityName } from './ui-service';
 import { IAIBrain, StateMachine } from './ai-state-machine';
@@ -1370,12 +1371,20 @@ export class CollisionSystem extends System {
     private _playerDefeated = false;
     private readonly _defeatedBosses = new WeakSet<Entity>();
     private readonly uiService: UiService | null;
+    private readonly _spatialGrid: SpatialGrid<Entity>;
+    private _collisionMetrics = {
+        totalChecks: 0,
+        spatialGridChecks: 0,
+        naiveChecks: 0,
+        entitiesInGrid: 0
+    };
 
     constructor(game: CombatGameContext, eventBus: EventBus | null, uiService: UiService | null = null) {
         super();
         this.game = game;
         this.eventBus = eventBus ?? null;
         this.uiService = uiService ?? null;
+        this._spatialGrid = new SpatialGrid<Entity>({ cellSize: 120 });
     }
 
     update(entities: Entity[], _delta: number): void {
@@ -1386,16 +1395,21 @@ export class CollisionSystem extends System {
         const enemyProjectiles = activeEntities.filter(entity => entity.hasComponent(EnemyBullet));
         const player = activeEntities.find(entity => entity.hasComponent(Player)) ?? null;
 
-        bullets.forEach(bullet => {
-            enemies.forEach(enemy => {
-                if (this._isColliding(bullet, enemy)) {
-                    this._handleBulletHitsEnemy(bullet, enemy);
-                }
-            });
+        // Update spatial grid with all collidable entities
+        this._updateSpatialGrid(activeEntities);
 
-            bosses.forEach(boss => {
-                if (this._isColliding(bullet, boss)) {
-                    this._handleBulletHitsBoss(bullet, boss);
+        // Update metrics
+        this._collisionMetrics.entitiesInGrid = this._spatialGrid.entityCount();
+
+        // Use spatial grid for collision detection
+        bullets.forEach(bullet => {
+            const nearbyEntities = this._getNearbyEntities(bullet);
+            
+            nearbyEntities.forEach(entity => {
+                if (entity.hasComponent(Enemy) && this._isColliding(bullet, entity)) {
+                    this._handleBulletHitsEnemy(bullet, entity);
+                } else if (entity.hasComponent(Boss) && this._isColliding(bullet, entity)) {
+                    this._handleBulletHitsBoss(bullet, entity);
                 }
             });
         });
@@ -1404,20 +1418,76 @@ export class CollisionSystem extends System {
             return;
         }
 
-        enemies.forEach(enemy => {
-            if (this._isColliding(player, enemy)) {
-                this._handleEnemyHitsPlayer(enemy, player);
-            }
-        });
-
-        enemyProjectiles.forEach(projectile => {
-            if (this._isColliding(player, projectile)) {
-                this._handleProjectileHitsPlayer(projectile, player);
+        const nearbyPlayerEntities = this._getNearbyEntities(player);
+        nearbyPlayerEntities.forEach(entity => {
+            if (entity.hasComponent(Enemy) && this._isColliding(player, entity)) {
+                this._handleEnemyHitsPlayer(entity, player);
+            } else if (entity.hasComponent(EnemyBullet) && this._isColliding(player, entity)) {
+                this._handleProjectileHitsPlayer(entity, player);
             }
         });
     }
 
+    private _updateSpatialGrid(entities: Entity[]): void {
+        this._spatialGrid.clear();
+        
+        entities.forEach(entity => {
+            if (this._isCollidable(entity)) {
+                const bounds = this._getEntityBounds(entity);
+                if (bounds) {
+                    this._spatialGrid.insert(entity, bounds);
+                }
+            }
+        });
+    }
+
+    private _isCollidable(entity: Entity): boolean {
+        return entity.hasComponent(Bullet) || 
+               entity.hasComponent(Enemy) || 
+               entity.hasComponent(Boss) || 
+               entity.hasComponent(EnemyBullet) || 
+               entity.hasComponent(Player);
+    }
+
+    private _getEntityBounds(entity: Entity): SpatialBounds | null {
+        const components = getComponents(entity, Transform, Collider);
+        if (!components) {
+            return null;
+        }
+
+        const [transform, collider] = components;
+        const radius = collider.radius;
+        
+        return {
+            minX: transform.position.x - radius,
+            minY: transform.position.y - radius,
+            maxX: transform.position.x + radius,
+            maxY: transform.position.y + radius
+        };
+    }
+
+    private _getNearbyEntities(entity: Entity): Set<Entity> {
+        const bounds = this._getEntityBounds(entity);
+        if (!bounds) {
+            return new Set();
+        }
+
+        // Expand bounds slightly to ensure we catch nearby entities
+        const expandedBounds: SpatialBounds = {
+            minX: bounds.minX - 10,
+            minY: bounds.minY - 10,
+            maxX: bounds.maxX + 10,
+            maxY: bounds.maxY + 10
+        };
+
+        const nearby = this._spatialGrid.query(expandedBounds);
+        nearby.delete(entity); // Remove self from results
+        return nearby;
+    }
+
     private _isColliding(entityA: Entity, entityB: Entity): boolean {
+        this._collisionMetrics.totalChecks++;
+        
         const componentsA = getComponents(entityA, Transform, Collider);
         const componentsB = getComponents(entityB, Transform, Collider);
         if (!componentsA || !componentsB) {
@@ -1430,6 +1500,10 @@ export class CollisionSystem extends System {
         const dy = transformA.position.y - transformB.position.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         return distance < colliderA.radius + colliderB.radius;
+    }
+
+    getCollisionMetrics() {
+        return { ...this._collisionMetrics };
     }
 
     private _handleBulletHitsEnemy(bullet: Entity, enemy: Entity): void {

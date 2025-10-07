@@ -19,10 +19,17 @@
     "test:e2e:ui": "playwright test --ui",
     "test:all": "npm run test:unit && npm run test:e2e",
     "test:epic3": "node scripts/run-epic3-tests.js",
-    "test:epic3:manual": "python scripts/run-epic3-tests.py"
+    "test:epic3:manual": "python scripts/run-epic3-tests.py",
+    "beta:setup": "node scripts/setup-beta-testing.js",
+    "beta:build": "bash scripts/build-beta.sh",
+    "beta:deploy": "bash scripts/deploy-beta.sh",
+    "beta:rollback": "bash scripts/rollback-beta.sh",
+    "beta:test": "npm run test:all && npm run beta:build"
   },
   "keywords": [],
   "dependencies": {
+    "ajv": "^8.17.1",
+    "ajv-formats": "^3.0.1",
     "gsap": "^3.13.0",
     "pixi.js": "^8.13.2"
   },

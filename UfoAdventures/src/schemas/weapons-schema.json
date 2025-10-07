@@ -1,0 +1,140 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Weapons Configuration Schema",
+  "type": "object",
+  "patternProperties": {
+    "^[a-zA-Z0-9-_]+$": {
+      "type": "object",
+      "required": ["cooldown"],
+      "properties": {
+        "cooldown": {
+          "type": "number",
+          "minimum": 0
+        },
+        "burst": {
+          "type": "number",
+          "minimum": 1
+        },
+        "projectiles": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["type"],
+            "properties": {
+              "dx": {
+                "type": "number"
+              },
+              "dy": {
+                "type": "number"
+              },
+              "tint": {
+                "type": "number",
+                "minimum": 0
+              },
+              "type": {
+                "type": "string",
+                "enum": ["player", "enemy"]
+              },
+              "damage": {
+                "type": "number",
+                "minimum": 0
+              },
+              "speed": {
+                "type": "number",
+                "minimum": 0
+              },
+              "angle": {
+                "type": "number"
+              },
+              "offset": {
+                "type": "object",
+                "properties": {
+                  "x": {
+                    "type": "number"
+                  },
+                  "y": {
+                    "type": "number"
+                  }
+                },
+                "additionalProperties": false
+              },
+              "scale": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "beam": {
+          "type": "object",
+          "required": ["duration", "width", "damage"],
+          "properties": {
+            "duration": {
+              "type": "number",
+              "minimum": 0
+            },
+            "width": {
+              "type": "number",
+              "minimum": 1
+            },
+            "damage": {
+              "type": "number",
+              "minimum": 0
+            },
+            "tint": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        "spread": {
+          "type": "boolean"
+        },
+        "accuracy": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "volley": {
+          "type": "number",
+          "minimum": 1
+        },
+        "heat": {
+          "type": "number",
+          "minimum": 0
+        },
+        "heatDecayRate": {
+          "type": "number",
+          "minimum": 0
+        },
+        "overheatThreshold": {
+          "type": "number",
+          "minimum": 0
+        },
+        "burstCount": {
+          "type": "number",
+          "minimum": 1
+        },
+        "burstDelay": {
+          "type": "number",
+          "minimum": 0
+        },
+        "spreadAngle": {
+          "type": "number",
+          "minimum": 0
+        },
+        "penetration": {
+          "type": "number",
+          "minimum": 0
+        },
+        "ricochetCount": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

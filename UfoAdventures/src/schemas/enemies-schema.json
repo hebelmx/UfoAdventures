@@ -1,0 +1,187 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Enemies Configuration Schema",
+  "type": "object",
+  "required": ["templates", "difficultyModifiers", "waves"],
+  "properties": {
+    "templates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "health", "initialState"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[a-zA-Z0-9-_]+$"
+          },
+          "spritesheet": {
+            "type": "object",
+            "properties": {
+              "alias": {
+                "type": "string"
+              },
+              "animation": {
+                "type": "string"
+              },
+              "speed": {
+                "type": "number",
+                "minimum": 0
+              }
+            }
+          },
+          "spriteWidth": {
+            "type": "number",
+            "minimum": 1
+          },
+          "spriteHeight": {
+            "type": "number",
+            "minimum": 1
+          },
+          "colliderRadius": {
+            "type": "number",
+            "minimum": 1
+          },
+          "health": {
+            "type": "number",
+            "minimum": 1
+          },
+          "initialState": {
+            "type": "string",
+            "enum": ["patrol", "chase", "attack"]
+          },
+          "verticalSpeed": {
+            "type": "number",
+            "minimum": 0
+          },
+          "horizontalSpeed": {
+            "type": "number",
+            "minimum": 0
+          },
+          "amplitude": {
+            "type": "number",
+            "minimum": 0
+          },
+          "frequency": {
+            "type": "number",
+            "minimum": 0
+          },
+          "diveSpeed": {
+            "type": "number"
+          },
+          "climbSpeed": {
+            "type": "number"
+          },
+          "horizontalDrift": {
+            "type": "number"
+          },
+          "weaponId": {
+            "type": "string"
+          },
+          "fireRate": {
+            "type": "number",
+            "minimum": 0
+          },
+          "behaviorTreeId": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "difficultyModifiers": {
+      "type": "object",
+      "required": ["easy", "normal", "hard"],
+      "properties": {
+        "easy": {
+          "$ref": "#/definitions/difficultyModifier"
+        },
+        "normal": {
+          "$ref": "#/definitions/difficultyModifier"
+        },
+        "hard": {
+          "$ref": "#/definitions/difficultyModifier"
+        }
+      },
+      "additionalProperties": false
+    },
+    "waves": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["delay", "spawns"],
+        "properties": {
+          "delay": {
+            "type": "number",
+            "minimum": 0
+          },
+          "spawns": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["template", "count"],
+              "properties": {
+                "template": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "number",
+                  "minimum": 1
+                },
+                "spread": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "offset": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1
+                },
+                "altitude": {
+                  "type": "number"
+                },
+                "positions": {
+                  "type": "array",
+                  "items": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                }
+              },
+              "additionalProperties": false
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "definitions": {
+    "difficultyModifier": {
+      "type": "object",
+      "required": ["healthMultiplier", "damageMultiplier", "fireRateMultiplier", "spawnCountMultiplier"],
+      "properties": {
+        "healthMultiplier": {
+          "type": "number",
+          "minimum": 0
+        },
+        "damageMultiplier": {
+          "type": "number",
+          "minimum": 0
+        },
+        "fireRateMultiplier": {
+          "type": "number",
+          "minimum": 0
+        },
+        "spawnCountMultiplier": {
+          "type": "number",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

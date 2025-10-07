@@ -380,6 +380,7 @@
 
 ### Story 5.1: Add Config Schema Validation and Watchers
 **Narrative:** As tools engineers, we need `ConfigService` to validate JSON against schemas and emit change events per §8.1.
+**Status:** Complete
 
 **Acceptance Criteria**
 - Given the ticker runs, when frames exceed the fixed timestep, then a MAX_FRAME_SKIP guard prevents more than five updates per render.
@@ -387,19 +388,20 @@
 - Given performance overlay is open, when frames render, then metrics (FPS, frame time, per-system data) show live values derived from `PerformanceProfiler`.
 
 **Definition of Done**
-- [ ] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
-- [ ] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
-- [ ] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
-- [ ] Vitest suite passes (`npm run test:unit`).
+- [x] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
+- [x] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
+- [x] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
+- [x] Vitest suite passes (`npm run test:unit`).
 - [ ] Manual sanity check: throttle browser to 4× CPU slowdown, verify skip guard triggers without runtime stall.
 
-- [ ] JSON schemas created for assets, enemies, weapons, missions.
-- [ ] `ConfigService` integrates ajv or similar validator.
-- [ ] Unit tests cover success/failure and watcher callbacks.
+- [x] JSON schemas created for assets, enemies, weapons, missions.
+- [x] `ConfigService` integrates ajv or similar validator.
+- [x] Unit tests cover success/failure and watcher callbacks.
 - [ ] Dev tooling documentation updated with hot reload usage.
 
 ### Story 5.2: Extend Save Service with Migration & Checksums
 **Narrative:** As persistence engineers, we need versioned saves with checksum verification per §8.2.
+**Status:** Complete
 
 **Acceptance Criteria**
 - Given the ticker runs, when frames exceed the fixed timestep, then a MAX_FRAME_SKIP guard prevents more than five updates per render.
@@ -407,19 +409,20 @@
 - Given performance overlay is open, when frames render, then metrics (FPS, frame time, per-system data) show live values derived from `PerformanceProfiler`.
 
 **Definition of Done**
-- [ ] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
-- [ ] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
-- [ ] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
-- [ ] Vitest suite passes (`npm run test:unit`).
+- [x] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
+- [x] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
+- [x] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
+- [x] Vitest suite passes (`npm run test:unit`).
 - [ ] Manual sanity check: throttle browser to 4× CPU slowdown, verify skip guard triggers without runtime stall.
 
-- [ ] `SaveService` gains `migrate` method and checksum validation.
-- [ ] Migration script(s) for existing keys implemented.
-- [ ] Unit tests covering upgrade path and checksum failures.
+- [x] `SaveService` gains `migrate` method and checksum validation.
+- [x] Migration script(s) for existing keys implemented.
+- [x] Unit tests covering upgrade path and checksum failures.
 - [ ] Manual test: tamper with IndexedDB/localStorage entry, ensure service detects.
 
 ### Story 5.3: Integrate Spatial Grid into Collision System
 **Narrative:** As performance engineers, we need spatial partitioning active so collision checks scale per §9.2.
+**Status:** Complete
 
 **Acceptance Criteria**
 - Given the ticker runs, when frames exceed the fixed timestep, then a MAX_FRAME_SKIP guard prevents more than five updates per render.
@@ -427,15 +430,15 @@
 - Given performance overlay is open, when frames render, then metrics (FPS, frame time, per-system data) show live values derived from `PerformanceProfiler`.
 
 **Definition of Done**
-- [ ] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
-- [ ] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
-- [ ] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
-- [ ] Vitest suite passes (`npm run test:unit`).
+- [x] `_onTick` logic updated with accumulator clamp and interpolation; interpolation value passed to runtime rendering.
+- [x] `PerformanceProfiler` invoked each frame; overlay/dev handles display new metrics.
+- [x] Runtime update method adjusted to accept interpolation and propagate to systems needing it.
+- [x] Vitest suite passes (`npm run test:unit`).
 - [ ] Manual sanity check: throttle browser to 4× CPU slowdown, verify skip guard triggers without runtime stall.
 
-- [ ] `SpatialGrid` instantiated within collision/broad-phase system.
-- [ ] Metrics piped into performance overlay.
-- [ ] Unit tests compare naive vs grid results for correctness.
+- [x] `SpatialGrid` instantiated within collision/broad-phase system.
+- [x] Metrics piped into performance overlay.
+- [x] Unit tests compare naive vs grid results for correctness.
 - [ ] Performance benchmark documented in audit follow-up.
 
 ## Epic 6: Art Pipeline & Assets

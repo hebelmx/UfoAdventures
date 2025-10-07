@@ -1,0 +1,134 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Missions Configuration Schema",
+  "type": "object",
+  "required": ["default", "list"],
+  "properties": {
+    "default": {
+      "type": "string",
+      "minLength": 1
+    },
+    "list": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "mode", "description", "objectives", "scoring", "rewards"],
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^[a-zA-Z0-9-_]+$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["adventure", "boss", "arcade", "training"]
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1
+          },
+          "objectives": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["id", "type", "label"],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "type": {
+                  "type": "string",
+                  "enum": ["eliminate", "defeatBoss", "timeUnder", "damageUnder", "survive"]
+                },
+                "target": {
+                  "type": "string"
+                },
+                "count": {
+                  "type": "number",
+                  "minimum": 1
+                },
+                "seconds": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "amount": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "label": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "additionalProperties": false
+            }
+          },
+          "scoring": {
+            "type": "object",
+            "required": ["baseScore", "enemyKill", "bossBonus", "objectiveBonus"],
+            "properties": {
+              "baseScore": {
+                "type": "number",
+                "minimum": 0
+              },
+              "enemyKill": {
+                "type": "number",
+                "minimum": 0
+              },
+              "bossBonus": {
+                "type": "number",
+                "minimum": 0
+              },
+              "objectiveBonus": {
+                "type": "number",
+                "minimum": 0
+              },
+              "timeBonus": {
+                "type": "object",
+                "required": ["threshold", "perSecond"],
+                "properties": {
+                  "threshold": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "perSecond": {
+                    "type": "number",
+                    "minimum": 0
+                  }
+                },
+                "additionalProperties": false
+              },
+              "hitPenalty": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
+          },
+          "rewards": {
+            "type": "object",
+            "required": ["xp", "credits"],
+            "properties": {
+              "xp": {
+                "type": "number",
+                "minimum": 0
+              },
+              "credits": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

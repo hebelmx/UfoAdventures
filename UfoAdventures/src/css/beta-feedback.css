@@ -1,0 +1,307 @@
+/* Beta Feedback System Styles */
+
+.beta-feedback-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    font-family: 'Arial', sans-serif;
+}
+
+.beta-feedback-content {
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border: 2px solid #0f3460;
+    border-radius: 12px;
+    padding: 24px;
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    color: #ffffff;
+}
+
+.beta-feedback-content h3 {
+    margin: 0 0 20px 0;
+    color: #00d4ff;
+    text-align: center;
+    font-size: 24px;
+    text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+}
+
+.beta-feedback-content .form-group {
+    margin-bottom: 16px;
+}
+
+.beta-feedback-content label {
+    display: block;
+    margin-bottom: 6px;
+    color: #b8c5d6;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.beta-feedback-content input,
+.beta-feedback-content select,
+.beta-feedback-content textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #0f3460;
+    border-radius: 6px;
+    background-color: rgba(15, 52, 96, 0.3);
+    color: #ffffff;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.beta-feedback-content input:focus,
+.beta-feedback-content select:focus,
+.beta-feedback-content textarea:focus {
+    outline: none;
+    border-color: #00d4ff;
+    box-shadow: 0 0 8px rgba(0, 212, 255, 0.3);
+    background-color: rgba(15, 52, 96, 0.5);
+}
+
+.beta-feedback-content textarea {
+    resize: vertical;
+    min-height: 80px;
+    font-family: inherit;
+}
+
+.beta-feedback-content .form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    margin-top: 24px;
+}
+
+.beta-feedback-content button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 100px;
+}
+
+.beta-feedback-content button[type="submit"] {
+    background: linear-gradient(135deg, #00d4ff, #0099cc);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+}
+
+.beta-feedback-content button[type="submit"]:hover {
+    background: linear-gradient(135deg, #0099cc, #0077aa);
+    box-shadow: 0 6px 16px rgba(0, 212, 255, 0.4);
+    transform: translateY(-2px);
+}
+
+.beta-feedback-content button[type="button"] {
+    background: transparent;
+    color: #b8c5d6;
+    border: 1px solid #0f3460;
+}
+
+.beta-feedback-content button[type="button"]:hover {
+    background-color: rgba(15, 52, 96, 0.3);
+    border-color: #00d4ff;
+    color: #00d4ff;
+}
+
+/* Beta Testing Indicator */
+.beta-indicator {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    color: white;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Beta Testing Hotkeys Help */
+.beta-hotkeys {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #ffffff;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    z-index: 1000;
+    max-width: 200px;
+    border: 1px solid #0f3460;
+}
+
+.beta-hotkeys h4 {
+    margin: 0 0 8px 0;
+    color: #00d4ff;
+    font-size: 14px;
+}
+
+.beta-hotkeys .hotkey {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 4px;
+}
+
+.beta-hotkeys .key {
+    background: #0f3460;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 11px;
+}
+
+/* Beta Testing Status Bar */
+.beta-status-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(90deg, #1a1a2e, #16213e);
+    border-bottom: 2px solid #0f3460;
+    padding: 8px 16px;
+    color: #ffffff;
+    font-size: 12px;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.beta-status-bar .status-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.beta-status-bar .status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #00d4ff;
+    animation: blink 1s infinite;
+}
+
+@keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0.3; }
+}
+
+/* Beta Testing Notification */
+.beta-notification {
+    position: fixed;
+    top: 50px;
+    right: 20px;
+    background: linear-gradient(135deg, #00d4ff, #0099cc);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 212, 255, 0.3);
+    z-index: 1000;
+    max-width: 300px;
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.beta-notification.success {
+    background: linear-gradient(135deg, #00ff88, #00cc66);
+}
+
+.beta-notification.error {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+}
+
+.beta-notification.warning {
+    background: linear-gradient(135deg, #ffa726, #ff9800);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .beta-feedback-content {
+        width: 95%;
+        padding: 16px;
+    }
+    
+    .beta-feedback-content h3 {
+        font-size: 20px;
+    }
+    
+    .beta-hotkeys {
+        bottom: 60px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+    }
+    
+    .beta-status-bar {
+        flex-direction: column;
+        gap: 4px;
+        padding: 6px 12px;
+    }
+}
+
+/* Dark Theme Compatibility */
+@media (prefers-color-scheme: dark) {
+    .beta-feedback-content {
+        background: linear-gradient(135deg, #0a0a0a, #1a1a1a);
+        border-color: #333333;
+    }
+    
+    .beta-feedback-content input,
+    .beta-feedback-content select,
+    .beta-feedback-content textarea {
+        background-color: rgba(51, 51, 51, 0.3);
+        border-color: #333333;
+    }
+}
+
+/* High Contrast Mode */
+@media (prefers-contrast: high) {
+    .beta-feedback-content {
+        border-width: 3px;
+    }
+    
+    .beta-feedback-content input,
+    .beta-feedback-content select,
+    .beta-feedback-content textarea {
+        border-width: 2px;
+    }
+    
+    .beta-feedback-content button {
+        border: 2px solid currentColor;
+    }
+}
